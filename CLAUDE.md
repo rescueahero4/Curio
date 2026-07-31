@@ -1,5 +1,13 @@
-## Behavior
+## Project
+### Goal and Architecture
+- Orient understanding of the project, objectives and wotk items from PRD 
+`docs\PRD-01-Foundations.md`
 
+- Always refer to Solutions Architecture to ensure development current and future development always align with the original Solutions Architecture plan
+`docs\architecture\00-architecture-overview.md`
+
+
+## Behavior
 ### Responsding
 Keep responses focused, brief, and concise. Keep disclaimers and caveats short, and spend most of the response on the main answer. When asked to explain something, give a high-level summary unless an in-depth explanation is specifically requested.Keep responses focused, brief, and concise. Keep disclaimers and caveats short, and spend most of the response on the main answer. When asked to explain something, give a high-level summary unless an in-depth explanation is specifically requested.
 
