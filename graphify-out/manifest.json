@@ -1,12 +1,12 @@
 {
   "docs/PRD-01-Foundations.md": {
-    "mtime": 1785536463.8338041,
-    "ast_hash": "2d299f3336f46331f2a4709951c023a6",
+    "mtime": 1785538182.8949995,
+    "ast_hash": "e7e3b72a3f7d1d83d4c7b53ca09ac60b",
     "semantic_hash": ""
   },
   "docs/architecture/00-architecture-overview.md": {
-    "mtime": 1785515862.7546563,
-    "ast_hash": "9a6bcda4b403322b3652bc31e3ae1af5",
+    "mtime": 1785537963.366815,
+    "ast_hash": "14fcdf39e11a74d467449e48c038245c",
     "semantic_hash": ""
   },
   "docs/architecture/01-backend-architecture.md": {
@@ -30,18 +30,18 @@
     "semantic_hash": ""
   },
   "docs/architecture/05-mcp-architecture.md": {
-    "mtime": 1785463149.73772,
-    "ast_hash": "23478df15362e5b82d6b473636f43b39",
+    "mtime": 1785538070.0181742,
+    "ast_hash": "9b8ce759861252b641238cd589528a03",
     "semantic_hash": ""
   },
   "docs/architecture/06-security-architecture.md": {
-    "mtime": 1785463150.1287227,
-    "ast_hash": "1fcbb0d88c65ca336da49f320edfeba1",
+    "mtime": 1785538068.0384433,
+    "ast_hash": "1c19fbad34e7d2220280a81ca6ab7a43",
     "semantic_hash": ""
   },
   "docs/architecture/07-delivery-open-source.md": {
-    "mtime": 1785515862.785744,
-    "ast_hash": "f7a9764ad6b4ae7aec8d0a4ef7437da6",
+    "mtime": 1785538057.7384002,
+    "ast_hash": "3b3030a50d72c54835526e1752b3076c",
     "semantic_hash": ""
   },
   "docs/architecture/08-parity-matrix.md": {
@@ -240,8 +240,8 @@
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/mod.rs": {
-    "mtime": 1785535931.4342308,
-    "ast_hash": "09581743b81e92ef36efe23dbcf2d332",
+    "mtime": 1785536829.8454132,
+    "ast_hash": "9f16033c8d701d3cfd91bab0094c07aa",
     "semantic_hash": ""
   },
   "crates/curio-server/src/security/mod.rs": {
@@ -270,13 +270,13 @@
     "semantic_hash": ""
   },
   "crates/curio-tray/src/main.rs": {
-    "mtime": 1785535931.5302072,
-    "ast_hash": "9187ff2b3efeafde17d5b4a246bd01cc",
+    "mtime": 1785536970.3823073,
+    "ast_hash": "c26749bbcc10c18f6665d59c80bbb64e",
     "semantic_hash": ""
   },
   "crates/curio-tray/src/service.rs": {
-    "mtime": 1785535931.5447853,
-    "ast_hash": "5652528ab26cb5efde6d733a07fffe95",
+    "mtime": 1785536970.3833084,
+    "ast_hash": "a9fea7d7839f73f8b0e615691488876c",
     "semantic_hash": ""
   },
   "crates/curio-tray/src/single_instance.rs": {
@@ -490,8 +490,8 @@
     "semantic_hash": ""
   },
   "docs/architecture/D0-report.md": {
-    "mtime": 1785536454.2153406,
-    "ast_hash": "045afaf3166ebcf03b717e8abeafd417",
+    "mtime": 1785538164.9140244,
+    "ast_hash": "c493e9dd792e9b32715f17dd42ad34dd",
     "semantic_hash": ""
   },
   "packaging/README.md": {
@@ -655,8 +655,8 @@
     "semantic_hash": ""
   },
   "web/spa/src/lib/types.ts": {
-    "mtime": 1785535932.4153636,
-    "ast_hash": "0258ea7c46ec480337c3c29140f3073e",
+    "mtime": 1785538115.5505402,
+    "ast_hash": "e6611385185da0bcc91651d4c95a356d",
     "semantic_hash": ""
   },
   "crates/curio-db/src/items/bulk.rs": {
@@ -695,8 +695,8 @@
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/api/settings.rs": {
-    "mtime": 1785535931.3557224,
-    "ast_hash": "28503128173da7cba3aa3984b582f9ee",
+    "mtime": 1785538190.5175269,
+    "ast_hash": "16d5cef0f77b7665556f5638bd4b0882",
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/api/system.rs": {
@@ -1042,6 +1042,11 @@
   "web/spa/src/routes/Vocabulary.tsx": {
     "mtime": 1785535932.490746,
     "ast_hash": "bed35235d3d2f3dfebca8bd3e034e195",
+    "semantic_hash": ""
+  },
+  "crates/curio-tray/src/qos.rs": {
+    "mtime": 1785536957.647192,
+    "ast_hash": "31827c2153475907491ca67e355e8521",
     "semantic_hash": ""
   }
 }
