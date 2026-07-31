@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Curio</title>
+    <style>
+      body {
+        font: 13px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+        margin: 0;
+        padding: 12px;
+        width: 260px;
+      }
+      .row { display: flex; align-items: center; gap: 8px; }
+      .dot { width: 8px; height: 8px; border-radius: 50%; background: #9ca3af; }
+      .dot[data-state="running"] { background: #22c55e; }
+      .dot[data-state="paused"] { background: #f59e0b; }
+      button { display: block; width: 100%; margin-top: 6px; padding: 6px 8px; }
+      .muted { color: #6b7280; }
+    </style>
+  </head>
+  <body>
+    <div class="row">
+      <span class="dot" id="status-dot"></span>
+      <span id="status-text">Checking…</span>
+    </div>
+
+    <!--
+      Disabled in HTML, not by later JavaScript (R-EXT-17). The popup script may not have
+      run yet when the user clicks, and a button that is enabled-then-disabled is a button
+      someone can press in the gap.
+
+      Both capture buttons enable and disable TOGETHER: they share the tab's scroll
+      position, so a second capture started during the first would fight it (R-EXT-18).
+    -->
+    <button type="button" id="capture-fold" disabled>Add website</button>
+    <button type="button" id="capture-full" disabled>Add full-screen</button>
+    <button type="button" id="open-projects" disabled>Open Projects</button>
+    <button type="button" id="new-project" disabled>New Project</button>
+
+    <p class="muted" id="hint"></p>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

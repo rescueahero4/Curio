@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Curio Capture",
+  "version": "0.1.0",
+  "description": "Capture the current page into your Curio design inspiration library.",
+  "minimum_chrome_version": "116",
+  "action": {
+    "default_title": "Curio",
+    "default_popup": "popup/popup.html"
+  },
+  "background": {
+    "service_worker": "worker/service-worker.js",
+    "type": "module"
+  },
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
+  "content_scripts": [
+    {
+      "matches": ["http://127.0.0.1/pair", "http://localhost/pair"],
+      "js": ["content/pair.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA18tkHEiUMV9TAQ5JRUFDOU8QRPscQNd62WjYncdz4yrNPwiY7/CoKOJ9clecW6KsoL5n2KWDsV6ns5QbO01UhB8PnRLctRm/2WlNwoR6jgn6Np5GX4GVi3abLBV3DNwoe3geRy55C384Hl6FmmG5yl4ymyZlPEh/iK1UQMmm1eaSL/en0JX4pMImFEjJvEZxBwCVJSA4Xgc9juDs4SkATMgIB3TeqzQD4DwYh5JrsU0b9JrglrOLkGWr7SlSb/gVnLioEkmWpZBdQzQm0ZdtXIMG5oMKEyve04Inn5RoBFqX/5eVV05C+vKxXxJ7ctEYJFZkoXET6fOSDx050gvG0wIDAQAB"
+}

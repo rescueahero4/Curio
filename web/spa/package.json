@@ -1,0 +1,29 @@
+{
+  "name": "curio-spa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Curio dashboard. Built by Vite, served from inside the curio binary.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "gate": "npm run typecheck && npm run lint && npm run build"
+  },
+  "dependencies": {
+    "@solidjs/router": "^1.0.0",
+    "solid-js": "^1.9.14"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.6",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.1.2",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.0",
+    "vite": "^7.0.0",
+    "vite-plugin-solid": "^2.11.14"
+  }
+}

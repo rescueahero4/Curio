@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+/*
+ * Tailwind 4, for parity with the previous implementation's styling layer
+ * (Inventory §10.32). Design tokens land with the real dashboard in P3; what is here is
+ * the minimum for the scaffold's screens to be legible rather than a design system
+ * invented ahead of the interface it has to serve.
+ */
+
+@theme {
+  --color-canvas: oklch(99% 0 0);
+  --color-ink: oklch(23% 0.01 260);
+  --color-muted: oklch(55% 0.01 260);
+  --color-line: oklch(91% 0.005 260);
+}
+
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-canvas: oklch(17% 0.01 260);
+    --color-ink: oklch(94% 0.005 260);
+    --color-muted: oklch(65% 0.01 260);
+    --color-line: oklch(28% 0.01 260);
+  }
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
