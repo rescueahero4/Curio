@@ -24,6 +24,8 @@
 //! Every dependency shared with the server is a chance to drag an async runtime into a
 //! process that lives for one message, which is why this crate takes almost none.
 
+mod register;
+
 use std::io::{Read as _, Write as _};
 
 use curio_runtime::{Discovery, RuntimeFile};
@@ -35,6 +37,29 @@ use curio_runtime::{Discovery, RuntimeFile};
 const MAX_MESSAGE_BYTES: usize = 1024 * 1024;
 
 fn main() {
+    // Registration runs from an installer, not from Chrome (R-EXT-3). It is checked before
+    // anything touches stdin, because the native-messaging path blocks waiting for a
+    // message that will never come when a human ran this by hand.
+    match std::env::args().nth(1).as_deref() {
+        Some("--register") => {
+            return report(
+                register::register().unwrap_or_else(|err| {
+                    eprintln!("curio-nmh: {err}");
+                    std::process::exit(1);
+                }),
+                "registered",
+            );
+        }
+        Some("--unregister") => return report(register::unregister(), "removed"),
+        Some("--version") => {
+            // stdout is reserved for framed messages *in host mode*. This is not host
+            // mode: a human ran it, and a human reads stdout.
+            println!("curio-nmh {}", curio_core::VERSION);
+            return;
+        }
+        _ => {}
+    }
+
     // Read one request. Its content does not matter — the extension asks the only question
     // this host can answer — but it must be consumed so the framing stays aligned.
     if let Err(err) = read_message() {
@@ -53,6 +78,30 @@ fn main() {
     if let Err(err) = write_message(&reply) {
         eprintln!("curio-nmh: could not write the reply: {err}");
         std::process::exit(1);
+    }
+}
+
+/// Print what registration did, in a form an installer log can carry.
+///
+/// Every diagnostic goes to **stderr** except this one, and this one only runs when a human
+/// or an installer invoked the binary directly — never when Chrome spawned it, where a
+/// stray byte on stdout corrupts the framed stream (R-EXT-5).
+fn report(report: register::Report, verb: &str) {
+    if !report.any() {
+        // Exit 2, not 1: nothing failed, there was simply no Chromium-family browser to
+        // register with. An installer can warn ("the extension will need pairing by hand")
+        // without treating the install as broken — which it is not.
+        println!("curio-nmh: no browser was {verb}");
+        for skipped in &report.skipped {
+            println!("curio-nmh: skipped {skipped}");
+        }
+        std::process::exit(2);
+    }
+    {
+        println!("curio-nmh: {verb} for {}", report.registered.join(", "));
+    }
+    for skipped in &report.skipped {
+        println!("curio-nmh: skipped {skipped}");
     }
 }
 

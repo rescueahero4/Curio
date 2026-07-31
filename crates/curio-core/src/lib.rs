@@ -27,6 +27,7 @@ pub mod domain;
 pub mod error;
 pub mod events;
 pub mod ids;
+pub mod nm;
 pub mod paths;
 pub mod ports;
 pub mod prompt;

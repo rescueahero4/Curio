@@ -24,7 +24,11 @@
 /// public key, Chrome derives the extension id from it, and the id becomes this origin.
 /// Change one without the other and capture breaks — which is why the derivation is
 /// asserted by a test below rather than trusted as a comment.
-pub const EXTENSION_ORIGIN: &str = "chrome-extension://oehjmjhhelijpkojhpichkfcgbdejhfa";
+/// Re-exported rather than declared (R-OV-2). The same value pins `allowed_origins` in
+/// the native-messaging manifest, and two copies of a security boundary is one copy too
+/// many — the drift would be silent and the symptom would be a hostile extension the CORS
+/// check allows or a legitimate one the host refuses.
+pub use curio_core::nm::EXTENSION_ORIGIN;
 
 /// Whether a `Host` header names loopback.
 ///
