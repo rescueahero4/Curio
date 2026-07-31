@@ -24,12 +24,15 @@
 //! Shutdown mirrors it in reverse, ending with the file deleted and the token dead
 //! (R-BE-7).
 
+pub mod ai;
+pub mod images;
 pub mod routes;
 pub mod secrets;
 pub mod security;
 pub mod spa;
 pub mod state;
 pub mod watcher;
+pub mod worker;
 
 use std::net::{Ipv4Addr, SocketAddr};
 use std::path::PathBuf;
@@ -103,6 +106,9 @@ pub struct Service {
     port: u16,
     runtime_file: PathBuf,
     shutdown: oneshot::Sender<()>,
+    /// Stops the jobs worker. Fired **before** the listener so no job is interrupted
+    /// mid-write (R-BE-7).
+    stop_worker: oneshot::Sender<()>,
     finished: oneshot::Receiver<()>,
 }
 
@@ -178,6 +184,13 @@ impl Service {
             let _ = finished_tx.send(());
         });
 
+        // The worker starts after the listener, as R-BE-5's boot order requires. An
+        // assessment that finished before anything could serve `item.updated` would land
+        // a result no open dashboard ever heard about.
+        let (stop_worker, worker_shutdown) = oneshot::channel();
+        let worker_state = state.clone();
+        tokio::spawn(async move { crate::worker::run(worker_state, worker_shutdown).await });
+
         // The watcher starts after the listener is up, as R-BE-5 requires: a project
         // detected before the server could serve it would announce a card whose Launch
         // button had nowhere to go.
@@ -195,6 +208,7 @@ impl Service {
             port,
             runtime_file: config.runtime_file,
             shutdown,
+            stop_worker,
             finished,
         })
     }
@@ -238,8 +252,9 @@ impl Service {
     /// # Errors
     /// Returns [`Error::Runtime`] if `runtime.json` cannot be removed.
     pub async fn shutdown(self) -> Result<()> {
-        // The watcher and the worker stop here in P2, before the listener, so no job is
-        // interrupted mid-write.
+        // The worker stops before the listener, so no job is interrupted mid-write
+        // (R-BE-7). It finishes the item it is on and then declines to claim another.
+        let _ = self.stop_worker.send(());
 
         let _ = self.shutdown.send(());
         let _ = self.finished.await;

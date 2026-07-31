@@ -59,6 +59,13 @@ struct Inner {
     /// shutdown sequence: the quit route and the tray's Quit menu item converge here, so
     /// neither can drift into a second ordering that skips the WAL checkpoint.
     quit_requested: tokio::sync::Notify,
+    /// Raised whenever a job is enqueued, awaited by the worker.
+    ///
+    /// The worker also polls every two seconds (Inventory §9), so this is a latency
+    /// optimisation rather than the correctness mechanism: a capture should start
+    /// assessing immediately, but a job that arrives while the worker is mid-claim must
+    /// still be picked up. Notify has no backlog, which is exactly why the poll stays.
+    job_enqueued: tokio::sync::Notify,
     /// The single write connection (R-DA-8).
     ///
     /// A mutex rather than a pool because there is exactly one writer by design. Handlers
@@ -92,6 +99,7 @@ impl AppState {
                 config: Mutex::new(config),
                 events,
                 quit_requested: tokio::sync::Notify::new(),
+                job_enqueued: tokio::sync::Notify::new(),
                 db: Mutex::new(db),
             }),
         }
@@ -193,6 +201,21 @@ impl AppState {
     /// Wait for a quit request. Awaited by the owner of the shutdown sequence.
     pub async fn quit_requested(&self) {
         self.inner.quit_requested.notified().await;
+    }
+
+    /// Tell the worker there is something to do.
+    ///
+    /// Call this after every enqueue. Missing one costs latency, not correctness — the
+    /// worker's two-second poll finds the job anyway (Inventory §9) — but "the card sat
+    /// at processing for two seconds after I pressed capture" is the kind of slowness a
+    /// user reads as brokenness.
+    pub fn wake_worker(&self) {
+        self.inner.job_enqueued.notify_one();
+    }
+
+    /// Wait for a job to be enqueued.
+    pub async fn job_enqueued(&self) {
+        self.inner.job_enqueued.notified().await;
     }
 
     /// Mint a single-use launch nonce (R-SEC-5).
