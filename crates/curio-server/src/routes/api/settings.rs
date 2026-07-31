@@ -40,6 +40,12 @@ pub struct PublicSettings {
     pub api_key_set: bool,
     /// `sk-ant-…xxxx`, or `null`. Enough to tell two keys apart, not enough to use one.
     pub api_key_masked: Option<String>,
+    /// A `.secrets.json` from the previous implementation is still in the data root.
+    ///
+    /// Reported so Settings can say the key needs entering once more, rather than an
+    /// upgrading user finding themselves silently keyless (D31). Never the file's
+    /// contents — it is not opened.
+    pub api_key_legacy_present: bool,
     pub skill_file_path: String,
     /// The snippet the user pastes into Claude Code's config.
     pub mcp_http_url: String,
@@ -171,6 +177,8 @@ fn project(state: &AppState) -> PublicSettings {
         version: state.version().to_owned(),
         api_key_set: crate::secrets::api_key().is_some(),
         api_key_masked: crate::secrets::api_key().as_deref().map(mask),
+        api_key_legacy_present: crate::secrets::api_key().is_none()
+            && crate::secrets::legacy_secrets_present(&root),
         skill_file_path: root
             .join(curio_core::paths::SKILL_FILE_RELATIVE)
             .display()
@@ -231,6 +239,24 @@ mod tests {
         for forbidden in ["apiKey", "api_key\"", "token", "pairingToken", "quit"] {
             assert!(!rendered.contains(forbidden), "{forbidden} in {rendered}");
         }
+    }
+
+    #[test]
+    fn a_legacy_secrets_file_is_reported_but_never_read() {
+        // D31: the encrypted-file backend is retired rather than guessed at, so an
+        // upgrading user's key does not carry over. Telling them is the whole mitigation.
+        let dir = tempfile::tempdir().expect("tempdir");
+        assert!(!crate::secrets::legacy_secrets_present(dir.path()));
+
+        std::fs::write(dir.path().join(".secrets.json"), "{\"backend\":\"dpapi\"}").expect("write");
+        assert!(crate::secrets::legacy_secrets_present(dir.path()));
+    }
+
+    #[test]
+    fn the_flag_is_suppressed_once_a_key_exists() {
+        // Someone who has already re-entered their key should not keep being told to.
+        let settings = project(&state());
+        assert!(!settings.api_key_legacy_present || !settings.api_key_set);
     }
 
     #[test]

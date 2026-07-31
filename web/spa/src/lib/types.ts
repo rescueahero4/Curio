@@ -242,6 +242,8 @@ export interface Settings {
   launch_at_login_support: { supported: boolean; reason: string | null };
   api_key_set: boolean;
   api_key_masked: string | null;
+  /** A previous install's `.secrets.json` is present and its key could not be carried over (D31). */
+  api_key_legacy_present: boolean;
   skill_file_path: string;
   version: string;
   mcp_http_url: string;

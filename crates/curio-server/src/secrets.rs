@@ -56,6 +56,21 @@ pub fn is_configured() -> bool {
     api_key().is_some()
 }
 
+/// The previous implementation's secrets file, if it is still sitting in the data root.
+///
+/// D31 retired the encrypted-file backend rather than guess at its scrypt parameters, which
+/// means an upgrading user's stored key does not carry over. That is a fair trade for a
+/// credential they can re-obtain in seconds — but only if they are **told**. Silently
+/// starting with no key would look like the app forgetting something, and the honest
+/// version of that is one line of copy in Settings.
+///
+/// Reports presence only. The file is never opened, never parsed, and never moved: we
+/// cannot read it, and pretending otherwise is what this decision avoided.
+#[must_use]
+pub fn legacy_secrets_present(data_root: &std::path::Path) -> bool {
+    data_root.join(".secrets.json").is_file()
+}
+
 /// Store a key in the OS keychain.
 ///
 /// # Errors
