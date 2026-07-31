@@ -1,0 +1,37 @@
+[package]
+name = "curio-tray"
+description = "The curio binary: native event loop, tray menu, service thread."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "curio"
+path = "src/main.rs"
+
+[dependencies]
+curio-core = { workspace = true }
+curio-mcp = { workspace = true }
+curio-runtime = { workspace = true }
+curio-server = { workspace = true }
+
+tokio = { workspace = true }
+tray-icon = { workspace = true }
+tao = { workspace = true }
+
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3.27.0"
+
+[target.'cfg(unix)'.dependencies]
+libc = { workspace = true }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true }

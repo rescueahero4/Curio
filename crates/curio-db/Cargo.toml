@@ -1,0 +1,25 @@
+[package]
+name = "curio-db"
+description = "Storage. The only crate in the workspace that sees SQL."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+# R-DEL-2, asserted by `cargo gate` step 8: no other crate may add a SQLite dependency.
+# The rule keeps the storage seam cuttable and keeps SQL out of places where a reviewer
+# would not think to look for it.
+#
+# SQLite is bundled rather than linked against the system library. That is what lets
+# R-DA-10 retire the old LIKE search fallback: we control the build, so FTS5 is always
+# compiled in and "FTS5 might be missing" stops being a case the query builder handles.
+[dependencies]
+curio-core = { workspace = true }
+rusqlite = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3.27.0"

@@ -1,0 +1,14 @@
+[package]
+name = "xtask"
+description = "The quality gate and measurement tooling. Dev-only; never shipped."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+# Dev-only (R-DEL-2, D27). No shipped crate may depend on this, and it is excluded from
+# the workspace's default members so `cargo build` never compiles it into a release path.
+[dependencies]
+anyhow = { workspace = true }
+cargo_metadata = { workspace = true }

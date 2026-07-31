@@ -1,0 +1,38 @@
+[package]
+name = "curio-server"
+description = "The axum router, middleware, push transports, and SPA hosting."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+# Thin by contract (R-DEL-2): routing, transport, serialization. Anything that decides
+# something belongs in curio-core, and `cargo gate` asserts this crate never grows a
+# direct SQLite dependency.
+[dependencies]
+curio-core = { workspace = true }
+curio-db = { workspace = true }
+curio-runtime = { workspace = true }
+
+axum = { workspace = true }
+tokio = { workspace = true }
+tower = { workspace = true }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+base64 = { workspace = true }
+getrandom = { workspace = true }
+subtle = { workspace = true }
+
+mime_guess = { workspace = true }
+rust-embed = { workspace = true }
+
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3.27.0"

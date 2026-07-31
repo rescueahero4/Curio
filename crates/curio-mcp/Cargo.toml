@@ -1,0 +1,22 @@
+[package]
+name = "curio-mcp"
+description = "The MCP tool surface and the stdio proxy."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+# `rmcp` is deliberately absent until its D0 row is verified. ARCH-05 R-MCP-14 pins
+# "major version 2, floor 1.4.0", but crates.io publishes 3.0.1 (observed 2026-07-31),
+# and whether StreamableHttpService still exposes the stateless/JSON-response config the
+# architecture assumes is exactly what D0 checks. Guessing a pin here would either
+# contradict a numbered rule or silently adopt a major version nobody decided on.
+# See docs/architecture/D0-report.md.
+[dependencies]
+curio-core = { workspace = true }
+curio-runtime = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }

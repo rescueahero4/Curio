@@ -1,0 +1,20 @@
+[package]
+name = "curio-core"
+description = "Domain types and rules. Sees no SQL, no HTTP, no MCP."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+# R-DEL-2, asserted by `cargo gate` step 8: this crate MUST NOT depend on rusqlite,
+# axum, or rmcp. It defines the traits those layers implement. The rule exists so the
+# storage seam stays cuttable — unwinding an accidental rusqlite import from the domain
+# six months in is the expensive version of this check.
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+time = { workspace = true }
+ulid = { workspace = true }

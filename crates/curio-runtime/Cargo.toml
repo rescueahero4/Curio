@@ -1,0 +1,26 @@
+[package]
+name = "curio-runtime"
+description = "The runtime.json shape: how every client finds the running instance."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+# KEEP THIS LIST SMALL. curio-nmh depends on this crate and Chrome spawns curio-nmh
+# once per connection, so anything added here is user-visible latency in the popup's
+# status dot (R-EXT-3, D27). serde plus the platform FFI for the PID check — nothing
+# that pulls an async runtime, an HTTP client, or a TLS stack.
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[target.'cfg(unix)'.dependencies]
+libc = { workspace = true }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3.27.0"

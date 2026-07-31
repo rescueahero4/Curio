@@ -1,0 +1,141 @@
+[workspace]
+resolver = "3"
+members = [
+  "crates/curio-core",
+  "crates/curio-db",
+  "crates/curio-server",
+  "crates/curio-mcp",
+  "crates/curio-tray",
+  "crates/curio-nmh",
+  "crates/curio-runtime",
+  "crates/xtask",
+]
+# xtask is dev-only tooling (R-DEL-2). Excluding it from the default members keeps
+# it out of `cargo build` so it never lands on a release path.
+default-members = [
+  "crates/curio-core",
+  "crates/curio-db",
+  "crates/curio-server",
+  "crates/curio-mcp",
+  "crates/curio-tray",
+  "crates/curio-nmh",
+  "crates/curio-runtime",
+]
+
+[workspace.package]
+# R-DEL-12: ONE source of the version. It is stamped into the binary (`--version`),
+# the /health response, and runtime.json — three surfaces, one fact. A mismatch
+# between any two is a release-blocking bug.
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+license = "MIT"
+repository = "https://github.com/rescueahero/curio"
+authors = ["Rob Bags"]
+
+[workspace.dependencies]
+# --- workspace crates ------------------------------------------------------
+# Dependency direction is law (R-DEL-2). curio-core depends on nothing here;
+# curio-db is the only crate permitted a SQLite dependency; curio-nmh may take
+# curio-runtime and nothing else from this workspace.
+curio-core = { path = "crates/curio-core" }
+curio-db = { path = "crates/curio-db" }
+curio-mcp = { path = "crates/curio-mcp" }
+curio-runtime = { path = "crates/curio-runtime" }
+curio-server = { path = "crates/curio-server" }
+
+# --- serialization ---------------------------------------------------------
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+
+# --- async runtime + HTTP --------------------------------------------------
+# One tokio current_thread runtime on one service thread (R-BE-1). The "rt-multi-thread"
+# feature is deliberately absent: adding it would let a stray spawn_blocking pool
+# appear in the idle footprint the budget table governs.
+tokio = { version = "1.53.1", default-features = false, features = [
+  "rt",
+  "macros",
+  "net",
+  "sync",
+  "time",
+  "signal",
+  "io-util",
+] }
+axum = { version = "0.8.9", default-features = false, features = [
+  "http1",
+  "json",
+  "tokio",
+  "query",
+  "matched-path",
+] }
+tower = "0.5.2"
+tower-http = { version = "0.7.0", default-features = false, features = ["trace"] }
+hyper = { version = "1.8", default-features = false }
+hyper-util = { version = "0.1", default-features = false }
+http-body-util = "0.1"
+
+# --- storage ---------------------------------------------------------------
+# ONLY curio-db may use this. The dependency-direction gate asserts it (R-DEL-6 step 8).
+rusqlite = { version = "0.40.1", features = ["bundled"] }
+
+# --- identity, time, crypto -----------------------------------------------
+ulid = "3.0.0"
+time = { version = "0.3.54", default-features = false, features = [
+  "std",
+  "formatting",
+  "parsing",
+  "macros",
+] }
+getrandom = "0.3"
+base64 = "0.23.0"
+subtle = "2.6.1"
+
+# --- desktop shell ---------------------------------------------------------
+tray-icon = "0.24.2"
+tao = "0.36.0"
+
+# --- assets ----------------------------------------------------------------
+rust-embed = { version = "8.12.0", features = ["mime-guess"] }
+mime_guess = "2.0.5"
+
+# --- diagnostics -----------------------------------------------------------
+thiserror = "2.0.19"
+anyhow = "1.0.104"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+
+# --- platform --------------------------------------------------------------
+libc = "0.2"
+windows-sys = { version = "0.61.2", features = [
+  "Win32_Foundation",
+  "Win32_System_Threading",
+] }
+
+# --- dev tooling (xtask only) ---------------------------------------------
+cargo_metadata = "0.23.1"
+
+# --- deferred: pinned when its D0 row is verified --------------------------
+# rmcp: ARCH-05 R-MCP-14 pins "major version 2, floor 1.4.0", but crates.io now
+# publishes 3.0.1 (observed 2026-07-31). Which major we take — and whether
+# StreamableHttpService still exposes the stateless/JSON-response config the
+# architecture assumes — is D0 row "rmcp pin", blocking P4. Deliberately absent
+# here rather than guessed: a pin that contradicts R-MCP-14 is a doc change,
+# not a Cargo.toml edit. See docs/architecture/D0-report.md.
+#
+# notify: the projects watcher (R-BE-20) is P2. Current stable line to be pinned
+# then; 9.0.0 is still at rc as of scaffold.
+
+[profile.release]
+# R-DEL-4. `opt-level` is provisionally "s": D0 measures "z" against "s" for size
+# and hot-path speed and pins the winner (ARCH-07 OQ-1). "s" is the documented
+# fallback, so it is the honest default until that row is filled in.
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev]
+# Keep the debug loop bearable without touching the release profile the budget governs.
+opt-level = 0
+debug = 1

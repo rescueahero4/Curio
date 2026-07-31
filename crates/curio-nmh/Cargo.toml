@@ -1,0 +1,22 @@
+[package]
+name = "curio-nmh"
+description = "Native-messaging host: reads runtime.json, replies, exits."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "curio-nmh"
+path = "src/main.rs"
+
+# THIS LIST IS THE POINT OF THE CRATE (R-EXT-3, R-DEL-2). Chrome spawns this binary once
+# per connection, so its startup time is user-visible latency in the extension popup's
+# status dot. No tokio, no axum, no HTTP client, no workspace crate beyond curio-runtime.
+# `cargo gate` asserts it.
+[dependencies]
+curio-core = { workspace = true }
+curio-runtime = { workspace = true }
+serde_json = { workspace = true }

@@ -1,0 +1,8 @@
+# One gate script, one way to run it (R-DEL-6). CI invokes `cargo gate` too and
+# restates none of its steps — if it passes here it passes there.
+#
+# Built in the dev profile deliberately: the release profile sets panic = "abort",
+# which would turn a gate failure into an abort instead of a readable diagnostic.
+[alias]
+gate = "run --package xtask --quiet -- gate"
+xtask = "run --package xtask --quiet --"
