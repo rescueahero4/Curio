@@ -71,6 +71,14 @@ fn open_routes(state: &AppState) -> Router<AppState> {
         .route("/api/auth/exchange", post(auth::exchange))
         .route("/api/auth/logout", post(auth::logout))
         .route("/api/pair/authorize", post(auth::pair_authorize))
+        // `/ws` belongs here, not with the reads, and the distinction is not cosmetic: a
+        // browser `WebSocket` can send neither headers nor cookies on the upgrade, so the
+        // shared credential layer would 401 every client before the handler ever ran. Its
+        // credential is the **first message** within 5 s (R-BE-32, D23). It is also exempt
+        // from pause — the socket stays open and the paused state is announced over it,
+        // because a disconnected extension cannot tell "paused" from "not running", which
+        // is the one distinction FR-22 requires it to make.
+        .route("/ws", get(ws::upgrade))
         // The quit token, and nothing else, authenticates this (R-SEC-8). It is exempt
         // from pause: a paused app must still be quittable.
         .route(
@@ -103,10 +111,6 @@ fn read_routes(state: &AppState) -> Router<AppState> {
         .route("/files/items/{id}/{file}", get(files::item_file))
         .route("/p/{id}", get(project_root))
         .route("/p/{id}/{*rest}", get(files::project_file))
-        // The socket stays open while paused; the state is announced, not enforced by
-        // disconnection (R-BE-32). Its credential is the first message, so the shared
-        // credential layer does not apply.
-        .route("/ws", get(ws::upgrade))
         .layer(from_fn_with_state(state.clone(), guard::authenticate))
         .layer(from_fn(guard::identity))
 }
@@ -237,6 +241,36 @@ mod tests {
         assert_eq!(
             get("/api/prompts/template", Some("yes")).await,
             StatusCode::OK
+        );
+    }
+
+    #[tokio::test]
+    async fn the_websocket_upgrade_is_not_behind_the_credential_layer() {
+        // R-BE-32: `/ws` authenticates by first message, because a browser `WebSocket` can
+        // send neither headers nor cookies on the upgrade. It was originally grouped with
+        // the reads, which put the bearer/cookie layer in front of it — every client got a
+        // 401 before the handler ran, and nothing caught it because the ws tests only
+        // asserted constants. Found by driving a real socket.
+        //
+        // A credential-less upgrade must therefore NOT be 401. It is rejected as a bad
+        // request instead, since this is a plain GET with no upgrade headers.
+        let (app, _token) = app();
+        let status = app
+            .oneshot(
+                Request::builder()
+                    .uri("/ws")
+                    .header(header::HOST, "127.0.0.1:51234")
+                    .body(Body::empty())
+                    .expect("request"),
+            )
+            .await
+            .expect("response")
+            .status();
+
+        assert_ne!(
+            status,
+            StatusCode::UNAUTHORIZED,
+            "the credential layer must not sit in front of the first-message handshake"
         );
     }
 
