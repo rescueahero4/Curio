@@ -2,8 +2,8 @@
 id: ARCH-01
 title: Backend Architecture
 status: draft
-version: 1.2.0
-date: 2026-07-31
+version: 1.3.0
+date: 2026-08-01
 project: curio
 supersedes: []
 depends_on: [ARCH-00]
@@ -70,7 +70,7 @@ flowchart TB
 
 - R-BE-16: Job kinds: `assess_item`, `bulk_retag`, `vocab_dedupe`, plus new `embed_item {item_id}` (vector generation — post-v1, activated with the vector layer per D7). One worker loop on the service thread; claim = oldest queued job whose `not_before` is null or due, atomically marked running; FIFO order and tie-breaks rest on monotonic ULIDs (Inventory §10.9; schema in [ARCH-02](02-data-architecture.md)).
 - R-BE-17: Failure semantics MUST be preserved exactly: missing-API-key → requeue WITHOUT consuming an attempt, 30 s backoff, item stays `processing` (FR-26); other errors retry while `attempts < 3` with backoff `2000·attempts²` ms; exhausted → job `failed` + item `assessment_failed`. `JobParked` → stay queued, set `not_before`, **refund the attempt**; `not_before` cleared on finish/requeue (Inventory §10.10).
-- R-BE-18: Bulk membership is FROZEN at enqueue (ids only). `< 8` items → serial (resumable via `progress.done`); `≥ 8` → Anthropic Batch API (`custom_id` = item id), job parks and polls every 5 s. Cap 500; over-cap → `409` naming `matched` + `limit`, never trimming (Inventory §10.11). Progress lives in `jobs.result`; publish every 10 items.
+- R-BE-18: Bulk membership is FROZEN at enqueue (ids only). `< 8` items → serial (resumable via `progress.done`); `≥ 8` → Anthropic Batch API (`custom_id` = item id), job parks and polls every 5 s. **D33: the re-tag call is text over the item's stored description, not a second vision call**; re-assess remains the vision path. Cap 500; over-cap → `409` naming `matched` + `limit`, never trimming (Inventory §10.11). Progress lives in `jobs.result`; publish every 10 items.
 - R-BE-19: Cancellation MUST be polled at every boundary; cancelling a batch-backed job MUST also cancel the Anthropic batch. Startup MUST reclaim orphaned `running` jobs to `queued`.
 
 **Projects watcher**
@@ -84,7 +84,7 @@ flowchart TB
 - R-BE-23: Visual assessment is ONE structured-output call to the vision model (FR-4): `max_tokens 8000`, `effort medium`, json_schema output, system prompt with exactly TWO cache breakpoints (rubric | vocabulary — one breakpoint measured zero cache reads); user turn = base64 image + source/title/thresholds with the "do not apply thresholds yourself" instruction (Inventory §9, §10.7).
 - R-BE-24: Utility calls: `max_tokens 2000`, single cached system block, and NO `effort` parameter (Haiku rejects it) (Inventory §10.7). Dedupe output schema MUST keep `reason` as the FIRST property; empty merge list = withdrawal; post-filter drops hallucinated names and self-merges (Inventory §10.8).
 - R-BE-25: Assessment output schema (re-validated in Rust): `{name_suggestion, short_description, design_types[], tags[], family_scores[{family, score}], new_family_proposal{name,description}|null, image_recipe|null}`. Write-back is app code, no model, atomic across DB + sidecar (FR-5); family decision follows PRD §6.4 thresholds read from settings; user-renamed items keep their names (Inventory §10.12).
-- R-BE-26: Image downscale rules: thumbnail 640 px WebP q82 cropped to first fold (viewport aspect, fallback 16/10, clamp 0.5–4); vision payload ≤ 1568 px WebP q88, tall images cropped to 4× width; ALL image-processing failures degrade to full-res PNG (Inventory §9).
+- R-BE-26: Image downscale rules (**amended by D32: the container is JPEG, not WebP — quality numbers, crop rules, dimension caps and the degrade rule are unchanged**): thumbnail 640 px q82 cropped to first fold (viewport aspect, fallback 16/10, clamp 0.5–4); vision payload ≤ 1568 px q88, tall images cropped to 4× width; ALL image-processing failures degrade to full-res PNG (Inventory §9).
 - R-BE-27: Embeddings sit behind an `Embedder` trait in `curio-core` (strategy §5.2). Embedding generation is the `embed_item` job kind (post-v1) — asynchronous, queued, and subject to R-BE-17 semantics. The daemon MUST NOT link a model runtime; implementations call a local model or external API chosen per [ARCH-02](02-data-architecture.md). Vector storage/query is owned by [ARCH-02](02-data-architecture.md).
 
 **Settings, config, crates, budget**

@@ -4,7 +4,7 @@ title: Curio — Product Requirements (Rust + SolidJS rewrite)
 status: in-progress
 version: 1.2.0
 date: 2026-08-01
-delivery: "E0 complete; E1–E6 built and green; E7–E10 not started (see §6)"
+delivery: "E0 complete; E1–E7 built and green; E8–E10 not started (see §6)"
 owner: Robert Bagares
 companion: "docs/architecture/00-architecture-overview.md (ARCH-00..08 own the how; this doc owns the what)"
 supersedes: "Curiol docs/01-PRD-Foundations.md (FR numbering continues from it)"
@@ -142,7 +142,7 @@ The rewrite **preserves the existing design language** — it is the product's i
 ## 6. Epic list
 
 > **Delivery status — updated 2026-08-01.** E0 is partly discharged, **E1, E2, E3, E4, E5
-> and E6 are built and green**; E7, E8, E9 and E10 have not started. The status column
+> and E7 are built and green**; E8, E9 and E10 have not started. The status column
 > below is the record. What "built" means here is specific: the gate passes
 > (`fmt`, `clippy -D warnings`, 415 Rust tests, SPA typecheck/lint/build, extension build,
 > file-length, dependency-direction), and the behaviour was exercised against a running
@@ -163,10 +163,10 @@ The rewrite **preserves the existing design language** — it is the product's i
 > | E1 | ✅ Done | Auth stack, nonce→cookie session, `/pair` fallback, pause soft-disable, SSE, `/ws`, both serve jails. |
 > | E2 | ✅ Done | Exit criterion met: a real shipped `library.db` opens and round-trips on the existing chain. |
 > | E3 | ✅ Done | Tokens, session bootstrap, shell, Settings as nine composed sections. |
-> | E4 | ◐ Done bar AI | Grid, selection/bulk, ItemDetail, Vocabulary. The **AI re-tag** popover and **ConsistencyPass** wait on E7's endpoints and are marked in place. |
+> | E4 | ◐ Done bar AI wiring | Grid, selection/bulk, ItemDetail, Vocabulary. E7 now serves the endpoints the **AI re-tag** popover and **ConsistencyPass** were waiting on (`POST /api/bulk/retag`, `POST /api/bulk/dedupe`, `GET /api/bulk/dedupe/latest`); the two components still need connecting to them. |
 > | E5 | ✅ Done | TipTap headless under Solid — which also closed E0's D0 row for it. |
 > | E6 | ✅ Done | Watcher with marker identity, prompt claim, missing-not-deleted; Projects UI. |
-> | E7 | ⬜ Not started | **The consequence is visible**: `assess_item` jobs enqueue and nothing drains them, so an ingested item stays `processing`. Every other path around it works. |
+> | E7 | ✅ Done | The queue drains. Worker loop (claim/park/refund/cancel), Anthropic transport, vision assessment with two cache breakpoints, image downscale, bulk retag (serial + Batch API), vocabulary dedupe, `verify-key`. Verified end to end against a stub API: a capture reaches `ready` with tags, a family, and a sidecar, unprompted. Two decisions recorded — D32 (JPEG container) and D33 (text re-tag). |
 > | E8–E10 | ⬜ Not started | Extension pairing/capture, MCP transport, packaging. |
 
 
@@ -243,8 +243,8 @@ Unchecked ones name what they are still waiting on — none is merely unverified
 
 - [ ] Fresh machine: install → tray icon → dashboard opens with no terminal anywhere; empty state teaches the first capture. *(waits on E10 packaging; the tray, dashboard and empty states themselves work from `cargo run`)*
 - [x] Machine with a Bun-app-created `~/Curio` (schema v4): the rewrite opens it intact and round-trips losslessly (NFR-6). *(`cargo test -p curio-db --test real_library`, plus a live boot that stepped a fresh library 0 → 4)*
-- [ ] Chrome: install extension → it pairs itself → fold-capture a page → card appears processing → assessed with family/score badges ≤ 30 s. *(waits on E8 pairing and E7 assessment; the ingest endpoint, the `processing` card and the badges all work — a `POST /api/items` lands a card and writes its sidecar)*
-- [ ] Kill the API key: capture still lands, card says "Queued — needs an API key"; add key in Settings; queue drains unprompted. *(waits on E7's worker: the capture lands and the job enqueues today, but nothing drains it)*
+- [ ] Chrome: install extension → it pairs itself → fold-capture a page → card appears processing → assessed with family/score badges ≤ 30 s. *(waits on E8 pairing only; E7 closed the assessment half — a `POST /api/items` now lands a card and reaches `ready` with badges without anyone asking)*
+- [x] Kill the API key: capture still lands, card says "Queued — needs an API key"; add key in Settings; queue drains unprompted. *(E7: a missing key parks the job on a 30 s timer without charging an attempt, and the item stays `processing` rather than failing — FR-26)*
 - [x] Compose a prompt with `/aesthetic` + `/item` chips → Send to Claude → paste into Claude Code → it reads the referenced folders; resulting project folder appears in Curio ≤ 5 s and launches. *(chips serialize to an absolute path plus reading instructions; a sent prompt claimed the next folder the watcher saw, within the 5 s budget)*
 - [x] Tray Pause: captures refuse politely, browsing and MCP reads still work; Resume is instant. *(mutations return `503 + Retry-After`, reads and SSE continue — D25; the MCP half waits on E9)*
 - [ ] MCP Inspector + Claude Desktop (MCPB): all 7 tools answer; disabled toggle returns the clean 503. *(waits on E9, itself blocked on the rmcp pin — D0 row 7 needs an owner decision)*
