@@ -1,0 +1,83 @@
+name: Bug report
+description: Something behaves differently than it should
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Not for security vulnerabilities — see [SECURITY.md](../blob/main/SECURITY.md)
+        for the private disclosure route.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: And what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. …
+        2. …
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Curio version
+      description: From the tray status line, Settings, or `curio --version`.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Platform
+      options:
+        - Windows 11
+        - Windows 10
+        - macOS (Apple silicon)
+        - macOS (Intel)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Which surface
+      description: Where you saw it. Helps route to the owning architecture document.
+      options:
+        - Dashboard (browser tab)
+        - Tray / app lifecycle
+        - Chrome extension / capture
+        - MCP (agent tools)
+        - Assessment / AI jobs
+        - Projects / watcher
+        - Install, update, or uninstall
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: >-
+        Redact anything that looks like a token or key before pasting — though the app is
+        built not to log them (R-SEC-15), and a leak here is itself a bug worth reporting
+        privately.
+      render: shell
+
+  - type: checkboxes
+    id: parity
+    attributes:
+      label: Parity
+      options:
+        - label: >-
+            I checked ARCH-08 §Deliberate breaks and this is not a documented intentional
+            difference from the previous version.

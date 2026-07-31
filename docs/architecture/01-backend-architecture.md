@@ -2,8 +2,8 @@
 id: ARCH-01
 title: Backend Architecture
 status: draft
-version: 1.1.0
-date: 2026-07-30
+version: 1.2.0
+date: 2026-07-31
 project: curio
 supersedes: []
 depends_on: [ARCH-00]
@@ -91,7 +91,7 @@ flowchart TB
 
 - R-BE-28: `config.json` (user-editable, rewritten on boot/save): `dataRoot`, `projectsRoot`, `thresholds{lower,upper}` (default 0.4/0.5, reject lower>upper), `models{vision,utility}`, `mcpEnabled` (default false), `sendToClaudeTarget`, `launchAtLogin` (OS is authority), and optional `port` (absent by default = ephemeral; precedence per R-BE-6). GONE vs Inventory §5: `pairingToken` (replaced by the runtime token). Env/flags: `CURIO_PORT` (R-BE-6), `CURIO_DATA_ROOT` (R-BE-29), and `CURIO_NO_OPEN=1` / `--no-open`, which suppresses the browser-open at boot (Inventory §5 parity). `runtime.json` is a SEPARATE, machine-written, owner-only file — never user-edited, never merged into config, deleted on quit.
 - R-BE-29: Data-root resolution and legacy compat preserved: `CURIO_DATA_ROOT` → deprecated `CURIOL_DATA_ROOT` (warn) → one-time `~/Curiol`→`~/Curio` migration before target mkdir (Inventory §5, §10.18); seed `skills/visual-assessment.md` once, never overwrite.
-- R-BE-30: Crate layout and dependency direction MUST follow the table in Design detail §"Crates". `curio-db` is the ONLY crate that sees SQL; dependencies point inward to `curio-core`; `curio-nmh` depends on no workspace crate that pulls tokio/axum.
+- R-BE-30: Crate layout and dependency direction MUST follow the table in Design detail §"Crates". `curio-db` is the ONLY crate that sees SQL; dependencies point inward to `curio-core`; `curio-nmh` depends on no workspace crate that pulls tokio/axum — its one permitted workspace dependency is `curio-runtime` (D27), which is serde-only by construction.
 - R-BE-31: The resource budget table (Design detail §"Budget") is binding: numbers are targets validated in D0/P7, and regressions block release until measured and consciously re-budgeted.
 
 ## Design detail
@@ -170,7 +170,9 @@ Single loop, settings re-read per job, wake on notify + 2 s poll. The state mach
 | `curio-server` | axum router, middleware stack, SSE, SPA embed (rust-embed/include_dir), jobs worker loop, projects watcher, `runtime.json` writer | `curio-core`, `curio-db` |
 | `curio-mcp` | rmcp service + 7-tool v1 surface (9 with the post-v1 semantic pair), stdio proxy subcommand — thin proxy to the live instance via `runtime.json`, never opens the DB (D24; [ARCH-05](05-mcp-architecture.md)) | `curio-core` |
 | `curio-tray` | `main.rs`: native loop (tray-icon + tao/winit), menu, mpsc, spawns service thread, autostart toggles | `curio-server`, `curio-mcp` |
-| `curio-nmh` | Native-messaging micro-binary: read `runtime.json`, PID-liveness check only (R-BE-34), reply `{port, token, state}` (`state: "stale"` when the pid is dead), exit. Millisecond start; no tokio/axum, no HTTP client | — |
+| `curio-nmh` | Native-messaging micro-binary: read `runtime.json`, PID-liveness check only (R-BE-34), reply `{port, token, state}` (`state: "stale"` when the pid is dead), exit. Millisecond start; no tokio/axum, no HTTP client | `curio-runtime` |
+| `curio-runtime` | The `runtime.json` shape and its atomic-write/owner-only-permission helpers — nothing else. serde + serde_json only, so depending on it costs `curio-nmh` no startup time (D27; R-DEL-2's sanctioned shared types module) | — |
+| `xtask` | Gate script (R-DEL-6) and measurement tooling (`footprint`). Dev-only; never shipped, never a dependency of a shipped crate (D27) | — |
 
 ### Budget (strategy §8 — binding targets)
 

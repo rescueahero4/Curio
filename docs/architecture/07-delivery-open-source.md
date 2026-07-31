@@ -2,8 +2,8 @@
 id: ARCH-07
 title: Delivery & Open Source
 status: draft
-version: 1.1.0
-date: 2026-07-30
+version: 1.2.0
+date: 2026-07-31
 project: curio
 supersedes: []
 depends_on: [ARCH-00]
@@ -55,6 +55,8 @@ flowchart TD
   crates/curio-mcp       # rmcp tool router, thin over curio-core (ARCH-05)
   crates/curio-tray      # main.rs: native loop, tray menu, service thread — builds the `curio` binary
   crates/curio-nmh       # native-messaging host micro-binary
+  crates/curio-runtime   # runtime.json shape — serde only, shared by server + nmh (D27)
+  crates/xtask           # gate script + measurement tooling; dev-only, never shipped (D27)
   web/spa                # SolidJS + Vite + Tailwind 4
   web/extension          # MV3, plain TS
   packaging/macos  packaging/windows  packaging/mcpb
@@ -64,7 +66,8 @@ flowchart TD
   - `curio-core` MUST NOT depend on rusqlite, axum, or rmcp. It defines traits (storage, embedder) that `curio-db` implements.
   - `curio-db` is the sole home of SQL, migrations, and sqlite-vec loading. No other crate may add a SQLite dependency.
   - `curio-server` and `curio-mcp` MUST stay thin: routing, transport, serialization — no business rules. Both call `curio-core` only.
-  - `curio-nmh` MUST NOT depend on tokio, axum, or any crate in this workspace beyond a minimal shared types module; it reads `runtime.json`, replies, exits (strategy §7). Its compile output stays a tiny fast-spawning binary.
+  - `curio-nmh` MUST NOT depend on tokio, axum, or any crate in this workspace beyond a minimal shared types module; it reads `runtime.json`, replies, exits (strategy §7). Its compile output stays a tiny fast-spawning binary. That shared types module is `curio-runtime` (D27), which MUST stay serde-only: it owns the `runtime.json` shape so the file's format has one home (R-OV-2) rather than being duplicated into the host.
+  - `xtask` is dev-only tooling. No shipped crate may depend on it, and it is excluded from the workspace's default members so `cargo build` does not compile it into a release path.
 
 **Build system**
 
@@ -196,5 +199,5 @@ The spike's output is a short report committed under `docs/architecture/` and re
 | 1 | `opt-level "z"` vs `"s"`: measure binary size and hot-path speed in the D0 shell and pin one. | D0-verify, blocks: P1 |
 | 2 | MSI vs MSIX for Windows: MSIX sandboxing may complicate the NM registry write and Run-key autostart — verify before P6; MSI is the safe default. | D0-verify, blocks: P6 |
 | 3 | `mcpb pack` current CLI shape and binary-server manifest fields (format formerly `.dxt`). | D0-verify, blocks: P6 |
-| 4 | Gate-script host: `cargo xtask` vs `just` vs shell — pick one in the first infrastructure PR; the single-script principle (R-DEL-6) is the invariant, the host tool is not. | owner: maintainer (optional), blocks: P1 |
+| 4 | ~~Gate-script host: `cargo xtask` vs `just` vs shell.~~ **Resolved 2026-07-31 (D27): `cargo xtask`**, invoked as `cargo gate` via a `.cargo/config.toml` alias. Neither runner nor contributor installs anything beyond the pinned toolchain, and R-DEL-6's steps 7 and 8 become Rust over `cargo metadata` rather than two shell scripts that drift per OS. | closed |
 | 5 | Whether PR CI runs all three targets or one per OS family (R-DEL-5 allows a subset) — decide once real CI minutes are known. | owner: maintainer, blocks: P1 |

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/security/advisories
+    about: >-
+      Do NOT open a public issue. Report privately via GitHub's private vulnerability
+      reporting or the address in SECURITY.md. Curio holds a bearer token and an API key
+      on the user's machine.

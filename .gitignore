@@ -1,9 +1,34 @@
 docs/_plan
 docs/_ref
 
+# Secrets — R-DEL-17. Nothing resembling a credential enters this repo.
 .env
 .env*
 /.env
+.secrets.json
+
+# Run state — machine-written, per-run, never committed (R-DA-2).
+runtime.json
+curio.lock
+
+# Rust
+/target
+**/*.rs.bk
+
+# Node
+node_modules/
+web/spa/dist/
+web/extension/dist/
+*.tsbuildinfo
+
+# Local databases and captures — never test against a real library in-tree.
+*.db
+*.db-wal
+*.db-shm
+
+# OS
+.DS_Store
+Thumbs.db
 
 # graphify: regenerable AST extraction cache
 graphify-out/cache/

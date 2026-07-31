@@ -1,0 +1,7 @@
+[toolchain]
+# Pinned so `cargo fmt --check` and `clippy -D warnings` mean the same thing on
+# every machine and both CI runners. Bumping this is a PR of its own: a new
+# toolchain can add lints that turn a green tree red.
+channel = "1.95.0"
+components = ["rustfmt", "clippy"]
+targets = ["x86_64-pc-windows-msvc", "aarch64-apple-darwin", "x86_64-apple-darwin"]

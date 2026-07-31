@@ -1,0 +1,59 @@
+name: Feature request
+description: Propose something Curio should do
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Curio's v1 target is **parity** with the previous implementation (FR-1..FR-27).
+        Proposals that add surface area during the parity phases are likely to be filed
+        for later rather than rejected — that's not a no, it's a queue.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that Curio makes hard or impossible today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you'd like instead
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Which surface would change
+      options:
+        - Dashboard (browser tab)
+        - Tray / app lifecycle
+        - Chrome extension / capture
+        - MCP (agent tools)
+        - Assessment / AI behavior
+        - Projects / watcher
+        - Packaging and install
+        - Not sure
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: costs
+    attributes:
+      label: Costs I've considered
+      description: >-
+        Curio has binding budgets, not just preferences — ≤ 25 MB idle RSS, ~0% idle CPU,
+        and a deliberately small MCP tool surface, because every registered tool taxes the
+        context window of every conversation in every connected agent.
+      options:
+        - label: This does not add idle CPU work, polling, or a resident allocation
+        - label: If this adds an MCP tool, I've argued below why it can't be an argument on an existing one
+        - label: This needs no new network egress (Curio talks to the AI API and nothing else)
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered

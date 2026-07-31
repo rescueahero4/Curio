@@ -1,0 +1,80 @@
+name: D0 claim re-verification
+description: A verified claim, pinned version, or measured budget no longer holds
+labels: ["d0", "verification"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The D0 spike (release-0) recorded a result for every load-bearing claim in the
+        architecture — tray behavior, empty-shell RSS, the rmcp pin, Chrome's loopback
+        gating, keychain crates, and so on. **Budgets and pins are claims until measured,
+        and measurements expire.** This template exists so a claim going stale is a tracked
+        event rather than a surprise at release time.
+
+        Current results: [`docs/architecture/D0-report.md`](../blob/main/docs/architecture/D0-report.md)
+
+  - type: input
+    id: claim
+    attributes:
+      label: Which claim
+      description: The row in the D0 index, or the rule ID that depends on it.
+      placeholder: "Empty-shell RSS ≤ 12 MB private (ARCH-01 OQ-4, R-BE-31)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: recorded
+    attributes:
+      label: What was recorded
+      description: The result in D0-report.md, and when it was measured.
+    validations:
+      required: true
+
+  - type: textarea
+    id: observed
+    attributes:
+      label: What you observe now
+      description: >-
+        The new measurement or behavior, and how you produced it. For footprint claims,
+        state the method — `footprint` on macOS, Private Working Set on Windows — because
+        the numbers are not comparable across tools.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: cause
+    attributes:
+      label: Likely cause
+      options:
+        - A dependency changed (new crate version, browser update, OS update)
+        - Our code changed (regression)
+        - The original measurement was wrong or measured the wrong thing
+        - Unknown
+    validations:
+      required: true
+
+  - type: dropdown
+    id: blocks
+    attributes:
+      label: What this blocks
+      description: From the D0 index's "Blocks" column.
+      options:
+        - P1 (shell, server, auth)
+        - P2 (data layer)
+        - P3 (SPA)
+        - P4 (MCP)
+        - P5 (extension + NMH)
+        - P6 (packaging)
+        - P7 (budget pass)
+        - Release only
+    validations:
+      required: true
+
+  - type: textarea
+    id: fallback
+    attributes:
+      label: Is the documented fallback still available?
+      description: >-
+        Each D0 row carries a fallback. If it is still viable, say so — the fix may be to
+        take it. If it is not, this is a decision for the ARCH-00 register, and a budget
+        must be **consciously revised** rather than silently missed (D17, R-BE-31).

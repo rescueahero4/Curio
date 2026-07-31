@@ -2,8 +2,8 @@
 id: ARCH-00
 title: Architecture Overview — Curio (Rust + SolidJS)
 status: draft
-version: 1.1.0
-date: 2026-07-30
+version: 1.2.0
+date: 2026-07-31
 project: curio
 supersedes: []
 depends_on: []
@@ -102,6 +102,7 @@ Decisions D1–D6 restate the strategy document's register (A1–A6) unchanged; 
 | D24 | `curio --mcp-stdio` is a **thin proxy** to the live instance's `/mcp` (endpoint + token from `runtime.json`); it never opens the database. No live instance → clean JSON-RPC error telling the user to start Curio | Preserves the single-writer invariant and event fan-out; a direct-DB bridge would fork both | Headless/no-tray operation ever becomes a requirement (D1's own trigger) |
 | D25 | Paused (soft-disable) means: **mutations refuse, reads continue** — capture ingestion and every mutating `/api` route and MCP write tool return the clean 503/JSON-RPC error; browsing, search, SSE, and MCP read tools keep working. *Amends strategy §2's blanket short-circuit; consistent with strategy §6's own "paused means paused for MCP writes too" and with FR-26's browse-always posture* | A paused library you can still browse is strictly better than a dead one, and costs one middleware predicate | — |
 | D26 | The **normative phase plan lives in [ARCH-07](07-delivery-open-source.md)** (D0, P1–P7 with parity-aware exit criteria); strategy §9's table is a superseded illustration | Reviews found three competing phase schemes; one must own | — |
+| D27 | Two crates join D19's six (owner, 2026-07-31, at scaffold): **`curio-runtime`** — serde-only, owns the `runtime.json` shape, depended on by `curio-server` and `curio-nmh` under R-DEL-2's sanctioned "minimal shared types module" clause — and **`xtask`**, the gate-script host, which closes [ARCH-07](07-delivery-open-source.md) OQ-4 | The alternative for the first is duplicating the `runtime.json` struct into `curio-nmh`, forking the one file four client classes depend on and violating R-OV-2. For the second: `cargo xtask` needs no toolchain install on either runner, and makes the dependency-direction and file-length gates Rust over `cargo metadata` instead of two per-OS shell scripts | `curio-runtime` accumulating anything beyond the `runtime.json` shape — at that point it is no longer a types module and `curio-nmh`'s isolation is gone; a required gate step that cargo cannot host |
 
 ## Design detail
 
