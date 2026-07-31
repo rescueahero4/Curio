@@ -1,0 +1,9 @@
+docs/_plan
+docs/_ref
+
+.env
+.env*
+/.env
+
+# graphify: regenerable AST extraction cache
+graphify-out/cache/

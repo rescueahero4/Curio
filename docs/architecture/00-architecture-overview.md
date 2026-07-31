@@ -1,0 +1,132 @@
+---
+id: ARCH-00
+title: Architecture Overview — Curio (Rust + SolidJS)
+status: draft
+version: 1.1.0
+date: 2026-07-30
+project: curio
+supersedes: []
+depends_on: []
+governs: [overview, decisions]
+source_of_truth:
+  - "docs/Architecture Solution Strategy.md"
+  - "docs/local-first-rust-mcp-architecture-paper_1.md"
+parity_reference: "Curiol (Bun/React implementation) + its PRD FR-1..FR-27"
+---
+
+# Architecture Overview
+
+> **TL;DR:** Curio is being rebuilt as **one small Rust binary** (tray app + local server + SQLite) with a **SolidJS** web UI and a Chrome extension. Everything runs on your machine; the browser is the screen, the tray is the switch, one database file is the memory. This document is the map: it tells you which document owns which part, and records every decision that shapes the whole system.
+
+## At a glance
+
+```mermaid
+flowchart LR
+    subgraph machine["User's machine"]
+        subgraph bin["curio (single binary)"]
+            TRAY[Tray - main thread] -->|mpsc commands| SVC[Service thread - tokio]
+            SVC --> API["/api + SSE"]
+            SVC --> SPA["/ embedded SolidJS SPA"]
+            SVC --> MCP["/mcp rmcp"]
+            SVC --> DB[(SQLite: relational + vector + graph)]
+        end
+        EXT[Chrome extension MV3] -->|native messaging| NMH[curio-nmh]
+        NMH -->|reads| RJ[runtime.json]
+        EXT -->|WS + token| SVC
+        BROWSER[Browser tab] --> SPA
+        AGENTS[Claude Code / Desktop / any agent] -->|MCP or plain filesystem| bin
+        AGENTS --> ROOT[(Data root: screenshots, sidecars, prompts, projects)]
+        SVC --> ROOT
+    end
+    SVC -->|only network egress| ANTHROPIC[Anthropic API]
+```
+
+- **What Curio does** is unchanged: capture design references, let AI describe and organize them, compose design prompts from that vocabulary, and catalog the projects your AI tools produce. The product requirements (PRD FR-1..FR-27) still govern *what*; these documents govern *how*.
+- **One process**: tray owns the main thread, a tokio service thread owns everything else, connected by a command channel ([ARCH-01](01-backend-architecture.md)).
+- **One database file**: relational tables + vector index + graph edges in the same SQLite file ([ARCH-02](02-data-architecture.md)).
+- **One origin**: the app serves its own UI at `http://127.0.0.1:<ephemeral port>` — no CORS, no bundled webview ([ARCH-03](03-frontend-architecture.md)).
+- **One token**: a per-run bearer token in `runtime.json`, handed to the extension by a native-messaging micro-binary and to the SPA by a one-time nonce ([ARCH-06](06-security-architecture.md)).
+
+## Document map
+
+| Doc | Owns | Read it for |
+|---|---|---|
+| [ARCH-00](00-architecture-overview.md) (this) | System context, decision register, glossary | Where everything lives; why the big calls were made |
+| [ARCH-01](01-backend-architecture.md) | Process model, HTTP/SSE contracts, jobs, watcher, AI layer, config, crates, budgets | Everything inside the binary |
+| [ARCH-02](02-data-architecture.md) | Data root, SQLite schema (relational + vec + graph), migrations, sidecars, IDs | Everything that persists |
+| [ARCH-03](03-frontend-architecture.md) | SolidJS SPA: routes, state, editor, UX contracts | Everything in the browser tab |
+| [ARCH-04](04-extension-architecture.md) | MV3 extension + native-messaging host | Capture and pairing |
+| [ARCH-05](05-mcp-architecture.md) | MCP tools, transports, gating, MCPB | How agents talk to Curio |
+| [ARCH-06](06-security-architecture.md) | Threat model, tokens, nonce, Host/Origin, jails, secrets | Why it's safe on localhost |
+| [ARCH-07](07-delivery-open-source.md) | Repo layout, CI, packaging, licensing, community | How it builds, ships, and takes contributions |
+| [ARCH-08](08-parity-matrix.md) | FR ↔ doc ↔ rule mapping; deliberate parity breaks | Proof nothing was dropped, and what changed on purpose |
+
+Reading order for a new contributor: ARCH-00 → the PRD → ARCH-01 → whichever domain doc your change touches → ARCH-08 to check the invariants you now own.
+
+## The contract
+
+- **R-OV-1** These documents are **contract-level**: they state interfaces, invariants, budgets, and decisions — not implementations. Code MUST conform to numbered rules; rules change only by PR that updates the doc (and its `version`/`supersedes` frontmatter). See [ARCH-07](07-delivery-open-source.md) for the process.
+- **R-OV-2** One fact, one home. A rule lives in exactly one document; everything else links to it. If two docs appear to state the same rule, the one whose `governs` domain matches wins and the other is a defect.
+- **R-OV-3** The **PRD remains the product authority** (what Curio does); this set is the technical authority (how). Where this set deliberately breaks with the *old implementation*, the break is recorded in [ARCH-08](08-parity-matrix.md) §Deliberate breaks — silent divergence is a defect.
+- **R-OV-4** Anything marked **D0-verify** in any doc MUST be verified in the Phase D0 spike before code depends on it (strategy §9). D0 items are indexed in [ARCH-07](07-delivery-open-source.md).
+
+## Decision register
+
+Decisions D1–D6 restate the strategy document's register (A1–A6) unchanged; D7 onward are new, made for this rewrite. "Reversal trigger" = the observable condition under which the decision should be revisited, per the Paper's discipline.
+
+| ID | Decision | Rationale | Reversal trigger |
+|---|---|---|---|
+| D1 (=A1) | Single process; tray on main thread; tokio current-thread worker; mpsc seam | Halves lifecycle surface; macOS/Windows UI-thread rules force this shape | Need for service with zero UI session |
+| D2 (=A2) | Off = soft-disable (503 + Retry-After), never unbind/exit | Clean errors for MCP/extension; instant resume | — |
+| D3 (=A3) | One SQLite file: relational + `sqlite-vec` + edge tables | One writer, one backup artifact, hybrid queries in one statement | >10⁶–10⁷ vectors or unbounded graph queries |
+| D4 (=A4) | No bundled webview; the user's browser is the UI | Footprint; Paper §13 stands | Requirement for offline-of-browser UI |
+| D5 (=A5) | Nonce-based dashboard launch from tray | Token never enters URL/history | — |
+| D6 (=A6) | `curio-nmh` as a separate micro-binary | Chrome spawn latency; stdout purity | — |
+| D7 | Vector + graph are **designed in, activated post-v1** (owner, 2026-07-31; reverses the 2026-07-30 v1-active decision). Schema seams and crate seams per ARCH-02 remain; no embeddings, vec table, graph tables, or semantic tools ship in v1. | Owner narrowed v1 scope back to parity; keeping the design documented makes activation a migration, not a redesign | Owner re-activates for v1; at the activation release, sqlite-vec failing its D0 verification falls back per D8 |
+| D8 | (post-v1) Vector engine: `sqlite-vec`, pinned at D0; **fallback order**: SQLite `Vec1` (official-adjacent ANN extension, v0.7 as of mid-2026) → FTS5-only with vectors deferred | In-database vector, no second engine (D3); two credible implementations reduce single-crate risk | D0 spike results |
+| D9 | (post-v1) Embeddings via an **embedder trait**; v1 default = remote embeddings API with user-supplied key, stored like the Anthropic key; local-model embedder is a later `impl`, never a v1 link-time dependency | Daemon must not link an ML runtime (strategy §5.2); trait keeps both futures open | A vetted, small local embedder becomes table stakes |
+| D10 | **Ephemeral port + `runtime.json` + native-messaging bootstrap** replaces fixed ports 4321–4331, port-walking, and manual pairing (owner, 2026-07-30) | Kills port-conflict class entirely; token never crosses a web-observable channel | — |
+| D11 | `config.json` keeps an **optional `port` override** (default absent = ephemeral; `CURIO_PORT` env wins over config, legacy `CURIOL_PORT` honored when it's unset). The `/pair` page survives as the **sanctioned fallback pairing path** for unpacked/dev installs: it hands off the current **runtime token** via the click-gated DOM element, backed by a re-instated `POST /api/pair/authorize` | Ephemeral is right by default; development and unpacked extensions need a deterministic address and a token path that doesn't require NM registration | — |
+| D12 | Auth broadens: **every `/api/*` and `/mcp` request requires the bearer token** (old app authenticated only ingest/quit). SPA obtains it via nonce exchange; `/health`, `/` and static assets stay tokenless | Paper §4.4; the old posture predates the threat model | — |
+| D13 | Push transports: **SPA uses SSE** (`/api/events`, parity contract); **extension uses WebSocket** `/ws` with 20 s keepalive (new, per strategy). Both are served; neither replaces the other | SSE contract is proven in the old app; WS solves the MV3 worker-lifetime problem | — |
+| D14 | Tray menu = strategy's five items (Status · Pause/Resume · Open Dashboard · Start at Login · Quit). The old shell's Open Projects / New Prompt entries are dropped; navigation lives in the SPA | Tray is a switch, not a nav bar; FR-23 requires only Open and Quit | Owner asks for shortcuts back |
+| D15 | MCP surface = **7 parity tools in v1**; the 2 semantic tools (`library_semantic_search`, `library_related_items`) ship with the vector layer post-v1 — withheld-not-erroring semantics per [ARCH-05](05-mcp-architecture.md) apply at that release | Parity preserved exactly; the semantic pair follows D7's activation | — |
+| D16 | Editor: **TipTap headless core** (framework-agnostic) driven from SolidJS; serialization stays server-side and authoritative | Keeps ProseMirror's model + the old app's chip/serializer semantics portable | TipTap core proves React-entangled at D0 |
+| D17 | Resource budget: strategy §8 numbers are **binding** (idle RSS ≤ 25 MB, empty shell ≤ 12 MB at D0); PRD §11's ≤ 200 MB is superseded as trivially loose | Tighter number wins; it's the point of the rewrite | D0/P7 measurement forces conscious revision |
+| D18 | License: **MIT** (owner: "any permissive OSS") | Maximally frictionless for a dev/design tool; recorded in [ARCH-07](07-delivery-open-source.md) | — |
+| D19 | Crate naming `curio-*` (`curio-core`, `curio-db`, `curio-server`, `curio-mcp`, `curio-tray`, `curio-nmh`); repo layout per [ARCH-07](07-delivery-open-source.md) | Strategy's `app-*` placeholders concretized | — |
+| D20 | The Rust app **adopts the existing data root and database lineage**: same `~/Curio` layout, same tables, migrations continue from the shipped chain (see [ARCH-02](02-data-architecture.md)) | Real users have real libraries; parity includes their data, not just features | — |
+| D21 | Token lifetime is **per-run**: minted at each service start, invalidated at quit. Clients MUST treat 401 as "the app restarted" and re-bootstrap (extension: re-run NM handshake once, then surface; SPA: show the reconnect screen) | Narrower than the Paper's per-install token; restart-recovery is cheap for every client | A client class appears that cannot re-bootstrap unattended |
+| D22 | SPA session: the one-time nonce exchange sets an **HttpOnly, SameSite=Strict, session-scoped cookie**; all `/api/*` including SSE authenticate by that cookie (bearer header equally accepted for non-browser clients). Reload survives; a visit with no session and no nonce renders a static "Open Curio from the tray" screen that retries `/health` and never errors | `EventSource` cannot send headers; cookies make F5 a non-event; the no-session screen kills the bookmarked-tab dead end | — |
+| D23 | `/ws` (extension push) authenticates by **first-message token** within 5 s of connect (headers unavailable to browser `WebSocket`; query strings leak into logs); server replies `hello {state, version}` and pushes `state` changes; either side may ping; contract owned by [ARCH-01](01-backend-architecture.md) | Decided transport (D13) needs one owning contract | — |
+| D24 | `curio --mcp-stdio` is a **thin proxy** to the live instance's `/mcp` (endpoint + token from `runtime.json`); it never opens the database. No live instance → clean JSON-RPC error telling the user to start Curio | Preserves the single-writer invariant and event fan-out; a direct-DB bridge would fork both | Headless/no-tray operation ever becomes a requirement (D1's own trigger) |
+| D25 | Paused (soft-disable) means: **mutations refuse, reads continue** — capture ingestion and every mutating `/api` route and MCP write tool return the clean 503/JSON-RPC error; browsing, search, SSE, and MCP read tools keep working. *Amends strategy §2's blanket short-circuit; consistent with strategy §6's own "paused means paused for MCP writes too" and with FR-26's browse-always posture* | A paused library you can still browse is strictly better than a dead one, and costs one middleware predicate | — |
+| D26 | The **normative phase plan lives in [ARCH-07](07-delivery-open-source.md)** (D0, P1–P7 with parity-aware exit criteria); strategy §9's table is a superseded illustration | Reviews found three competing phase schemes; one must own | — |
+
+## Design detail
+
+### What "local-first" means here, concretely
+
+The filesystem is the primary API (PRD principle): prompts embed absolute paths, agents read items straight from disk, a watcher notices the folders they write. MCP is optional enrichment; the clipboard path always works. Internet is used for exactly one thing: model calls with the user's own key. Browse, filter, and edit work fully offline; AI-dependent actions queue and degrade with clear messaging.
+
+### Why these technologies (one paragraph each)
+
+**Rust** replaces Bun because the product is a *resident* app: it sits in the tray all day, so idle footprint and single-binary packaging dominate; Rust gives a ~25 MB budget headroom that a JS runtime cannot (D17), and the ecosystem now covers every seam this app needs (axum, rmcp, rusqlite, tray-icon). **SolidJS** replaces React because the SPA is a long-lived dashboard: fine-grained reactivity updates exactly the card that changed with no virtual-DOM diffing, and the framework's compiled output is structurally smaller — argued structurally, since the Paper withdrew its specific benchmark numbers (§12). **SQLite** stays, and grows vector + graph roles, because one file with one writer is the whole backup, sync, and hybrid-query story (D3).
+
+### System boundaries
+
+| Boundary | Crossing | Guarded by |
+|---|---|---|
+| Browser tab ↔ binary | Same-origin HTTP + SSE | Session token from nonce ([ARCH-06](06-security-architecture.md)) |
+| Extension ↔ binary | WS + token; NM bootstrap | Pinned extension origin + token |
+| Agent ↔ binary | `/mcp` HTTP or stdio bridge | Host/Origin middleware + token |
+| Agent ↔ data | Plain filesystem reads/writes | Sidecars are a projection; DB wins ([ARCH-02](02-data-architecture.md)) |
+| Binary ↔ internet | Anthropic + embeddings APIs only | Keys in OS keychain; no telemetry ([ARCH-07](07-delivery-open-source.md)) |
+
+## Glossary
+
+**Data root** — the one directory holding everything the user owns (`~/Curio` by default). **Sidecar** — the human/agent-readable `item.md` regenerated beside each screenshot. **Gray zone** — an AI family-match score between the two user-set thresholds; needs a human decision. **runtime.json** — the machine-written file advertising `{port, token, pid, state, version}` for this run. **Soft-disable** — paused-but-listening: 503s with clean errors instead of a dead socket. **NMH** — native-messaging host, the micro-binary Chrome launches to hand the extension its connection details. **MCPB** — the bundle format that gives Claude Desktop a one-click stdio install.
+
+## Open questions
+
+None held at the overview level — every open question lives in its owning doc's §Open questions, and D0-verify items are indexed in [ARCH-07](07-delivery-open-source.md).

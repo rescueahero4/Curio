@@ -1,0 +1,4340 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "CLAUDE.md",
+      "file_type": "document",
+      "source_file": ".claude/CLAUDE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "claude_claude",
+      "community": 23,
+      "norm_label": "claude.md"
+    },
+    {
+      "label": "graphify",
+      "file_type": "document",
+      "source_file": ".claude/CLAUDE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "claude_claude_graphify",
+      "community": 23,
+      "norm_label": "graphify"
+    },
+    {
+      "label": "SKILL.md",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "graphify_skill",
+      "community": 13,
+      "norm_label": "skill.md"
+    },
+    {
+      "label": "/graphify",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "graphify_skill_graphify",
+      "community": 13,
+      "norm_label": "/graphify"
+    },
+    {
+      "label": "Usage",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "graphify_skill_usage",
+      "community": 13,
+      "norm_label": "usage"
+    },
+    {
+      "label": "What graphify is for",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L45",
+      "_origin": "ast",
+      "id": "graphify_skill_what_graphify_is_for",
+      "community": 13,
+      "norm_label": "what graphify is for"
+    },
+    {
+      "label": "What You Must Do When Invoked",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L49",
+      "_origin": "ast",
+      "id": "graphify_skill_what_you_must_do_when_invoked",
+      "community": 10,
+      "norm_label": "what you must do when invoked"
+    },
+    {
+      "label": "Step 0 - GitHub repos and multi-path merge (only if a URL or several paths)",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L61",
+      "_origin": "ast",
+      "id": "graphify_skill_step_0_github_repos_and_multi_path_merge_only_if_a_url_or_several_paths",
+      "community": 10,
+      "norm_label": "step 0 - github repos and multi-path merge (only if a url or several paths)"
+    },
+    {
+      "label": "Step 1 - Ensure graphify is installed",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L65",
+      "_origin": "ast",
+      "id": "graphify_skill_step_1_ensure_graphify_is_installed",
+      "community": 10,
+      "norm_label": "step 1 - ensure graphify is installed"
+    },
+    {
+      "label": "Step 2 - Detect files",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L129",
+      "_origin": "ast",
+      "id": "graphify_skill_step_2_detect_files",
+      "community": 10,
+      "norm_label": "step 2 - detect files"
+    },
+    {
+      "label": "Step 2.5 - Video and audio (only if video files detected)",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L166",
+      "_origin": "ast",
+      "id": "graphify_skill_step_2_5_video_and_audio_only_if_video_files_detected",
+      "community": 10,
+      "norm_label": "step 2.5 - video and audio (only if video files detected)"
+    },
+    {
+      "label": "Step 3 - Extract entities and relationships",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L170",
+      "_origin": "ast",
+      "id": "graphify_skill_step_3_extract_entities_and_relationships",
+      "community": 10,
+      "norm_label": "step 3 - extract entities and relationships"
+    },
+    {
+      "label": "Part A - Structural extraction for code files",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L189",
+      "_origin": "ast",
+      "id": "graphify_skill_part_a_structural_extraction_for_code_files",
+      "community": 10,
+      "norm_label": "part a - structural extraction for code files"
+    },
+    {
+      "label": "Part B - Semantic extraction (parallel subagents)",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L215",
+      "_origin": "ast",
+      "id": "graphify_skill_part_b_semantic_extraction_parallel_subagents",
+      "community": 10,
+      "norm_label": "part b - semantic extraction (parallel subagents)"
+    },
+    {
+      "label": "Part C - Merge AST + semantic into final extraction",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L375",
+      "_origin": "ast",
+      "id": "graphify_skill_part_c_merge_ast_semantic_into_final_extraction",
+      "community": 10,
+      "norm_label": "part c - merge ast + semantic into final extraction"
+    },
+    {
+      "label": "Step 4 - Build graph, cluster, analyze, generate outputs",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L409",
+      "_origin": "ast",
+      "id": "graphify_skill_step_4_build_graph_cluster_analyze_generate_outputs",
+      "community": 10,
+      "norm_label": "step 4 - build graph, cluster, analyze, generate outputs"
+    },
+    {
+      "label": "Step 4.5 - Graph health check (read-only integrity gate)",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L472",
+      "_origin": "ast",
+      "id": "graphify_skill_step_4_5_graph_health_check_read_only_integrity_gate",
+      "community": 10,
+      "norm_label": "step 4.5 - graph health check (read-only integrity gate)"
+    },
+    {
+      "label": "Step 5 - Label communities",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L498",
+      "_origin": "ast",
+      "id": "graphify_skill_step_5_label_communities",
+      "community": 10,
+      "norm_label": "step 5 - label communities"
+    },
+    {
+      "label": "Step 6 - Generate Obsidian vault (opt-in) + HTML",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L539",
+      "_origin": "ast",
+      "id": "graphify_skill_step_6_generate_obsidian_vault_opt_in_html",
+      "community": 10,
+      "norm_label": "step 6 - generate obsidian vault (opt-in) + html"
+    },
+    {
+      "label": "Steps 6b-8 - Wiki, Neo4j, FalkorDB, SVG, GraphML, MCP, benchmark (only on their flags)",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L559",
+      "_origin": "ast",
+      "id": "graphify_skill_steps_6b_8_wiki_neo4j_falkordb_svg_graphml_mcp_benchmark_only_on_their_flags",
+      "community": 10,
+      "norm_label": "steps 6b-8 - wiki, neo4j, falkordb, svg, graphml, mcp, benchmark (only on their flags)"
+    },
+    {
+      "label": "Step 9 - Save manifest, update cost tracker, clean up, and report",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L565",
+      "_origin": "ast",
+      "id": "graphify_skill_step_9_save_manifest_update_cost_tracker_clean_up_and_report",
+      "community": 10,
+      "norm_label": "step 9 - save manifest, update cost tracker, clean up, and report"
+    },
+    {
+      "label": "Interpreter guard for subcommands",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L645",
+      "_origin": "ast",
+      "id": "graphify_skill_interpreter_guard_for_subcommands",
+      "community": 13,
+      "norm_label": "interpreter guard for subcommands"
+    },
+    {
+      "label": "For --update and --cluster-only",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L663",
+      "_origin": "ast",
+      "id": "graphify_skill_for_update_and_cluster_only",
+      "community": 13,
+      "norm_label": "for --update and --cluster-only"
+    },
+    {
+      "label": "For /graphify query",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L669",
+      "_origin": "ast",
+      "id": "graphify_skill_for_graphify_query",
+      "community": 13,
+      "norm_label": "for /graphify query"
+    },
+    {
+      "label": "For /graphify add and --watch",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L681",
+      "_origin": "ast",
+      "id": "graphify_skill_for_graphify_add_and_watch",
+      "community": 13,
+      "norm_label": "for /graphify add and --watch"
+    },
+    {
+      "label": "For the commit hook and native CLAUDE.md integration",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L687",
+      "_origin": "ast",
+      "id": "graphify_skill_for_the_commit_hook_and_native_claude_md_integration",
+      "community": 13,
+      "norm_label": "for the commit hook and native claude.md integration"
+    },
+    {
+      "label": "Troubleshooting",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L693",
+      "_origin": "ast",
+      "id": "graphify_skill_troubleshooting",
+      "community": 13,
+      "norm_label": "troubleshooting"
+    },
+    {
+      "label": "PowerShell 5.1: Vertical scrolling stops working",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L695",
+      "_origin": "ast",
+      "id": "graphify_skill_powershell_5_1_vertical_scrolling_stops_working",
+      "community": 13,
+      "norm_label": "powershell 5.1: vertical scrolling stops working"
+    },
+    {
+      "label": "Honesty Rules",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L706",
+      "_origin": "ast",
+      "id": "graphify_skill_honesty_rules",
+      "community": 13,
+      "norm_label": "honesty rules"
+    },
+    {
+      "label": "add-watch.md",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/add-watch.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "references_add_watch",
+      "community": 17,
+      "norm_label": "add-watch.md"
+    },
+    {
+      "label": "graphify reference: add a URL and watch a folder",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/add-watch.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "references_add_watch_graphify_reference_add_a_url_and_watch_a_folder",
+      "community": 17,
+      "norm_label": "graphify reference: add a url and watch a folder"
+    },
+    {
+      "label": "For /graphify add",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/add-watch.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "references_add_watch_for_graphify_add",
+      "community": 17,
+      "norm_label": "for /graphify add"
+    },
+    {
+      "label": "For --watch",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/add-watch.md",
+      "source_location": "L39",
+      "_origin": "ast",
+      "id": "references_add_watch_for_watch",
+      "community": 17,
+      "norm_label": "for --watch"
+    },
+    {
+      "label": "exports.md",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "references_exports",
+      "community": 14,
+      "norm_label": "exports.md"
+    },
+    {
+      "label": "graphify reference: extra exports and benchmark",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "references_exports_graphify_reference_extra_exports_and_benchmark",
+      "community": 14,
+      "norm_label": "graphify reference: extra exports and benchmark"
+    },
+    {
+      "label": "Step 6b - Wiki (only if --wiki flag)",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "references_exports_step_6b_wiki_only_if_wiki_flag",
+      "community": 14,
+      "norm_label": "step 6b - wiki (only if --wiki flag)"
+    },
+    {
+      "label": "Step 7 - Neo4j export (only if --neo4j or --neo4j-push flag)",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "references_exports_step_7_neo4j_export_only_if_neo4j_or_neo4j_push_flag",
+      "community": 14,
+      "norm_label": "step 7 - neo4j export (only if --neo4j or --neo4j-push flag)"
+    },
+    {
+      "label": "Step 7a - FalkorDB export (only if --falkordb or --falkordb-push flag)",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L31",
+      "_origin": "ast",
+      "id": "references_exports_step_7a_falkordb_export_only_if_falkordb_or_falkordb_push_flag",
+      "community": 14,
+      "norm_label": "step 7a - falkordb export (only if --falkordb or --falkordb-push flag)"
+    },
+    {
+      "label": "Step 7b - SVG export (only if --svg flag)",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L47",
+      "_origin": "ast",
+      "id": "references_exports_step_7b_svg_export_only_if_svg_flag",
+      "community": 14,
+      "norm_label": "step 7b - svg export (only if --svg flag)"
+    },
+    {
+      "label": "Step 7c - GraphML export (only if --graphml flag)",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "references_exports_step_7c_graphml_export_only_if_graphml_flag",
+      "community": 14,
+      "norm_label": "step 7c - graphml export (only if --graphml flag)"
+    },
+    {
+      "label": "Step 7d - MCP server (only if --mcp flag)",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L59",
+      "_origin": "ast",
+      "id": "references_exports_step_7d_mcp_server_only_if_mcp_flag",
+      "community": 14,
+      "norm_label": "step 7d - mcp server (only if --mcp flag)"
+    },
+    {
+      "label": "Step 8 - Token reduction benchmark (only if total_words > 5000)",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L79",
+      "_origin": "ast",
+      "id": "references_exports_step_8_token_reduction_benchmark_only_if_total_words_5000",
+      "community": 14,
+      "norm_label": "step 8 - token reduction benchmark (only if total_words > 5000)"
+    },
+    {
+      "label": "extraction-spec.md",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/extraction-spec.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "references_extraction_spec",
+      "community": 24,
+      "norm_label": "extraction-spec.md"
+    },
+    {
+      "label": "graphify reference: extraction subagent prompt",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/extraction-spec.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "references_extraction_spec_graphify_reference_extraction_subagent_prompt",
+      "community": 24,
+      "norm_label": "graphify reference: extraction subagent prompt"
+    },
+    {
+      "label": "github-and-merge.md",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/github-and-merge.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "references_github_and_merge",
+      "community": 20,
+      "norm_label": "github-and-merge.md"
+    },
+    {
+      "label": "graphify reference: GitHub clone and cross-repo merge",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/github-and-merge.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "references_github_and_merge_graphify_reference_github_clone_and_cross_repo_merge",
+      "community": 20,
+      "norm_label": "graphify reference: github clone and cross-repo merge"
+    },
+    {
+      "label": "Step 0 - Clone GitHub repo(s) (only if a GitHub URL was given)",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/github-and-merge.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "references_github_and_merge_step_0_clone_github_repo_s_only_if_a_github_url_was_given",
+      "community": 20,
+      "norm_label": "step 0 - clone github repo(s) (only if a github url was given)"
+    },
+    {
+      "label": "hooks.md",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/hooks.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "references_hooks",
+      "community": 18,
+      "norm_label": "hooks.md"
+    },
+    {
+      "label": "graphify reference: commit hook and native CLAUDE.md integration",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/hooks.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "references_hooks_graphify_reference_commit_hook_and_native_claude_md_integration",
+      "community": 18,
+      "norm_label": "graphify reference: commit hook and native claude.md integration"
+    },
+    {
+      "label": "For git commit hook",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/hooks.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "references_hooks_for_git_commit_hook",
+      "community": 18,
+      "norm_label": "for git commit hook"
+    },
+    {
+      "label": "For native CLAUDE.md integration",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/hooks.md",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "references_hooks_for_native_claude_md_integration",
+      "community": 18,
+      "norm_label": "for native claude.md integration"
+    },
+    {
+      "label": "query.md",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/query.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "references_query",
+      "community": 15,
+      "norm_label": "query.md"
+    },
+    {
+      "label": "graphify reference: query, path, explain",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/query.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "references_query_graphify_reference_query_path_explain",
+      "community": 15,
+      "norm_label": "graphify reference: query, path, explain"
+    },
+    {
+      "label": "Step 0 \u2014 Constrained query expansion (REQUIRED before traversal)",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/query.md",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "references_query_step_0_constrained_query_expansion_required_before_traversal",
+      "community": 15,
+      "norm_label": "step 0 \u2014 constrained query expansion (required before traversal)"
+    },
+    {
+      "label": "Step 1 \u2014 Traversal",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/query.md",
+      "source_location": "L61",
+      "_origin": "ast",
+      "id": "references_query_step_1_traversal",
+      "community": 15,
+      "norm_label": "step 1 \u2014 traversal"
+    },
+    {
+      "label": "For /graphify path",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/query.md",
+      "source_location": "L186",
+      "_origin": "ast",
+      "id": "references_query_for_graphify_path",
+      "community": 15,
+      "norm_label": "for /graphify path"
+    },
+    {
+      "label": "For /graphify explain",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/query.md",
+      "source_location": "L254",
+      "_origin": "ast",
+      "id": "references_query_for_graphify_explain",
+      "community": 15,
+      "norm_label": "for /graphify explain"
+    },
+    {
+      "label": "transcribe.md",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/transcribe.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "references_transcribe",
+      "community": 21,
+      "norm_label": "transcribe.md"
+    },
+    {
+      "label": "graphify reference: transcribe video and audio",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/transcribe.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "references_transcribe_graphify_reference_transcribe_video_and_audio",
+      "community": 21,
+      "norm_label": "graphify reference: transcribe video and audio"
+    },
+    {
+      "label": "Step 2.5 - Transcribe video / audio files (only if video files detected)",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/transcribe.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "references_transcribe_step_2_5_transcribe_video_audio_files_only_if_video_files_detected",
+      "community": 21,
+      "norm_label": "step 2.5 - transcribe video / audio files (only if video files detected)"
+    },
+    {
+      "label": "update.md",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/update.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "references_update",
+      "community": 19,
+      "norm_label": "update.md"
+    },
+    {
+      "label": "graphify reference: incremental update and cluster-only",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/update.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "references_update_graphify_reference_incremental_update_and_cluster_only",
+      "community": 19,
+      "norm_label": "graphify reference: incremental update and cluster-only"
+    },
+    {
+      "label": "For --update (incremental re-extraction)",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/update.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "references_update_for_update_incremental_re_extraction",
+      "community": 19,
+      "norm_label": "for --update (incremental re-extraction)"
+    },
+    {
+      "label": "For --cluster-only",
+      "file_type": "document",
+      "source_file": ".claude/skills/graphify/references/update.md",
+      "source_location": "L184",
+      "_origin": "ast",
+      "id": "references_update_for_cluster_only",
+      "community": 19,
+      "norm_label": "for --cluster-only"
+    },
+    {
+      "label": "CLAUDE.md",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "claude",
+      "community": 22,
+      "norm_label": "claude.md"
+    },
+    {
+      "label": "graphify",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "claude_graphify",
+      "community": 22,
+      "norm_label": "graphify"
+    },
+    {
+      "label": "PRD-01-Foundations.md",
+      "file_type": "document",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_prd_01_foundations",
+      "community": 5,
+      "norm_label": "prd-01-foundations.md"
+    },
+    {
+      "label": "Curio \u2014 PRD-01: Foundations (Rewrite)",
+      "file_type": "document",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "docs_prd_01_foundations_curio_prd_01_foundations_rewrite",
+      "community": 5,
+      "norm_label": "curio \u2014 prd-01: foundations (rewrite)"
+    },
+    {
+      "label": "0. Why this rewrite",
+      "file_type": "document",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "docs_prd_01_foundations_0_why_this_rewrite",
+      "community": 5,
+      "norm_label": "0. why this rewrite"
+    },
+    {
+      "label": "1. Goals & non-goals",
+      "file_type": "document",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L28",
+      "_origin": "ast",
+      "id": "docs_prd_01_foundations_1_goals_non_goals",
+      "community": 5,
+      "norm_label": "1. goals & non-goals"
+    },
+    {
+      "label": "2. Users & stories",
+      "file_type": "document",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L47",
+      "_origin": "ast",
+      "id": "docs_prd_01_foundations_2_users_stories",
+      "community": 5,
+      "norm_label": "2. users & stories"
+    },
+    {
+      "label": "3. Functional requirements",
+      "file_type": "document",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L64",
+      "_origin": "ast",
+      "id": "docs_prd_01_foundations_3_functional_requirements",
+      "community": 5,
+      "norm_label": "3. functional requirements"
+    },
+    {
+      "label": "4. Non-functional requirements",
+      "file_type": "document",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L110",
+      "_origin": "ast",
+      "id": "docs_prd_01_foundations_4_non_functional_requirements",
+      "community": 5,
+      "norm_label": "4. non-functional requirements"
+    },
+    {
+      "label": "5. UX requirements",
+      "file_type": "document",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L131",
+      "_origin": "ast",
+      "id": "docs_prd_01_foundations_5_ux_requirements",
+      "community": 5,
+      "norm_label": "5. ux requirements"
+    },
+    {
+      "label": "6. Epic list",
+      "file_type": "document",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L141",
+      "_origin": "ast",
+      "id": "docs_prd_01_foundations_6_epic_list",
+      "community": 5,
+      "norm_label": "6. epic list"
+    },
+    {
+      "label": "7. Done bar (demonstration)",
+      "file_type": "document",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L209",
+      "_origin": "ast",
+      "id": "docs_prd_01_foundations_7_done_bar_demonstration",
+      "community": 5,
+      "norm_label": "7. done bar (demonstration)"
+    },
+    {
+      "label": "8. Open questions & governance",
+      "file_type": "document",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L220",
+      "_origin": "ast",
+      "id": "docs_prd_01_foundations_8_open_questions_governance",
+      "community": 5,
+      "norm_label": "8. open questions & governance"
+    },
+    {
+      "label": "00-architecture-overview.md",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "architecture_00_architecture_overview",
+      "community": 0,
+      "norm_label": "00-architecture-overview.md"
+    },
+    {
+      "label": "Architecture Overview",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "architecture_00_architecture_overview_architecture_overview",
+      "community": 4,
+      "norm_label": "architecture overview"
+    },
+    {
+      "label": "At a glance",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "architecture_00_architecture_overview_at_a_glance",
+      "community": 4,
+      "norm_label": "at a glance"
+    },
+    {
+      "label": "Document map",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L50",
+      "_origin": "ast",
+      "id": "architecture_00_architecture_overview_document_map",
+      "community": 4,
+      "norm_label": "document map"
+    },
+    {
+      "label": "The contract",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L66",
+      "_origin": "ast",
+      "id": "architecture_00_architecture_overview_the_contract",
+      "community": 4,
+      "norm_label": "the contract"
+    },
+    {
+      "label": "Decision register",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L73",
+      "_origin": "ast",
+      "id": "architecture_00_architecture_overview_decision_register",
+      "community": 4,
+      "norm_label": "decision register"
+    },
+    {
+      "label": "Design detail",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L106",
+      "_origin": "ast",
+      "id": "architecture_00_architecture_overview_design_detail",
+      "community": 4,
+      "norm_label": "design detail"
+    },
+    {
+      "label": "What \"local-first\" means here, concretely",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L108",
+      "_origin": "ast",
+      "id": "architecture_00_architecture_overview_what_local_first_means_here_concretely",
+      "community": 4,
+      "norm_label": "what \"local-first\" means here, concretely"
+    },
+    {
+      "label": "Why these technologies (one paragraph each)",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L112",
+      "_origin": "ast",
+      "id": "architecture_00_architecture_overview_why_these_technologies_one_paragraph_each",
+      "community": 4,
+      "norm_label": "why these technologies (one paragraph each)"
+    },
+    {
+      "label": "System boundaries",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L116",
+      "_origin": "ast",
+      "id": "architecture_00_architecture_overview_system_boundaries",
+      "community": 4,
+      "norm_label": "system boundaries"
+    },
+    {
+      "label": "Glossary",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L126",
+      "_origin": "ast",
+      "id": "architecture_00_architecture_overview_glossary",
+      "community": 4,
+      "norm_label": "glossary"
+    },
+    {
+      "label": "Open questions",
+      "file_type": "document",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L130",
+      "_origin": "ast",
+      "id": "architecture_00_architecture_overview_open_questions",
+      "community": 4,
+      "norm_label": "open questions"
+    },
+    {
+      "label": "01-backend-architecture.md",
+      "file_type": "document",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "architecture_01_backend_architecture",
+      "community": 0,
+      "norm_label": "01-backend-architecture.md"
+    },
+    {
+      "label": "At a glance",
+      "file_type": "document",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "architecture_01_backend_architecture_at_a_glance",
+      "community": 0,
+      "norm_label": "at a glance"
+    },
+    {
+      "label": "The contract",
+      "file_type": "document",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L40",
+      "_origin": "ast",
+      "id": "architecture_01_backend_architecture_the_contract",
+      "community": 0,
+      "norm_label": "the contract"
+    },
+    {
+      "label": "Design detail",
+      "file_type": "document",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L97",
+      "_origin": "ast",
+      "id": "architecture_01_backend_architecture_design_detail",
+      "community": 8,
+      "norm_label": "design detail"
+    },
+    {
+      "label": "Boot sequence",
+      "file_type": "document",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L99",
+      "_origin": "ast",
+      "id": "architecture_01_backend_architecture_boot_sequence",
+      "community": 8,
+      "norm_label": "boot sequence"
+    },
+    {
+      "label": "Middleware map (what applies where)",
+      "file_type": "document",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L128",
+      "_origin": "ast",
+      "id": "architecture_01_backend_architecture_middleware_map_what_applies_where",
+      "community": 8,
+      "norm_label": "middleware map (what applies where)"
+    },
+    {
+      "label": "HTTP surface (delta view)",
+      "file_type": "document",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L147",
+      "_origin": "ast",
+      "id": "architecture_01_backend_architecture_http_surface_delta_view",
+      "community": 8,
+      "norm_label": "http surface (delta view)"
+    },
+    {
+      "label": "Jobs worker",
+      "file_type": "document",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L160",
+      "_origin": "ast",
+      "id": "architecture_01_backend_architecture_jobs_worker",
+      "community": 8,
+      "norm_label": "jobs worker"
+    },
+    {
+      "label": "Crates",
+      "file_type": "document",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L164",
+      "_origin": "ast",
+      "id": "architecture_01_backend_architecture_crates",
+      "community": 8,
+      "norm_label": "crates"
+    },
+    {
+      "label": "Budget (strategy \u00a78 \u2014 binding targets)",
+      "file_type": "document",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L175",
+      "_origin": "ast",
+      "id": "architecture_01_backend_architecture_budget_strategy_8_binding_targets",
+      "community": 8,
+      "norm_label": "budget (strategy \u00a78 \u2014 binding targets)"
+    },
+    {
+      "label": "Parity obligations",
+      "file_type": "document",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L186",
+      "_origin": "ast",
+      "id": "architecture_01_backend_architecture_parity_obligations",
+      "community": 0,
+      "norm_label": "parity obligations"
+    },
+    {
+      "label": "Open questions",
+      "file_type": "document",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L196",
+      "_origin": "ast",
+      "id": "architecture_01_backend_architecture_open_questions",
+      "community": 0,
+      "norm_label": "open questions"
+    },
+    {
+      "label": "02-data-architecture.md",
+      "file_type": "document",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "architecture_02_data_architecture",
+      "community": 0,
+      "norm_label": "02-data-architecture.md"
+    },
+    {
+      "label": "Data Architecture",
+      "file_type": "document",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "architecture_02_data_architecture_data_architecture",
+      "community": 1,
+      "norm_label": "data architecture"
+    },
+    {
+      "label": "At a glance",
+      "file_type": "document",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "architecture_02_data_architecture_at_a_glance",
+      "community": 1,
+      "norm_label": "at a glance"
+    },
+    {
+      "label": "The contract",
+      "file_type": "document",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L42",
+      "_origin": "ast",
+      "id": "architecture_02_data_architecture_the_contract",
+      "community": 1,
+      "norm_label": "the contract"
+    },
+    {
+      "label": "Ownership and layout",
+      "file_type": "document",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L44",
+      "_origin": "ast",
+      "id": "architecture_02_data_architecture_ownership_and_layout",
+      "community": 1,
+      "norm_label": "ownership and layout"
+    },
+    {
+      "label": "Identity and time",
+      "file_type": "document",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L50",
+      "_origin": "ast",
+      "id": "architecture_02_data_architecture_identity_and_time",
+      "community": 1,
+      "norm_label": "identity and time"
+    },
+    {
+      "label": "Relational core",
+      "file_type": "document",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L54",
+      "_origin": "ast",
+      "id": "architecture_02_data_architecture_relational_core",
+      "community": 1,
+      "norm_label": "relational core"
+    },
+    {
+      "label": "Vector role (designed in, activated post-v1 per D7)",
+      "file_type": "document",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L61",
+      "_origin": "ast",
+      "id": "architecture_02_data_architecture_vector_role_designed_in_activated_post_v1_per_d7",
+      "community": 1,
+      "norm_label": "vector role (designed in, activated post-v1 per d7)"
+    },
+    {
+      "label": "Graph role (designed in, activated post-v1 per D7)",
+      "file_type": "document",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L67",
+      "_origin": "ast",
+      "id": "architecture_02_data_architecture_graph_role_designed_in_activated_post_v1_per_d7",
+      "community": 1,
+      "norm_label": "graph role (designed in, activated post-v1 per d7)"
+    },
+    {
+      "label": "Migrations",
+      "file_type": "document",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L73",
+      "_origin": "ast",
+      "id": "architecture_02_data_architecture_migrations",
+      "community": 1,
+      "norm_label": "migrations"
+    },
+    {
+      "label": "Design detail",
+      "file_type": "document",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L78",
+      "_origin": "ast",
+      "id": "architecture_02_data_architecture_design_detail",
+      "community": 1,
+      "norm_label": "design detail"
+    },
+    {
+      "label": "Why text embeddings, not image embeddings",
+      "file_type": "document",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L80",
+      "_origin": "ast",
+      "id": "architecture_02_data_architecture_why_text_embeddings_not_image_embeddings",
+      "community": 1,
+      "norm_label": "why text embeddings, not image embeddings"
+    },
+    {
+      "label": "The sidecar contract (unchanged)",
+      "file_type": "document",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L83",
+      "_origin": "ast",
+      "id": "architecture_02_data_architecture_the_sidecar_contract_unchanged",
+      "community": 1,
+      "norm_label": "the sidecar contract (unchanged)"
+    },
+    {
+      "label": "Hybrid query shape (illustrative, non-normative)",
+      "file_type": "document",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L86",
+      "_origin": "ast",
+      "id": "architecture_02_data_architecture_hybrid_query_shape_illustrative_non_normative",
+      "community": 1,
+      "norm_label": "hybrid query shape (illustrative, non-normative)"
+    },
+    {
+      "label": "Parity obligations",
+      "file_type": "document",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L99",
+      "_origin": "ast",
+      "id": "architecture_02_data_architecture_parity_obligations",
+      "community": 1,
+      "norm_label": "parity obligations"
+    },
+    {
+      "label": "Open questions",
+      "file_type": "document",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L102",
+      "_origin": "ast",
+      "id": "architecture_02_data_architecture_open_questions",
+      "community": 1,
+      "norm_label": "open questions"
+    },
+    {
+      "label": "03-frontend-architecture.md",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture",
+      "community": 0,
+      "norm_label": "03-frontend-architecture.md"
+    },
+    {
+      "label": "At a glance",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_at_a_glance",
+      "community": 0,
+      "norm_label": "at a glance"
+    },
+    {
+      "label": "The contract",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_the_contract",
+      "community": 9,
+      "norm_label": "the contract"
+    },
+    {
+      "label": "Framework & structure",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L37",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_framework_structure",
+      "community": 9,
+      "norm_label": "framework & structure"
+    },
+    {
+      "label": "State & session",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L43",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_state_session",
+      "community": 9,
+      "norm_label": "state & session"
+    },
+    {
+      "label": "Ported UX behaviors (observable contracts, Inventory \u00a76 + \u00a710)",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L50",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_ported_ux_behaviors_observable_contracts_inventory_6_10",
+      "community": 9,
+      "norm_label": "ported ux behaviors (observable contracts, inventory \u00a76 + \u00a710)"
+    },
+    {
+      "label": "Editor",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L61",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_editor",
+      "community": 9,
+      "norm_label": "editor"
+    },
+    {
+      "label": "Pairing fallback",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L66",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_pairing_fallback",
+      "community": 9,
+      "norm_label": "pairing fallback"
+    },
+    {
+      "label": "Keyboard & a11y (SHOULD \u2014 post-parity baseline)",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L69",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_keyboard_a11y_should_post_parity_baseline",
+      "community": 9,
+      "norm_label": "keyboard & a11y (should \u2014 post-parity baseline)"
+    },
+    {
+      "label": "Design detail",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L75",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_design_detail",
+      "community": 9,
+      "norm_label": "design detail"
+    },
+    {
+      "label": "Why SolidJS \u2014 a structural argument, not a benchmark",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L77",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_why_solidjs_a_structural_argument_not_a_benchmark",
+      "community": 9,
+      "norm_label": "why solidjs \u2014 a structural argument, not a benchmark"
+    },
+    {
+      "label": "React \u2192 Solid translation map (non-normative porting guidance)",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L85",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_react_solid_translation_map_non_normative_porting_guidance",
+      "community": 9,
+      "norm_label": "react \u2192 solid translation map (non-normative porting guidance)"
+    },
+    {
+      "label": "Data flow \u2014 nonce, session, SSE, stores",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L98",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_data_flow_nonce_session_sse_stores",
+      "community": 9,
+      "norm_label": "data flow \u2014 nonce, session, sse, stores"
+    },
+    {
+      "label": "The editor: TipTap core over raw ProseMirror",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L117",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_the_editor_tiptap_core_over_raw_prosemirror",
+      "community": 9,
+      "norm_label": "the editor: tiptap core over raw prosemirror"
+    },
+    {
+      "label": "Pairing page as fallback",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L122",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_pairing_page_as_fallback",
+      "community": 9,
+      "norm_label": "pairing page as fallback"
+    },
+    {
+      "label": "Build & embed",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L125",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_build_embed",
+      "community": 9,
+      "norm_label": "build & embed"
+    },
+    {
+      "label": "Parity obligations",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L128",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_parity_obligations",
+      "community": 0,
+      "norm_label": "parity obligations"
+    },
+    {
+      "label": "Open questions",
+      "file_type": "document",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L148",
+      "_origin": "ast",
+      "id": "architecture_03_frontend_architecture_open_questions",
+      "community": 0,
+      "norm_label": "open questions"
+    },
+    {
+      "label": "04-extension-architecture.md",
+      "file_type": "document",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "architecture_04_extension_architecture",
+      "community": 0,
+      "norm_label": "04-extension-architecture.md"
+    },
+    {
+      "label": "At a glance",
+      "file_type": "document",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "architecture_04_extension_architecture_at_a_glance",
+      "community": 0,
+      "norm_label": "at a glance"
+    },
+    {
+      "label": "The contract",
+      "file_type": "document",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L39",
+      "_origin": "ast",
+      "id": "architecture_04_extension_architecture_the_contract",
+      "community": 2,
+      "norm_label": "the contract"
+    },
+    {
+      "label": "Components & identity",
+      "file_type": "document",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "architecture_04_extension_architecture_components_identity",
+      "community": 2,
+      "norm_label": "components & identity"
+    },
+    {
+      "label": "Bootstrap (new primary path)",
+      "file_type": "document",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "architecture_04_extension_architecture_bootstrap_new_primary_path",
+      "community": 2,
+      "norm_label": "bootstrap (new primary path)"
+    },
+    {
+      "label": "Worker lifetime & state",
+      "file_type": "document",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "architecture_04_extension_architecture_worker_lifetime_state",
+      "community": 2,
+      "norm_label": "worker lifetime & state"
+    },
+    {
+      "label": "Capture pipeline (verbatim port \u2014 Inventory \u00a77, \u00a710.24)",
+      "file_type": "document",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L58",
+      "_origin": "ast",
+      "id": "architecture_04_extension_architecture_capture_pipeline_verbatim_port_inventory_7_10_24",
+      "community": 2,
+      "norm_label": "capture pipeline (verbatim port \u2014 inventory \u00a77, \u00a710.24)"
+    },
+    {
+      "label": "Popup (Inventory \u00a77, \u00a710.23)",
+      "file_type": "document",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L66",
+      "_origin": "ast",
+      "id": "architecture_04_extension_architecture_popup_inventory_7_10_23",
+      "community": 2,
+      "norm_label": "popup (inventory \u00a77, \u00a710.23)"
+    },
+    {
+      "label": "Non-Chrome browsers",
+      "file_type": "document",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L72",
+      "_origin": "ast",
+      "id": "architecture_04_extension_architecture_non_chrome_browsers",
+      "community": 2,
+      "norm_label": "non-chrome browsers"
+    },
+    {
+      "label": "Design detail",
+      "file_type": "document",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L75",
+      "_origin": "ast",
+      "id": "architecture_04_extension_architecture_design_detail",
+      "community": 2,
+      "norm_label": "design detail"
+    },
+    {
+      "label": "Bootstrap \u2014 new primary, layered fallbacks",
+      "file_type": "document",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L77",
+      "_origin": "ast",
+      "id": "architecture_04_extension_architecture_bootstrap_new_primary_layered_fallbacks",
+      "community": 2,
+      "norm_label": "bootstrap \u2014 new primary, layered fallbacks"
+    },
+    {
+      "label": "Capture \u2014 the sequence that must not change",
+      "file_type": "document",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L102",
+      "_origin": "ast",
+      "id": "architecture_04_extension_architecture_capture_the_sequence_that_must_not_change",
+      "community": 2,
+      "norm_label": "capture \u2014 the sequence that must not change"
+    },
+    {
+      "label": "Paused state, end to end",
+      "file_type": "document",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L134",
+      "_origin": "ast",
+      "id": "architecture_04_extension_architecture_paused_state_end_to_end",
+      "community": 2,
+      "norm_label": "paused state, end to end"
+    },
+    {
+      "label": "Parity obligations",
+      "file_type": "document",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L137",
+      "_origin": "ast",
+      "id": "architecture_04_extension_architecture_parity_obligations",
+      "community": 0,
+      "norm_label": "parity obligations"
+    },
+    {
+      "label": "Open questions",
+      "file_type": "document",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L152",
+      "_origin": "ast",
+      "id": "architecture_04_extension_architecture_open_questions",
+      "community": 0,
+      "norm_label": "open questions"
+    },
+    {
+      "label": "05-mcp-architecture.md",
+      "file_type": "document",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "architecture_05_mcp_architecture",
+      "community": 0,
+      "norm_label": "05-mcp-architecture.md"
+    },
+    {
+      "label": "At a glance",
+      "file_type": "document",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "architecture_05_mcp_architecture_at_a_glance",
+      "community": 0,
+      "norm_label": "at a glance"
+    },
+    {
+      "label": "The contract",
+      "file_type": "document",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "architecture_05_mcp_architecture_the_contract",
+      "community": 0,
+      "norm_label": "the contract"
+    },
+    {
+      "label": "Design detail",
+      "file_type": "document",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L63",
+      "_origin": "ast",
+      "id": "architecture_05_mcp_architecture_design_detail",
+      "community": 11,
+      "norm_label": "design detail"
+    },
+    {
+      "label": "Transport / client matrix",
+      "file_type": "document",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L65",
+      "_origin": "ast",
+      "id": "architecture_05_mcp_architecture_transport_client_matrix",
+      "community": 11,
+      "norm_label": "transport / client matrix"
+    },
+    {
+      "label": "Tool surface \u2014 parity seven (schemas fixed, Inventory \u00a72)",
+      "file_type": "document",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L95",
+      "_origin": "ast",
+      "id": "architecture_05_mcp_architecture_tool_surface_parity_seven_schemas_fixed_inventory_2",
+      "community": 11,
+      "norm_label": "tool surface \u2014 parity seven (schemas fixed, inventory \u00a72)"
+    },
+    {
+      "label": "Tool surface \u2014 semantic two (new in the rewrite, post-v1)",
+      "file_type": "document",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L109",
+      "_origin": "ast",
+      "id": "architecture_05_mcp_architecture_tool_surface_semantic_two_new_in_the_rewrite_post_v1",
+      "community": 11,
+      "norm_label": "tool surface \u2014 semantic two (new in the rewrite, post-v1)"
+    },
+    {
+      "label": "Request lifecycle (HTTP)",
+      "file_type": "document",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L142",
+      "_origin": "ast",
+      "id": "architecture_05_mcp_architecture_request_lifecycle_http",
+      "community": 11,
+      "norm_label": "request lifecycle (http)"
+    },
+    {
+      "label": "Token-overhead discipline",
+      "file_type": "document",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L152",
+      "_origin": "ast",
+      "id": "architecture_05_mcp_architecture_token_overhead_discipline",
+      "community": 11,
+      "norm_label": "token-overhead discipline"
+    },
+    {
+      "label": "Parity obligations",
+      "file_type": "document",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L156",
+      "_origin": "ast",
+      "id": "architecture_05_mcp_architecture_parity_obligations",
+      "community": 0,
+      "norm_label": "parity obligations"
+    },
+    {
+      "label": "Open questions",
+      "file_type": "document",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L165",
+      "_origin": "ast",
+      "id": "architecture_05_mcp_architecture_open_questions",
+      "community": 0,
+      "norm_label": "open questions"
+    },
+    {
+      "label": "06-security-architecture.md",
+      "file_type": "document",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "architecture_06_security_architecture",
+      "community": 0,
+      "norm_label": "06-security-architecture.md"
+    },
+    {
+      "label": "At a glance",
+      "file_type": "document",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "architecture_06_security_architecture_at_a_glance",
+      "community": 0,
+      "norm_label": "at a glance"
+    },
+    {
+      "label": "The contract",
+      "file_type": "document",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "architecture_06_security_architecture_the_contract",
+      "community": 0,
+      "norm_label": "the contract"
+    },
+    {
+      "label": "Design detail",
+      "file_type": "document",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L63",
+      "_origin": "ast",
+      "id": "architecture_06_security_architecture_design_detail",
+      "community": 6,
+      "norm_label": "design detail"
+    },
+    {
+      "label": "Threat model, in plain language",
+      "file_type": "document",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L65",
+      "_origin": "ast",
+      "id": "architecture_06_security_architecture_threat_model_in_plain_language",
+      "community": 6,
+      "norm_label": "threat model, in plain language"
+    },
+    {
+      "label": "Token flow",
+      "file_type": "document",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L76",
+      "_origin": "ast",
+      "id": "architecture_06_security_architecture_token_flow",
+      "community": 6,
+      "norm_label": "token flow"
+    },
+    {
+      "label": "Client token lifecycle (R-SEC-17)",
+      "file_type": "document",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L112",
+      "_origin": "ast",
+      "id": "architecture_06_security_architecture_client_token_lifecycle_r_sec_17",
+      "community": 6,
+      "norm_label": "client token lifecycle (r-sec-17)"
+    },
+    {
+      "label": "Nonce mechanics",
+      "file_type": "document",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L120",
+      "_origin": "ast",
+      "id": "architecture_06_security_architecture_nonce_mechanics",
+      "community": 6,
+      "norm_label": "nonce mechanics"
+    },
+    {
+      "label": "Jail mechanics",
+      "file_type": "document",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L129",
+      "_origin": "ast",
+      "id": "architecture_06_security_architecture_jail_mechanics",
+      "community": 6,
+      "norm_label": "jail mechanics"
+    },
+    {
+      "label": "Middleware order",
+      "file_type": "document",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L133",
+      "_origin": "ast",
+      "id": "architecture_06_security_architecture_middleware_order",
+      "community": 6,
+      "norm_label": "middleware order"
+    },
+    {
+      "label": "Why /health stays open",
+      "file_type": "document",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L137",
+      "_origin": "ast",
+      "id": "architecture_06_security_architecture_why_health_stays_open",
+      "community": 6,
+      "norm_label": "why /health stays open"
+    },
+    {
+      "label": "Review checklist (R-SEC-16)",
+      "file_type": "document",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L141",
+      "_origin": "ast",
+      "id": "architecture_06_security_architecture_review_checklist_r_sec_16",
+      "community": 6,
+      "norm_label": "review checklist (r-sec-16)"
+    },
+    {
+      "label": "Parity obligations",
+      "file_type": "document",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L152",
+      "_origin": "ast",
+      "id": "architecture_06_security_architecture_parity_obligations",
+      "community": 0,
+      "norm_label": "parity obligations"
+    },
+    {
+      "label": "Open questions",
+      "file_type": "document",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L159",
+      "_origin": "ast",
+      "id": "architecture_06_security_architecture_open_questions",
+      "community": 0,
+      "norm_label": "open questions"
+    },
+    {
+      "label": "07-delivery-open-source.md",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "architecture_07_delivery_open_source",
+      "community": 0,
+      "norm_label": "07-delivery-open-source.md"
+    },
+    {
+      "label": "At a glance",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "architecture_07_delivery_open_source_at_a_glance",
+      "community": 0,
+      "norm_label": "at a glance"
+    },
+    {
+      "label": "The contract",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "architecture_07_delivery_open_source_the_contract",
+      "community": 0,
+      "norm_label": "the contract"
+    },
+    {
+      "label": "Design detail",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L131",
+      "_origin": "ast",
+      "id": "architecture_07_delivery_open_source_design_detail",
+      "community": 12,
+      "norm_label": "design detail"
+    },
+    {
+      "label": "CI pipeline",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L133",
+      "_origin": "ast",
+      "id": "architecture_07_delivery_open_source_ci_pipeline",
+      "community": 12,
+      "norm_label": "ci pipeline"
+    },
+    {
+      "label": "Why the dependency rules are strict",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L148",
+      "_origin": "ast",
+      "id": "architecture_07_delivery_open_source_why_the_dependency_rules_are_strict",
+      "community": 12,
+      "norm_label": "why the dependency rules are strict"
+    },
+    {
+      "label": "Dev loop",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L152",
+      "_origin": "ast",
+      "id": "architecture_07_delivery_open_source_dev_loop",
+      "community": 12,
+      "norm_label": "dev loop"
+    },
+    {
+      "label": "D0 verification-spike index (release-0) \u2014 every D0-verify item in the doc set",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L156",
+      "_origin": "ast",
+      "id": "architecture_07_delivery_open_source_d0_verification_spike_index_release_0_every_d0_verify_item_in_the_doc_set",
+      "community": 12,
+      "norm_label": "d0 verification-spike index (release-0) \u2014 every d0-verify item in the doc set"
+    },
+    {
+      "label": "Parity obligations",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L183",
+      "_origin": "ast",
+      "id": "architecture_07_delivery_open_source_parity_obligations",
+      "community": 0,
+      "norm_label": "parity obligations"
+    },
+    {
+      "label": "Open questions",
+      "file_type": "document",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L192",
+      "_origin": "ast",
+      "id": "architecture_07_delivery_open_source_open_questions",
+      "community": 0,
+      "norm_label": "open questions"
+    },
+    {
+      "label": "08-parity-matrix.md",
+      "file_type": "document",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "architecture_08_parity_matrix",
+      "community": 0,
+      "norm_label": "08-parity-matrix.md"
+    },
+    {
+      "label": "Parity Matrix",
+      "file_type": "document",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "architecture_08_parity_matrix_parity_matrix",
+      "community": 7,
+      "norm_label": "parity matrix"
+    },
+    {
+      "label": "At a glance",
+      "file_type": "document",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "architecture_08_parity_matrix_at_a_glance",
+      "community": 7,
+      "norm_label": "at a glance"
+    },
+    {
+      "label": "The contract",
+      "file_type": "document",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L28",
+      "_origin": "ast",
+      "id": "architecture_08_parity_matrix_the_contract",
+      "community": 7,
+      "norm_label": "the contract"
+    },
+    {
+      "label": "FR ownership",
+      "file_type": "document",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "architecture_08_parity_matrix_fr_ownership",
+      "community": 7,
+      "norm_label": "fr ownership"
+    },
+    {
+      "label": "Inventory \u00a710 invariant ownership",
+      "file_type": "document",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L61",
+      "_origin": "ast",
+      "id": "architecture_08_parity_matrix_inventory_10_invariant_ownership",
+      "community": 7,
+      "norm_label": "inventory \u00a710 invariant ownership"
+    },
+    {
+      "label": "Deliberate breaks",
+      "file_type": "document",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L98",
+      "_origin": "ast",
+      "id": "architecture_08_parity_matrix_deliberate_breaks",
+      "community": 7,
+      "norm_label": "deliberate breaks"
+    },
+    {
+      "label": "Design detail \u2014 how to use this document",
+      "file_type": "document",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L114",
+      "_origin": "ast",
+      "id": "architecture_08_parity_matrix_design_detail_how_to_use_this_document",
+      "community": 7,
+      "norm_label": "design detail \u2014 how to use this document"
+    },
+    {
+      "label": "Open questions",
+      "file_type": "document",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L118",
+      "_origin": "ast",
+      "id": "architecture_08_parity_matrix_open_questions",
+      "community": 7,
+      "norm_label": "open questions"
+    },
+    {
+      "label": "TEMPLATE.md",
+      "file_type": "document",
+      "source_file": "docs/architecture/TEMPLATE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "architecture_template",
+      "community": 16,
+      "norm_label": "template.md"
+    },
+    {
+      "label": "TEMPLATE \u2014 Authoring rules for Curio architecture documents (binding)",
+      "file_type": "document",
+      "source_file": "docs/architecture/TEMPLATE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "architecture_template_template_authoring_rules_for_curio_architecture_documents_binding",
+      "community": 16,
+      "norm_label": "template \u2014 authoring rules for curio architecture documents (binding)"
+    },
+    {
+      "label": "Frontmatter (every doc, exactly this shape)",
+      "file_type": "document",
+      "source_file": "docs/architecture/TEMPLATE.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "architecture_template_frontmatter_every_doc_exactly_this_shape",
+      "community": 16,
+      "norm_label": "frontmatter (every doc, exactly this shape)"
+    },
+    {
+      "label": "Structure (progressive reveal \u2014 strict order)",
+      "file_type": "document",
+      "source_file": "docs/architecture/TEMPLATE.md",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "architecture_template_structure_progressive_reveal_strict_order",
+      "community": 16,
+      "norm_label": "structure (progressive reveal \u2014 strict order)"
+    },
+    {
+      "label": "Style",
+      "file_type": "document",
+      "source_file": "docs/architecture/TEMPLATE.md",
+      "source_location": "L32",
+      "_origin": "ast",
+      "id": "architecture_template_style",
+      "community": 16,
+      "norm_label": "style"
+    },
+    {
+      "label": "appendix-parity-inventory.md",
+      "file_type": "document",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "architecture_appendix_parity_inventory",
+      "community": 3,
+      "norm_label": "appendix-parity-inventory.md"
+    },
+    {
+      "label": "Curio parity inventory \u2014 mined from the running Bun/React implementation (Curiol repo)",
+      "file_type": "document",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "architecture_appendix_parity_inventory_curio_parity_inventory_mined_from_the_running_bun_react_implementation_curiol_repo",
+      "community": 3,
+      "norm_label": "curio parity inventory \u2014 mined from the running bun/react implementation (curiol repo)"
+    },
+    {
+      "label": "1. HTTP API surface (as implemented)",
+      "file_type": "document",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "architecture_appendix_parity_inventory_1_http_api_surface_as_implemented",
+      "community": 3,
+      "norm_label": "1. http api surface (as implemented)"
+    },
+    {
+      "label": "2. MCP surface \u2014 7 tools, one factory, both transports",
+      "file_type": "document",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "architecture_appendix_parity_inventory_2_mcp_surface_7_tools_one_factory_both_transports",
+      "community": 3,
+      "norm_label": "2. mcp surface \u2014 7 tools, one factory, both transports"
+    },
+    {
+      "label": "3. Events",
+      "file_type": "document",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L47",
+      "_origin": "ast",
+      "id": "architecture_appendix_parity_inventory_3_events",
+      "community": 3,
+      "norm_label": "3. events"
+    },
+    {
+      "label": "4. DB (SQLite, WAL, foreign_keys ON, busy_timeout 5000, synchronous NORMAL)",
+      "file_type": "document",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L50",
+      "_origin": "ast",
+      "id": "architecture_appendix_parity_inventory_4_db_sqlite_wal_foreign_keys_on_busy_timeout_5000_synchronous_normal",
+      "community": 3,
+      "norm_label": "4. db (sqlite, wal, foreign_keys on, busy_timeout 5000, synchronous normal)"
+    },
+    {
+      "label": "5. Settings / secrets / env",
+      "file_type": "document",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "architecture_appendix_parity_inventory_5_settings_secrets_env",
+      "community": 3,
+      "norm_label": "5. settings / secrets / env"
+    },
+    {
+      "label": "6. UI routes & behaviors",
+      "file_type": "document",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L62",
+      "_origin": "ast",
+      "id": "architecture_appendix_parity_inventory_6_ui_routes_behaviors",
+      "community": 3,
+      "norm_label": "6. ui routes & behaviors"
+    },
+    {
+      "label": "7. Extension (MV3, min Chrome 116)",
+      "file_type": "document",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L76",
+      "_origin": "ast",
+      "id": "architecture_appendix_parity_inventory_7_extension_mv3_min_chrome_116",
+      "community": 3,
+      "norm_label": "7. extension (mv3, min chrome 116)"
+    },
+    {
+      "label": "8. Shell",
+      "file_type": "document",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L84",
+      "_origin": "ast",
+      "id": "architecture_appendix_parity_inventory_8_shell",
+      "community": 3,
+      "norm_label": "8. shell"
+    },
+    {
+      "label": "9. Jobs & AI",
+      "file_type": "document",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L91",
+      "_origin": "ast",
+      "id": "architecture_appendix_parity_inventory_9_jobs_ai",
+      "community": 3,
+      "norm_label": "9. jobs & ai"
+    },
+    {
+      "label": "10. Gotchas (behavioral invariants the rewrite must preserve)",
+      "file_type": "document",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L101",
+      "_origin": "ast",
+      "id": "architecture_appendix_parity_inventory_10_gotchas_behavioral_invariants_the_rewrite_must_preserve",
+      "community": 3,
+      "norm_label": "10. gotchas (behavioral invariants the rewrite must preserve)"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/CLAUDE.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "claude_claude",
+      "target": "claude_claude_graphify",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "graphify_skill",
+      "target": "graphify_skill_graphify",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L681",
+      "weight": 1.0,
+      "source": "graphify_skill_graphify",
+      "target": "graphify_skill_for_graphify_add_and_watch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L669",
+      "weight": 1.0,
+      "source": "graphify_skill_graphify",
+      "target": "graphify_skill_for_graphify_query",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L687",
+      "weight": 1.0,
+      "source": "graphify_skill_graphify",
+      "target": "graphify_skill_for_the_commit_hook_and_native_claude_md_integration",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L663",
+      "weight": 1.0,
+      "source": "graphify_skill_graphify",
+      "target": "graphify_skill_for_update_and_cluster_only",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L706",
+      "weight": 1.0,
+      "source": "graphify_skill_graphify",
+      "target": "graphify_skill_honesty_rules",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L645",
+      "weight": 1.0,
+      "source": "graphify_skill_graphify",
+      "target": "graphify_skill_interpreter_guard_for_subcommands",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L693",
+      "weight": 1.0,
+      "source": "graphify_skill_graphify",
+      "target": "graphify_skill_troubleshooting",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "graphify_skill_graphify",
+      "target": "graphify_skill_usage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "graphify_skill_graphify",
+      "target": "graphify_skill_what_graphify_is_for",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L49",
+      "weight": 1.0,
+      "source": "graphify_skill_graphify",
+      "target": "graphify_skill_what_you_must_do_when_invoked",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L61",
+      "weight": 1.0,
+      "source": "graphify_skill_what_you_must_do_when_invoked",
+      "target": "graphify_skill_step_0_github_repos_and_multi_path_merge_only_if_a_url_or_several_paths",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L65",
+      "weight": 1.0,
+      "source": "graphify_skill_what_you_must_do_when_invoked",
+      "target": "graphify_skill_step_1_ensure_graphify_is_installed",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L166",
+      "weight": 1.0,
+      "source": "graphify_skill_what_you_must_do_when_invoked",
+      "target": "graphify_skill_step_2_5_video_and_audio_only_if_video_files_detected",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L129",
+      "weight": 1.0,
+      "source": "graphify_skill_what_you_must_do_when_invoked",
+      "target": "graphify_skill_step_2_detect_files",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L170",
+      "weight": 1.0,
+      "source": "graphify_skill_what_you_must_do_when_invoked",
+      "target": "graphify_skill_step_3_extract_entities_and_relationships",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L472",
+      "weight": 1.0,
+      "source": "graphify_skill_what_you_must_do_when_invoked",
+      "target": "graphify_skill_step_4_5_graph_health_check_read_only_integrity_gate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L409",
+      "weight": 1.0,
+      "source": "graphify_skill_what_you_must_do_when_invoked",
+      "target": "graphify_skill_step_4_build_graph_cluster_analyze_generate_outputs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L498",
+      "weight": 1.0,
+      "source": "graphify_skill_what_you_must_do_when_invoked",
+      "target": "graphify_skill_step_5_label_communities",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L539",
+      "weight": 1.0,
+      "source": "graphify_skill_what_you_must_do_when_invoked",
+      "target": "graphify_skill_step_6_generate_obsidian_vault_opt_in_html",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L565",
+      "weight": 1.0,
+      "source": "graphify_skill_what_you_must_do_when_invoked",
+      "target": "graphify_skill_step_9_save_manifest_update_cost_tracker_clean_up_and_report",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L559",
+      "weight": 1.0,
+      "source": "graphify_skill_what_you_must_do_when_invoked",
+      "target": "graphify_skill_steps_6b_8_wiki_neo4j_falkordb_svg_graphml_mcp_benchmark_only_on_their_flags",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L189",
+      "weight": 1.0,
+      "source": "graphify_skill_step_3_extract_entities_and_relationships",
+      "target": "graphify_skill_part_a_structural_extraction_for_code_files",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L215",
+      "weight": 1.0,
+      "source": "graphify_skill_step_3_extract_entities_and_relationships",
+      "target": "graphify_skill_part_b_semantic_extraction_parallel_subagents",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L375",
+      "weight": 1.0,
+      "source": "graphify_skill_step_3_extract_entities_and_relationships",
+      "target": "graphify_skill_part_c_merge_ast_semantic_into_final_extraction",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/SKILL.md",
+      "source_location": "L695",
+      "weight": 1.0,
+      "source": "graphify_skill_troubleshooting",
+      "target": "graphify_skill_powershell_5_1_vertical_scrolling_stops_working",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/add-watch.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "references_add_watch",
+      "target": "references_add_watch_graphify_reference_add_a_url_and_watch_a_folder",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/add-watch.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "references_add_watch_graphify_reference_add_a_url_and_watch_a_folder",
+      "target": "references_add_watch_for_graphify_add",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/add-watch.md",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "references_add_watch_graphify_reference_add_a_url_and_watch_a_folder",
+      "target": "references_add_watch_for_watch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "references_exports",
+      "target": "references_exports_graphify_reference_extra_exports_and_benchmark",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "references_exports_graphify_reference_extra_exports_and_benchmark",
+      "target": "references_exports_step_6b_wiki_only_if_wiki_flag",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "references_exports_graphify_reference_extra_exports_and_benchmark",
+      "target": "references_exports_step_7_neo4j_export_only_if_neo4j_or_neo4j_push_flag",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "references_exports_graphify_reference_extra_exports_and_benchmark",
+      "target": "references_exports_step_7a_falkordb_export_only_if_falkordb_or_falkordb_push_flag",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L47",
+      "weight": 1.0,
+      "source": "references_exports_graphify_reference_extra_exports_and_benchmark",
+      "target": "references_exports_step_7b_svg_export_only_if_svg_flag",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L53",
+      "weight": 1.0,
+      "source": "references_exports_graphify_reference_extra_exports_and_benchmark",
+      "target": "references_exports_step_7c_graphml_export_only_if_graphml_flag",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L59",
+      "weight": 1.0,
+      "source": "references_exports_graphify_reference_extra_exports_and_benchmark",
+      "target": "references_exports_step_7d_mcp_server_only_if_mcp_flag",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/exports.md",
+      "source_location": "L79",
+      "weight": 1.0,
+      "source": "references_exports_graphify_reference_extra_exports_and_benchmark",
+      "target": "references_exports_step_8_token_reduction_benchmark_only_if_total_words_5000",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/extraction-spec.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "references_extraction_spec",
+      "target": "references_extraction_spec_graphify_reference_extraction_subagent_prompt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/github-and-merge.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "references_github_and_merge",
+      "target": "references_github_and_merge_graphify_reference_github_clone_and_cross_repo_merge",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/github-and-merge.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "references_github_and_merge_graphify_reference_github_clone_and_cross_repo_merge",
+      "target": "references_github_and_merge_step_0_clone_github_repo_s_only_if_a_github_url_was_given",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/hooks.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "references_hooks",
+      "target": "references_hooks_graphify_reference_commit_hook_and_native_claude_md_integration",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/hooks.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "references_hooks_graphify_reference_commit_hook_and_native_claude_md_integration",
+      "target": "references_hooks_for_git_commit_hook",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/hooks.md",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "references_hooks_graphify_reference_commit_hook_and_native_claude_md_integration",
+      "target": "references_hooks_for_native_claude_md_integration",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/query.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "references_query",
+      "target": "references_query_graphify_reference_query_path_explain",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/query.md",
+      "source_location": "L254",
+      "weight": 1.0,
+      "source": "references_query_graphify_reference_query_path_explain",
+      "target": "references_query_for_graphify_explain",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/query.md",
+      "source_location": "L186",
+      "weight": 1.0,
+      "source": "references_query_graphify_reference_query_path_explain",
+      "target": "references_query_for_graphify_path",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/query.md",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "references_query_graphify_reference_query_path_explain",
+      "target": "references_query_step_0_constrained_query_expansion_required_before_traversal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/query.md",
+      "source_location": "L61",
+      "weight": 1.0,
+      "source": "references_query_graphify_reference_query_path_explain",
+      "target": "references_query_step_1_traversal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/transcribe.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "references_transcribe",
+      "target": "references_transcribe_graphify_reference_transcribe_video_and_audio",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/transcribe.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "references_transcribe_graphify_reference_transcribe_video_and_audio",
+      "target": "references_transcribe_step_2_5_transcribe_video_audio_files_only_if_video_files_detected",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/update.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "references_update",
+      "target": "references_update_graphify_reference_incremental_update_and_cluster_only",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/update.md",
+      "source_location": "L184",
+      "weight": 1.0,
+      "source": "references_update_graphify_reference_incremental_update_and_cluster_only",
+      "target": "references_update_for_cluster_only",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/skills/graphify/references/update.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "references_update_graphify_reference_incremental_update_and_cluster_only",
+      "target": "references_update_for_update_incremental_re_extraction",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "claude",
+      "target": "claude_graphify",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L12",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_prd_01_foundations",
+      "target": "docs_prd_01_foundations_curio_prd_01_foundations_rewrite"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L16",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_prd_01_foundations_curio_prd_01_foundations_rewrite",
+      "target": "docs_prd_01_foundations_0_why_this_rewrite"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_prd_01_foundations_curio_prd_01_foundations_rewrite",
+      "target": "docs_prd_01_foundations_1_goals_non_goals"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L47",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_prd_01_foundations_curio_prd_01_foundations_rewrite",
+      "target": "docs_prd_01_foundations_2_users_stories"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L64",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_prd_01_foundations_curio_prd_01_foundations_rewrite",
+      "target": "docs_prd_01_foundations_3_functional_requirements"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L110",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_prd_01_foundations_curio_prd_01_foundations_rewrite",
+      "target": "docs_prd_01_foundations_4_non_functional_requirements"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L131",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_prd_01_foundations_curio_prd_01_foundations_rewrite",
+      "target": "docs_prd_01_foundations_5_ux_requirements"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L141",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_prd_01_foundations_curio_prd_01_foundations_rewrite",
+      "target": "docs_prd_01_foundations_6_epic_list"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L209",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_prd_01_foundations_curio_prd_01_foundations_rewrite",
+      "target": "docs_prd_01_foundations_7_done_bar_demonstration"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PRD-01-Foundations.md",
+      "source_location": "L220",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "docs_prd_01_foundations_curio_prd_01_foundations_rewrite",
+      "target": "docs_prd_01_foundations_8_open_questions_governance"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview",
+      "target": "architecture_00_architecture_overview_architecture_overview"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L45",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview",
+      "target": "architecture_01_backend_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L46",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview",
+      "target": "architecture_02_data_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L47",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview",
+      "target": "architecture_03_frontend_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L58",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview",
+      "target": "architecture_04_extension_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L59",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview",
+      "target": "architecture_05_mcp_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L48",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview",
+      "target": "architecture_06_security_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L61",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview",
+      "target": "architecture_07_delivery_open_source"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L62",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview",
+      "target": "architecture_08_parity_matrix"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L21",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview_architecture_overview",
+      "target": "architecture_00_architecture_overview_at_a_glance"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L73",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview_architecture_overview",
+      "target": "architecture_00_architecture_overview_decision_register"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L106",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview_architecture_overview",
+      "target": "architecture_00_architecture_overview_design_detail"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L50",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview_architecture_overview",
+      "target": "architecture_00_architecture_overview_document_map"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L126",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview_architecture_overview",
+      "target": "architecture_00_architecture_overview_glossary"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L130",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview_architecture_overview",
+      "target": "architecture_00_architecture_overview_open_questions"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L66",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview_architecture_overview",
+      "target": "architecture_00_architecture_overview_the_contract"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L116",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview_design_detail",
+      "target": "architecture_00_architecture_overview_system_boundaries"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L108",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview_design_detail",
+      "target": "architecture_00_architecture_overview_what_local_first_means_here_concretely"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/00-architecture-overview.md",
+      "source_location": "L112",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_00_architecture_overview_design_detail",
+      "target": "architecture_00_architecture_overview_why_these_technologies_one_paragraph_each"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_01_backend_architecture",
+      "target": "architecture_01_backend_architecture_at_a_glance"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L97",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_01_backend_architecture",
+      "target": "architecture_01_backend_architecture_design_detail"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L196",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_01_backend_architecture",
+      "target": "architecture_01_backend_architecture_open_questions"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L186",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_01_backend_architecture",
+      "target": "architecture_01_backend_architecture_parity_obligations"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L40",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_01_backend_architecture",
+      "target": "architecture_01_backend_architecture_the_contract"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L51",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_01_backend_architecture",
+      "target": "architecture_02_data_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L57",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_01_backend_architecture",
+      "target": "architecture_03_frontend_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L52",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_01_backend_architecture",
+      "target": "architecture_04_extension_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L46",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_01_backend_architecture",
+      "target": "architecture_05_mcp_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L57",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_01_backend_architecture",
+      "target": "architecture_06_security_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L123",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_07_delivery_open_source",
+      "target": "architecture_01_backend_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L40",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_08_parity_matrix",
+      "target": "architecture_01_backend_architecture"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L99",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_01_backend_architecture_design_detail",
+      "target": "architecture_01_backend_architecture_boot_sequence"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L175",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_01_backend_architecture_design_detail",
+      "target": "architecture_01_backend_architecture_budget_strategy_8_binding_targets"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L164",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_01_backend_architecture_design_detail",
+      "target": "architecture_01_backend_architecture_crates"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L147",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_01_backend_architecture_design_detail",
+      "target": "architecture_01_backend_architecture_http_surface_delta_view"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L160",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_01_backend_architecture_design_detail",
+      "target": "architecture_01_backend_architecture_jobs_worker"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/01-backend-architecture.md",
+      "source_location": "L128",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_01_backend_architecture_design_detail",
+      "target": "architecture_01_backend_architecture_middleware_map_what_applies_where"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture",
+      "target": "architecture_02_data_architecture_data_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L69",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture",
+      "target": "architecture_05_mcp_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L46",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture",
+      "target": "architecture_08_parity_matrix"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture",
+      "target": "architecture_02_data_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L124",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_07_delivery_open_source",
+      "target": "architecture_02_data_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/TEMPLATE.md",
+      "source_location": "L36",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_template",
+      "target": "architecture_02_data_architecture"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L21",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture_data_architecture",
+      "target": "architecture_02_data_architecture_at_a_glance"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L78",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture_data_architecture",
+      "target": "architecture_02_data_architecture_design_detail"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L102",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture_data_architecture",
+      "target": "architecture_02_data_architecture_open_questions"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L99",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture_data_architecture",
+      "target": "architecture_02_data_architecture_parity_obligations"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L42",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture_data_architecture",
+      "target": "architecture_02_data_architecture_the_contract"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L67",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture_the_contract",
+      "target": "architecture_02_data_architecture_graph_role_designed_in_activated_post_v1_per_d7"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L50",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture_the_contract",
+      "target": "architecture_02_data_architecture_identity_and_time"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L73",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture_the_contract",
+      "target": "architecture_02_data_architecture_migrations"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L44",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture_the_contract",
+      "target": "architecture_02_data_architecture_ownership_and_layout"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L54",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture_the_contract",
+      "target": "architecture_02_data_architecture_relational_core"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L61",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture_the_contract",
+      "target": "architecture_02_data_architecture_vector_role_designed_in_activated_post_v1_per_d7"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L86",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture_design_detail",
+      "target": "architecture_02_data_architecture_hybrid_query_shape_illustrative_non_normative"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L83",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture_design_detail",
+      "target": "architecture_02_data_architecture_the_sidecar_contract_unchanged"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/02-data-architecture.md",
+      "source_location": "L80",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_02_data_architecture_design_detail",
+      "target": "architecture_02_data_architecture_why_text_embeddings_not_image_embeddings"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture",
+      "target": "architecture_03_frontend_architecture_at_a_glance"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L75",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture",
+      "target": "architecture_03_frontend_architecture_design_detail"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L148",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture",
+      "target": "architecture_03_frontend_architecture_open_questions"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L128",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture",
+      "target": "architecture_03_frontend_architecture_parity_obligations"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L35",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture",
+      "target": "architecture_03_frontend_architecture_the_contract"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L31",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture",
+      "target": "architecture_04_extension_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L27",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture",
+      "target": "architecture_06_security_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture",
+      "target": "architecture_07_delivery_open_source"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L160",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_05_mcp_architecture",
+      "target": "architecture_03_frontend_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L40",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_08_parity_matrix",
+      "target": "architecture_03_frontend_architecture"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L61",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture_the_contract",
+      "target": "architecture_03_frontend_architecture_editor"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L37",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture_the_contract",
+      "target": "architecture_03_frontend_architecture_framework_structure"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L69",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture_the_contract",
+      "target": "architecture_03_frontend_architecture_keyboard_a11y_should_post_parity_baseline"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L66",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture_the_contract",
+      "target": "architecture_03_frontend_architecture_pairing_fallback"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L50",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture_the_contract",
+      "target": "architecture_03_frontend_architecture_ported_ux_behaviors_observable_contracts_inventory_6_10"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L43",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture_the_contract",
+      "target": "architecture_03_frontend_architecture_state_session"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L125",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture_design_detail",
+      "target": "architecture_03_frontend_architecture_build_embed"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L98",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture_design_detail",
+      "target": "architecture_03_frontend_architecture_data_flow_nonce_session_sse_stores"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L122",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture_design_detail",
+      "target": "architecture_03_frontend_architecture_pairing_page_as_fallback"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L85",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture_design_detail",
+      "target": "architecture_03_frontend_architecture_react_solid_translation_map_non_normative_porting_guidance"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L117",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture_design_detail",
+      "target": "architecture_03_frontend_architecture_the_editor_tiptap_core_over_raw_prosemirror"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/03-frontend-architecture.md",
+      "source_location": "L77",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_03_frontend_architecture_design_detail",
+      "target": "architecture_03_frontend_architecture_why_solidjs_a_structural_argument_not_a_benchmark"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture",
+      "target": "architecture_04_extension_architecture_at_a_glance"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L75",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture",
+      "target": "architecture_04_extension_architecture_design_detail"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L152",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture",
+      "target": "architecture_04_extension_architecture_open_questions"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L137",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture",
+      "target": "architecture_04_extension_architecture_parity_obligations"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L39",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture",
+      "target": "architecture_04_extension_architecture_the_contract"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L70",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture",
+      "target": "architecture_06_security_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L43",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture",
+      "target": "architecture_07_delivery_open_source"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L132",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture",
+      "target": "architecture_08_parity_matrix"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L46",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture_the_contract",
+      "target": "architecture_04_extension_architecture_bootstrap_new_primary_path"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L58",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture_the_contract",
+      "target": "architecture_04_extension_architecture_capture_pipeline_verbatim_port_inventory_7_10_24"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L41",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture_the_contract",
+      "target": "architecture_04_extension_architecture_components_identity"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L72",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture_the_contract",
+      "target": "architecture_04_extension_architecture_non_chrome_browsers"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L66",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture_the_contract",
+      "target": "architecture_04_extension_architecture_popup_inventory_7_10_23"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L53",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture_the_contract",
+      "target": "architecture_04_extension_architecture_worker_lifetime_state"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L77",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture_design_detail",
+      "target": "architecture_04_extension_architecture_bootstrap_new_primary_layered_fallbacks"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L102",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture_design_detail",
+      "target": "architecture_04_extension_architecture_capture_the_sequence_that_must_not_change"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/04-extension-architecture.md",
+      "source_location": "L134",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_04_extension_architecture_design_detail",
+      "target": "architecture_04_extension_architecture_paused_state_end_to_end"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_05_mcp_architecture",
+      "target": "architecture_05_mcp_architecture_at_a_glance"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L63",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_05_mcp_architecture",
+      "target": "architecture_05_mcp_architecture_design_detail"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L165",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_05_mcp_architecture",
+      "target": "architecture_05_mcp_architecture_open_questions"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L156",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_05_mcp_architecture",
+      "target": "architecture_05_mcp_architecture_parity_obligations"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L35",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_05_mcp_architecture",
+      "target": "architecture_05_mcp_architecture_the_contract"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L32",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_05_mcp_architecture",
+      "target": "architecture_06_security_architecture"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L27",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_05_mcp_architecture",
+      "target": "architecture_07_delivery_open_source"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L41",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_05_mcp_architecture",
+      "target": "architecture_08_parity_matrix"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L142",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_05_mcp_architecture_design_detail",
+      "target": "architecture_05_mcp_architecture_request_lifecycle_http"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L152",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_05_mcp_architecture_design_detail",
+      "target": "architecture_05_mcp_architecture_token_overhead_discipline"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L95",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_05_mcp_architecture_design_detail",
+      "target": "architecture_05_mcp_architecture_tool_surface_parity_seven_schemas_fixed_inventory_2"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L109",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_05_mcp_architecture_design_detail",
+      "target": "architecture_05_mcp_architecture_tool_surface_semantic_two_new_in_the_rewrite_post_v1"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/05-mcp-architecture.md",
+      "source_location": "L65",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_05_mcp_architecture_design_detail",
+      "target": "architecture_05_mcp_architecture_transport_client_matrix"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_06_security_architecture",
+      "target": "architecture_06_security_architecture_at_a_glance"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L63",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_06_security_architecture",
+      "target": "architecture_06_security_architecture_design_detail"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L159",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_06_security_architecture",
+      "target": "architecture_06_security_architecture_open_questions"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L152",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_06_security_architecture",
+      "target": "architecture_06_security_architecture_parity_obligations"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L35",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_06_security_architecture",
+      "target": "architecture_06_security_architecture_the_contract"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L157",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_06_security_architecture",
+      "target": "architecture_08_parity_matrix"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L105",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_07_delivery_open_source",
+      "target": "architecture_06_security_architecture"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L112",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_06_security_architecture_design_detail",
+      "target": "architecture_06_security_architecture_client_token_lifecycle_r_sec_17"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L129",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_06_security_architecture_design_detail",
+      "target": "architecture_06_security_architecture_jail_mechanics"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L133",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_06_security_architecture_design_detail",
+      "target": "architecture_06_security_architecture_middleware_order"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L120",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_06_security_architecture_design_detail",
+      "target": "architecture_06_security_architecture_nonce_mechanics"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L141",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_06_security_architecture_design_detail",
+      "target": "architecture_06_security_architecture_review_checklist_r_sec_16"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L65",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_06_security_architecture_design_detail",
+      "target": "architecture_06_security_architecture_threat_model_in_plain_language"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L76",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_06_security_architecture_design_detail",
+      "target": "architecture_06_security_architecture_token_flow"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/06-security-architecture.md",
+      "source_location": "L137",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_06_security_architecture_design_detail",
+      "target": "architecture_06_security_architecture_why_health_stays_open"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_07_delivery_open_source",
+      "target": "architecture_07_delivery_open_source_at_a_glance"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L131",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_07_delivery_open_source",
+      "target": "architecture_07_delivery_open_source_design_detail"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L192",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_07_delivery_open_source",
+      "target": "architecture_07_delivery_open_source_open_questions"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L183",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_07_delivery_open_source",
+      "target": "architecture_07_delivery_open_source_parity_obligations"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L46",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_07_delivery_open_source",
+      "target": "architecture_07_delivery_open_source_the_contract"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L55",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_08_parity_matrix",
+      "target": "architecture_07_delivery_open_source"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L133",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_07_delivery_open_source_design_detail",
+      "target": "architecture_07_delivery_open_source_ci_pipeline"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L156",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_07_delivery_open_source_design_detail",
+      "target": "architecture_07_delivery_open_source_d0_verification_spike_index_release_0_every_d0_verify_item_in_the_doc_set"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L152",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_07_delivery_open_source_design_detail",
+      "target": "architecture_07_delivery_open_source_dev_loop"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/07-delivery-open-source.md",
+      "source_location": "L148",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_07_delivery_open_source_design_detail",
+      "target": "architecture_07_delivery_open_source_why_the_dependency_rules_are_strict"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_08_parity_matrix",
+      "target": "architecture_08_parity_matrix_parity_matrix"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L21",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_08_parity_matrix_parity_matrix",
+      "target": "architecture_08_parity_matrix_at_a_glance"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L98",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_08_parity_matrix_parity_matrix",
+      "target": "architecture_08_parity_matrix_deliberate_breaks"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L114",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_08_parity_matrix_parity_matrix",
+      "target": "architecture_08_parity_matrix_design_detail_how_to_use_this_document"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L35",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_08_parity_matrix_parity_matrix",
+      "target": "architecture_08_parity_matrix_fr_ownership"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L61",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_08_parity_matrix_parity_matrix",
+      "target": "architecture_08_parity_matrix_inventory_10_invariant_ownership"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L118",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_08_parity_matrix_parity_matrix",
+      "target": "architecture_08_parity_matrix_open_questions"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/08-parity-matrix.md",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_08_parity_matrix_parity_matrix",
+      "target": "architecture_08_parity_matrix_the_contract"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/TEMPLATE.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_template",
+      "target": "architecture_template_template_authoring_rules_for_curio_architecture_documents_binding"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/TEMPLATE.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_template_template_authoring_rules_for_curio_architecture_documents_binding",
+      "target": "architecture_template_frontmatter_every_doc_exactly_this_shape"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/TEMPLATE.md",
+      "source_location": "L24",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_template_template_authoring_rules_for_curio_architecture_documents_binding",
+      "target": "architecture_template_structure_progressive_reveal_strict_order"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/TEMPLATE.md",
+      "source_location": "L32",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_template_template_authoring_rules_for_curio_architecture_documents_binding",
+      "target": "architecture_template_style"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L12",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_appendix_parity_inventory",
+      "target": "architecture_appendix_parity_inventory_curio_parity_inventory_mined_from_the_running_bun_react_implementation_curiol_repo"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L101",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_appendix_parity_inventory_curio_parity_inventory_mined_from_the_running_bun_react_implementation_curiol_repo",
+      "target": "architecture_appendix_parity_inventory_10_gotchas_behavioral_invariants_the_rewrite_must_preserve"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L16",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_appendix_parity_inventory_curio_parity_inventory_mined_from_the_running_bun_react_implementation_curiol_repo",
+      "target": "architecture_appendix_parity_inventory_1_http_api_surface_as_implemented"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L36",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_appendix_parity_inventory_curio_parity_inventory_mined_from_the_running_bun_react_implementation_curiol_repo",
+      "target": "architecture_appendix_parity_inventory_2_mcp_surface_7_tools_one_factory_both_transports"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L47",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_appendix_parity_inventory_curio_parity_inventory_mined_from_the_running_bun_react_implementation_curiol_repo",
+      "target": "architecture_appendix_parity_inventory_3_events"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L50",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_appendix_parity_inventory_curio_parity_inventory_mined_from_the_running_bun_react_implementation_curiol_repo",
+      "target": "architecture_appendix_parity_inventory_4_db_sqlite_wal_foreign_keys_on_busy_timeout_5000_synchronous_normal"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L57",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_appendix_parity_inventory_curio_parity_inventory_mined_from_the_running_bun_react_implementation_curiol_repo",
+      "target": "architecture_appendix_parity_inventory_5_settings_secrets_env"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L62",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_appendix_parity_inventory_curio_parity_inventory_mined_from_the_running_bun_react_implementation_curiol_repo",
+      "target": "architecture_appendix_parity_inventory_6_ui_routes_behaviors"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L76",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_appendix_parity_inventory_curio_parity_inventory_mined_from_the_running_bun_react_implementation_curiol_repo",
+      "target": "architecture_appendix_parity_inventory_7_extension_mv3_min_chrome_116"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L84",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_appendix_parity_inventory_curio_parity_inventory_mined_from_the_running_bun_react_implementation_curiol_repo",
+      "target": "architecture_appendix_parity_inventory_8_shell"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/architecture/appendix-parity-inventory.md",
+      "source_location": "L91",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "architecture_appendix_parity_inventory_curio_parity_inventory_mined_from_the_running_bun_react_implementation_curiol_repo",
+      "target": "architecture_appendix_parity_inventory_9_jobs_ai"
+    }
+  ],
+  "hyperedges": []
+}

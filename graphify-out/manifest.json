@@ -1,0 +1,122 @@
+{
+  "docs/PRD-01-Foundations.md": {
+    "mtime": 1785463147.986384,
+    "ast_hash": "586d2feb156a24265f9428a29b4325e1",
+    "semantic_hash": ""
+  },
+  "docs/architecture/00-architecture-overview.md": {
+    "mtime": 1785463148.4837742,
+    "ast_hash": "d3d226c8a7a5db32b0a16d51c823e612",
+    "semantic_hash": ""
+  },
+  "docs/architecture/01-backend-architecture.md": {
+    "mtime": 1785463148.9152143,
+    "ast_hash": "661bcbabab03cfbd1735a813a9e7819f",
+    "semantic_hash": ""
+  },
+  "docs/architecture/02-data-architecture.md": {
+    "mtime": 1785463149.2884927,
+    "ast_hash": "26df53aeaf2497e18d93b7c725ad6582",
+    "semantic_hash": ""
+  },
+  "docs/architecture/03-frontend-architecture.md": {
+    "mtime": 1785432757.2481413,
+    "ast_hash": "3c23bf0adac9396398e0c6e9886bb60c",
+    "semantic_hash": ""
+  },
+  "docs/architecture/04-extension-architecture.md": {
+    "mtime": 1785432757.6310222,
+    "ast_hash": "9a83cc6389d1a08eea5d8263fcae4003",
+    "semantic_hash": ""
+  },
+  "docs/architecture/05-mcp-architecture.md": {
+    "mtime": 1785463149.73772,
+    "ast_hash": "23478df15362e5b82d6b473636f43b39",
+    "semantic_hash": ""
+  },
+  "docs/architecture/06-security-architecture.md": {
+    "mtime": 1785463150.1287227,
+    "ast_hash": "1fcbb0d88c65ca336da49f320edfeba1",
+    "semantic_hash": ""
+  },
+  "docs/architecture/07-delivery-open-source.md": {
+    "mtime": 1785463150.5551467,
+    "ast_hash": "97135f191cbc2077806ec920f27b831c",
+    "semantic_hash": ""
+  },
+  "docs/architecture/08-parity-matrix.md": {
+    "mtime": 1785463150.9683123,
+    "ast_hash": "305de9a04acf035d1584326c9a670928",
+    "semantic_hash": ""
+  },
+  "docs/architecture/TEMPLATE.md": {
+    "mtime": 1785432760.1259809,
+    "ast_hash": "2931b802110d13ab49b1074b5747f31e",
+    "semantic_hash": ""
+  },
+  "docs/architecture/appendix-parity-inventory.md": {
+    "mtime": 1785432760.7021804,
+    "ast_hash": "c86fd2701c05892129a140e597a9cf40",
+    "semantic_hash": ""
+  },
+  ".claude/settings.json": {
+    "mtime": 1785502727.724588,
+    "ast_hash": "598cb075410bcd95220ac90bbb60344a",
+    "semantic_hash": ""
+  },
+  ".claude/CLAUDE.md": {
+    "mtime": 1785502727.713907,
+    "ast_hash": "817fe671013b35ae0bc9301dfe449a87",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/SKILL.md": {
+    "mtime": 1785502727.7099812,
+    "ast_hash": "6e3620a6a1270903d86e309ba0996a23",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/references/add-watch.md": {
+    "mtime": 1782637090.4747727,
+    "ast_hash": "d59d027fe449f06aa03905a01184e779",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/references/exports.md": {
+    "mtime": 1782637090.4772866,
+    "ast_hash": "9da2a2152e60a22f07f05fed5158f287",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/references/extraction-spec.md": {
+    "mtime": 1782637090.4782846,
+    "ast_hash": "2e620982acb506f557538cdcfb1ef6da",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/references/github-and-merge.md": {
+    "mtime": 1782637090.480291,
+    "ast_hash": "cde13df085e4c492aeb7ba298a996d0d",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/references/hooks.md": {
+    "mtime": 1782637090.4812925,
+    "ast_hash": "3f545db6ce646650bb9de588f5512a27",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/references/query.md": {
+    "mtime": 1782637090.4832995,
+    "ast_hash": "9e5aadc2c57ab561bc56600fcfa70735",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/references/transcribe.md": {
+    "mtime": 1782637090.4848106,
+    "ast_hash": "67b6a5fa6c0974e18f60db9f8932fbd8",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/references/update.md": {
+    "mtime": 1782637090.486318,
+    "ast_hash": "c698309979460d0f02ba616417844399",
+    "semantic_hash": ""
+  },
+  "CLAUDE.md": {
+    "mtime": 1785502727.7229474,
+    "ast_hash": "8a6643a420fdad6bfb583523bc6cef16",
+    "semantic_hash": ""
+  }
+}
