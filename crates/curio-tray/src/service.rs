@@ -103,6 +103,11 @@ pub fn run(
     mut commands: mpsc::UnboundedReceiver<Command>,
     status: StatusSender,
 ) {
+    // Applied here because this function *is* the service thread, and EcoQoS is a
+    // per-thread property (R-BE-31). The main thread deliberately keeps default QoS: a
+    // user clicking Pause should not wait behind a throttled scheduler.
+    crate::qos::request_eco_qos();
+
     let runtime = match tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()

@@ -19,6 +19,7 @@
 
 mod boot;
 mod cli;
+mod qos;
 mod service;
 mod single_instance;
 mod tray;
