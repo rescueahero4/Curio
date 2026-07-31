@@ -2,7 +2,7 @@
 id: ARCH-07
 title: Delivery & Open Source
 status: draft
-version: 1.2.0
+version: 1.3.0
 date: 2026-07-31
 project: curio
 supersedes: []
@@ -91,7 +91,7 @@ flowchart TD
 **Packaging & uninstall**
 
 - **R-DEL-8** — macOS: `.app` bundle, `LSUIElement = true`, signed and notarised. "Start at Login" uses `SMAppService.mainApp.register()` — the app is its own login item, no helper agent.
-- **R-DEL-9** — Windows: MSI or MSIX installer; `#![windows_subsystem = "windows"]`; installer writes the native-messaging registry key (`HKCU\SOFTWARE\Google\Chrome\NativeMessagingHosts\<name>`) at install time. Autostart via Run key, toggled in-app.
+- **R-DEL-9** — Windows: **NSIS or MSI installer, or both — MSIX is dropped** (D29, amended 2026-08-01). MSIX was the only format that sandboxed the two writes below, so removing it removes the question rather than answering it: neither NSIS nor MSI restricts an HKCU write. `#![windows_subsystem = "windows"]`; installer writes the native-messaging registry key (`HKCU\SOFTWARE\Google\Chrome\NativeMessagingHosts\<name>`) at install time. Autostart via Run key, toggled in-app.
 - **R-DEL-10** — MCPB bundle: `packaging/mcpb` holds the `manifest.json`; release CI runs `mcpb pack` against the platform binary to produce the Claude Desktop one-click artifact ([ARCH-05](05-mcp-architecture.md) R-MCP-7).
 - **R-DEL-11** — **Clean uninstall is a feature.** Uninstall MUST remove: the app bundle/exe, NM manifests (registry key on Windows, per-user manifest file on macOS), autostart registration, and `runtime.json`. User data (the data root: DB, screenshots, sidecars, prompts) MUST be left in place — deleting a library is the user's explicit act, never a side effect.
 
@@ -160,17 +160,17 @@ The layering exists to keep three seams cuttable later (strategy §2, §7): the 
 
 | Item | Owning doc / OQ | Fallback if it fails | Blocks |
 |---|---|---|---|
-| **Tray crates** (`tray-icon` + tao/winit): icon, menu, glyph swap on both OSes; main-thread rules hold | [ARCH-01](01-backend-architecture.md) OQ-4 | alternative tray crate; worst case revisit strategy A1 | D0→P1 |
+| **Tray crates** (`tray-icon` + tao/winit): icon, menu, glyph swap; main-thread rules hold. **Windows gates release-0; macOS is retroactive** (D30) | [ARCH-01](01-backend-architecture.md) OQ-4 | alternative tray crate; worst case revisit strategy A1 | D0→P1 (Windows) |
 | **Empty-shell RSS ≤ 12 MB** private (tray + axum + SQLite open, no data): `footprint` (macOS) / Private Working Set (Windows) | [ARCH-01](01-backend-architecture.md) OQ-4, R-BE-31 | budget consciously revised (D17, ARCH-00 register) — never silently | D0→P1, P7 |
 | **TipTap core sans React**: chip node views + slash menu mount under Solid's lifecycle | [ARCH-03](03-frontend-architecture.md) OQ-2 | raw ProseMirror | P3 |
-| **Keychain crates** (DPAPI + Security.framework; scrypt fallback params match Bun's) | [ARCH-06](06-security-architecture.md) OQ-3 | AES-GCM encrypted-file fallback | P1 |
+| **Keychain crates** (DPAPI + Security.framework). ~~scrypt fallback params~~ — the fallback is retired (D31) | [ARCH-06](06-security-architecture.md) OQ-3 | honest refusal + `ANTHROPIC_API_KEY` | P1 |
 | **EcoQoS** via `SetThreadInformation` on the service thread (Win 11 ControlMask/StateMask gotcha) | [ARCH-01](01-backend-architecture.md) OQ-5 | ship without EcoQoS (default QoS) | P1 |
 | **Sec-Fetch-Site** actually sent on loopback fetches from extension + SPA contexts | [ARCH-06](06-security-architecture.md) OQ-1 | keep R-SEC-12 advisory, don't enforce reject | P1 |
-| **rmcp pin**: current 2.x minor; `StreamableHttpService` stateless/JSON config API | [ARCH-05](05-mcp-architecture.md) OQ-1 | pin nearest verified minor ≥ 1.4.0 floor | P4 |
+| ~~**rmcp pin**~~ — **moved out of release-0 (D28).** Major version is decided (3.x); the `StreamableHttpService` stateless/JSON question is verified at P4 against the code that calls it, because it cannot be answered before the MCP surface exists | [ARCH-05](05-mcp-architecture.md) OQ-1 | pin nearest verified minor ≥ 1.4.0 floor | **P4, not D0** |
 | **NMH cold-start** on Windows (Defender first-run scan) keeps popup dot sub-second | [ARCH-04](04-extension-architecture.md) OQ-4 | cache last-known-good `{port, token}`, validate lazily | P5 |
 | **Unpacked-extension `key`/id** behavior: same id unpacked as packed | [ARCH-04](04-extension-architecture.md) OQ-2 | legacy fallback ladder (R-EXT-8) | P5 |
 | **`opt-level "z"` vs `"s"`**: measure size + hot-path speed, pin one | this doc, OQ-1 | pin `"s"` | P1 |
-| **MSI vs MSIX**: NM registry write + Run-key autostart under MSIX sandboxing | this doc, OQ-2 | MSI (safe default) | P6 |
+| ~~**MSI vs MSIX**~~ — **closed by D29.** MSIX is dropped; NSIS or MSI (or both) sandbox neither the NM registry write nor the Run key, so the question no longer exists | this doc, OQ-2 | — | closed |
 | **MCPB tooling**: `mcpb pack` CLI shape + binary-server manifest fields | this doc, OQ-3; [ARCH-05](05-mcp-architecture.md) OQ-3 | ship documented `claude_desktop_config.json` snippet until tooling verified | P6 |
 | **Chrome ~147 LNA-WS gating** of loopback WebSockets (secondary-sourced) | [ARCH-04](04-extension-architecture.md) OQ-1; [ARCH-06](06-security-architecture.md) OQ-5 | extension contingency per [ARCH-04](04-extension-architecture.md) | P5 |
 

@@ -25,39 +25,49 @@ governs: [verification]
 
 | | Count |
 |---|---|
-| Verified | 10 |
-| Partial (a real result, with a named gap) | 3 |
-| Outstanding (no recorded result) | 1 |
+| Release-0 rows with a recorded result | **13 of 13** |
+| — of which: verified pass | 12 |
+| — of which: closed by owner decision | 1 (row 11) |
+| Moved out of release-0, re-targeted to a later phase | 1 (row 7 → P4) |
 | Post-v1 sub-group (verified at the vector-activation release) | 2 |
 
-**E0 is not complete, and it gates everything (R-DEL-20) — but what remains is now four
-named items, not a fog.** Nothing left is blocked on engineering effort:
+## **E0 is COMPLETE.**
 
-| # | What remains | Who can close it |
+R-DEL-20's bar is *"every checklist item has a recorded result — pass, or fallback
+chosen"*, and as of 2026-08-01 every release-0 row clears it. The gate that E1–E6 crossed
+is now satisfied retroactively, which is worth stating plainly: it does not un-cross it,
+and the process finding below stays in this document permanently.
+
+Four owner decisions on 2026-08-01 closed the last of it, each recorded in the
+[ARCH-00](00-architecture-overview.md) register with its rule amended in the same change
+(R-DEL-18):
+
+| # | Row | Decision |
 |---|---|---|
-| 7 | **rmcp pin** — crates.io publishes 3.0.1 against R-MCP-14's "major version 2" | **Owner.** Requires amending R-MCP-14 in the same PR (R-DEL-18); a maintainer cannot choose this. |
-| 11 | **MSI vs MSIX** — untested under MSIX sandboxing | **Owner**, cheaply: MSI is the pre-documented safe default, so *consciously choosing the fallback* closes the row without building anything. |
-| 1 | **Tray on macOS** — the main-thread rule is exactly where macOS differs | Anyone **with a Mac**. Genuinely blocked on hardware. |
-| 4 | **scrypt parameters** for the encrypted-file fallback | Anyone with a **Bun-era `.secrets.json`** to compare against. Blocked on the artifact, not on effort. |
+| **D28** | 7 — rmcp pin | Major version **3.x**; the row leaves release-0 for **P4**, where the `StreamableHttpService` question can actually be answered. R-MCP-14 amended. |
+| **D29** | 11 — MSI vs MSIX | **MSIX dropped**; NSIS or MSI, or both. The row tested MSIX sandboxing, so removing the format removed the question. R-DEL-9 amended. |
+| **D30** | 1 — tray on macOS | Windows completes first; **macOS is verified retroactively** in a dedicated pass. Scheduled, not skipped. |
+| **D31** | 4 — scrypt parameters | The encrypted-file fallback is **retired from v1**, not deferred. R-SEC-10 amended. |
 
-Last updated 2026-08-01. Rows **5, 6, 8, 9, 12 and 13** were closed in one pass after the
-E1–E6 merge, and row 2 was re-measured against the finished server. **That build merged
-before any of them were verified** — see the process finding below, which remains the most
-important entry in this document. Row 13's verification found a shipped bug (`/ws` was
-unreachable), which is the clearest available argument that the gate is not ceremony.
+What was measured rather than decided: rows **5, 6, 8, 9, 12 and 13** were verified in one
+pass after the E1–E6 merge, and row 2 was re-measured against the finished server rather
+than an empty shell. Row 13's verification found a shipped bug — `/ws` had never been
+reachable — which is the clearest available argument that this gate is not ceremony.
 
-Platform coverage so far: **Windows 11 only.** Every row below is a macOS gap until someone
-runs it on macOS, and the rows most likely to differ — the tray, the single-instance guard,
-file permissions, keychain — are exactly the ones with no shared implementation.
+**The one thing still outstanding is not a release-0 row.** macOS coverage (D30) is a
+scheduled obligation: every result below is Windows-only, and the places macOS differs —
+the tray's main-thread rule, the single-instance guard, file permissions, the keychain —
+are exactly the ones with no shared implementation. Verifying them retroactively is the
+accepted risk, not an oversight.
 
 ## Release-0 rows
 
 | # | Item | Owner / OQ | Status | Result |
 |---|---|---|---|---|
-| 1 | **Tray crates** (`tray-icon` + tao): icon, menu, glyph swap, main-thread rules | [ARCH-01](01-backend-architecture.md) OQ-4 | ⚠️ Partial | `tray-icon` 0.24.2 + `tao` 0.36.0 build and run on Windows 11; the five-item menu (D14) renders, the icon is generated in code, and the event loop sits in `ControlFlow::Wait`. **macOS untested** — and macOS is where the main-thread rule actually bites. |
+| 1 | **Tray crates** (`tray-icon` + tao): icon, menu, glyph swap, main-thread rules | [ARCH-01](01-backend-architecture.md) OQ-4 | ✅ Pass (Windows) — **macOS is retroactive by decision (D30)** | `tray-icon` 0.24.2 + `tao` 0.36.0 build and run on Windows 11; the five-item menu (D14) renders, the icon is generated in code, and the event loop sits in `ControlFlow::Wait`. macOS is **scheduled, not skipped**: the owner chose on 2026-08-01 to complete Windows first and verify macOS in a dedicated retroactive pass (D30), so this row no longer gates release-0. The risk is bounded and named — the main-thread rule, the single-instance guard, file permissions and the keychain are the places macOS differs, and all four are already behind per-platform code. |
 | 2 | **Empty-shell RSS ≤ 12 MB** | [ARCH-01](01-backend-architecture.md) OQ-4, R-BE-31 | ✅ Pass (Windows) | **2.0 MB private commit** at scaffold (tray + axum listener + SQLite open, empty library). **Re-measured 2026-08-01 with the full P1–P3 server** — every route, both push transports, the projects watcher, one item in the library: **2.2 MB**. The entire route surface, SSE, WebSocket and watcher cost ~0.2 MB against a 12 MB gate. **See the measurement note below — the method matters more than the number.** |
 | 3 | **TipTap core sans React**: chip node views and the slash menu under Solid's lifecycle | [ARCH-03](03-frontend-architecture.md) OQ-2 | ✅ Pass — **the ProseMirror fallback is not needed** | Verified 2026-08-01 by building the editor and shipping it. `@tiptap/core` + `@tiptap/pm` + `@tiptap/starter-kit`, all pinned **3.29.2**; `@tiptap/react` appears in neither `package.json` nor the lockfile, and no React arrives transitively. Eleven checks pass, three of which mount `EditorSurface` through `solid-js/web`'s `render()` and then `dispose()` — so `onMount → new Editor(el)` and `onCleanup → editor.destroy()` are exercised through Solid's own lifecycle rather than called directly. Chip node views render plain DOM, `itemRef` falls back to its stored label, the `section` attribute survives a round trip, ghost decoration lands on the empty paragraph, and the slash trigger fires after a space but **not** inside `http://`. See the finding below for what the spike actually cost. |
-| 4 | **Keychain crates** (DPAPI + Security.framework; scrypt fallback parameters matching the previous implementation) | [ARCH-06](06-security-architecture.md) OQ-3 | ⚠️ Partial — **DPAPI done, the scrypt half is still open** | `curio-server/src/secrets.rs` implements the keychain-first store: `ANTHROPIC_API_KEY` → DPAPI (`CryptProtectData`, via `windows-sys` directly — no wrapper crate) on Windows, the `security` CLI with the previous implementation's `curio-anthropic-api-key` service name on macOS. **The AES-256-GCM encrypted-file fallback is deliberately absent.** Its scrypt parameters are exactly what this row has not verified, and guessing them produces a file the old app wrote and this one silently cannot read. Until it is verified, a platform with no keychain backend **refuses to store a key** rather than writing one in plaintext — see the finding below. |
+| 4 | **Keychain crates** (DPAPI + Security.framework) | [ARCH-06](06-security-architecture.md) OQ-3 | ✅ Pass — **and the scrypt half is retired, not deferred (D31)** | `curio-server/src/secrets.rs` implements the keychain-first store: `ANTHROPIC_API_KEY` → DPAPI (`CryptProtectData`, via `windows-sys` directly) on Windows, the `security` CLI on macOS under the previous implementation's `curio-anthropic-api-key` service name — so a macOS upgrade finds its existing key. The AES-256-GCM file fallback is **retired from v1** rather than shipped against guessed parameters: all three release targets (R-DEL-5) have a real keychain, so it was dead code on everything we ship. A legacy `.secrets.json` is detected and reported so an upgrading user re-enters a re-obtainable credential once. See the finding below. |
 | 5 | **EcoQoS** via `SetThreadInformation` on the service thread (the Windows 11 ControlMask/StateMask gotcha) | [ARCH-01](01-backend-architecture.md) OQ-5 | ✅ Pass (Windows 11) — **implemented** | Verified 2026-08-01. `curio-tray/src/qos.rs` sets `THREAD_POWER_THROTTLING_STATE` on the service thread and Windows accepts it; the test asserts the **return value**, because a wrong mask pairing is a silent no-op that looks identical to success from outside. The gotcha resolved: `ControlMask` and `StateMask` must **both** carry `EXECUTION_SPEED` — control alone means "I manage this", state alone is ignored, and both zero clears the override. The main thread deliberately stays at default QoS so a Pause click never waits behind a throttled scheduler. |
 | 6 | **`Sec-Fetch-Site`** actually sent on loopback fetches from extension and SPA contexts | [ARCH-06](06-security-architecture.md) OQ-1 | ✅ Pass (Chromium 1234, Windows) — **R-SEC-12 may be enforced** | Measured 2026-08-01 by loading the real unpacked extension into Chromium and fetching a throwaway echo server on loopback, so the answer is the browser's behaviour and not a property of our middleware. Extension **service worker** → `none`; extension **page** → `none`; **same-origin** page fetch → `same-origin`; a page on a **different site** (`localhost` → `127.0.0.1`, which Chrome treats as cross-site) → **`cross-site`, with an `Origin` header**. So the header is sent (the check is not vacuous), no legitimate context ever reports `cross-site` (enforcement cannot 403 capture), and the attack case does (the check does real work). See the finding below — this row was verified *after* the code that depends on it shipped. |
 | 7 | **rmcp pin** | [ARCH-05](05-mcp-architecture.md) OQ-1 | ⚠️ **Finding — needs an owner decision** | See below. |

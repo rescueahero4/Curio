@@ -2,7 +2,7 @@
 id: ARCH-05
 title: MCP Architecture
 status: draft
-version: 1.1.0
+version: 1.2.0
 date: 2026-07-30
 project: curio
 supersedes: []
@@ -20,7 +20,7 @@ parity_reference: "Curiol (Bun/React implementation) + its PRD FR-1..FR-27"
 
 | | |
 |---|---|
-| Library | `rmcp` ≥ 2 (**floor 1.4.0**, CVE-2026-42559), served from crate `curio-mcp` |
+| Library | `rmcp` **3.x** (**floor 1.4.0**, CVE-2026-42559), pinned at P4 (D28), served from crate `curio-mcp` |
 | Tools | **7 parity tools in v1**; + 2 semantic tools post-v1 (vector activation), one shared tool router |
 | HTTP transport | `StreamableHttpService` nested at `/mcp` in the axum router ([ARCH-01](01-backend-architecture.md)) |
 | stdio transport | `curio --mcp-stdio` — thin proxy to the live instance's `/mcp` (D24), never opens the DB |
@@ -58,7 +58,8 @@ parity_reference: "Curiol (Bun/React implementation) + its PRD FR-1..FR-27"
 
 - **R-MCP-12** — curio's own Origin-validation middleware MUST sit in front of `/mcp` (rmcp's Host-only validation leaves the Origin gap open — rust-sdk #822). Token, Host, and Origin rules are owned by [ARCH-06](06-security-architecture.md); this doc only requires that `/mcp` is behind them.
 - **R-MCP-13** — Every MCP tool MUST call `curio-core` service functions — the same code paths REST handlers use, with the same validation, threshold logic, event emission (`item.updated` etc.), and sidecar write-back. `curio-mcp` MUST NOT contain SQL or bypass core invariants. Blast radius of the MCP surface = blast radius of the core API, nothing more (Paper §4.2 / CVE lesson). The stdio proxy satisfies this trivially: it contains no tool code at all, so single-writer and event fan-out are preserved by construction (D24).
-- **R-MCP-14** — rmcp version floor is **1.4.0** (Host-validation fix); the workspace pins major version 2. Downgrading below the floor is forbidden; cargo-deny advisories in CI ([ARCH-07](07-delivery-open-source.md)) enforce it.
+- **R-MCP-14** — rmcp version floor is **1.4.0** (Host-validation fix); the workspace pins **major version 3** (D28, amended 2026-08-01 — the 2.x line this rule originally named is not the head). Downgrading below the floor is forbidden; cargo-deny advisories in CI ([ARCH-07](07-delivery-open-source.md)) enforce it, and that ban holds regardless of major version.
+  The pin is added **when P4 lands**, not before: an unused transport dependency in the workspace is weight with no reader. Whether 3.x still exposes the stateless / JSON-response configuration R-MCP-4 assumes is verified there, against the code that calls it — it is not a release-0 question, because it cannot be answered without writing the MCP surface (D28).
 
 ## Design detail
 

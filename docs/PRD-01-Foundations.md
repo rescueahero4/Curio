@@ -2,9 +2,9 @@
 id: PRD-01
 title: Curio — Product Requirements (Rust + SolidJS rewrite)
 status: in-progress
-version: 1.1.0
+version: 1.2.0
 date: 2026-08-01
-delivery: "E1–E6 built and green; E0 partial; E7–E10 not started (see §6)"
+delivery: "E0 complete; E1–E6 built and green; E7–E10 not started (see §6)"
 owner: Robert Bagares
 companion: "docs/architecture/00-architecture-overview.md (ARCH-00..08 own the how; this doc owns the what)"
 supersedes: "Curiol docs/01-PRD-Foundations.md (FR numbering continues from it)"
@@ -148,16 +148,18 @@ The rewrite **preserves the existing design language** — it is the product's i
 > file-length, dependency-direction), and the behaviour was exercised against a running
 > binary, not only against unit tests.
 >
-> **E0 was not complete when E1–E6 merged, and E0 gates everything.** R-DEL-20 is
-> blanket — no Phase-1 work merges until *every* D0 row has a recorded result — and this
-> build crossed it with six rows unrecorded. Row 6 was the live risk: P1 shipped enforcing
-> `Sec-Fetch-Site` reject-on-cross-site, which ARCH-06 OQ-1 says to verify *first*. It has
-> since been verified and passes, but the sequence was wrong. The full account is the
-> process finding in [D0-report](architecture/D0-report.md); it is not restated here.
+> **E0 is now complete (2026-08-01), but it was not when E1–E6 merged — and that is
+> recorded rather than tidied away.** R-DEL-20 is blanket: no Phase-1 work merges until
+> every D0 row has a recorded result. This build crossed that gate with six rows
+> unrecorded, and row 6 was the live risk — P1 shipped enforcing `Sec-Fetch-Site`
+> reject-on-cross-site, which ARCH-06 OQ-1 says to verify *first*. It has since been
+> verified and passes, but the sequence was wrong. Verifying row 13 afterwards found a
+> shipped bug: `/ws` had never been reachable. The full account is the process finding in
+> [D0-report](architecture/D0-report.md); it is not restated here.
 >
 > | Epic | Status | Note |
 > |---|---|---|
-> | E0 | ◐ **Incomplete — and it gates the rest** | Ten of fourteen rows now pass. **What remains needs a decision or hardware, not effort**: row 7 (rmcp pin) and row 11 (MSI vs MSIX) are owner calls; row 1's macOS half needs a Mac; row 4's scrypt parameters need a Bun-era `.secrets.json`. Closing row 13 found that `/ws` had never worked — see [D0-report](architecture/D0-report.md). |
+> | E0 | ✅ **Complete** | All 13 release-0 rows carry a recorded result. Twelve verified; row 11 closed by decision (MSIX dropped, D29); row 7 re-targeted to P4 (rmcp 3.x, D28). macOS verification is a scheduled retroactive obligation (D30), not a gap. |
 > | E1 | ✅ Done | Auth stack, nonce→cookie session, `/pair` fallback, pause soft-disable, SSE, `/ws`, both serve jails. |
 > | E2 | ✅ Done | Exit criterion met: a real shipped `library.db` opens and round-trips on the existing chain. |
 > | E3 | ✅ Done | Tokens, session bootstrap, shell, Settings as nine composed sections. |
