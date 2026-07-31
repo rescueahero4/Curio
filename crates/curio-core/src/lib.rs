@@ -20,6 +20,7 @@
 //! their phases; each has a module here with the rule it must satisfy recorded in its
 //! documentation, so the shape of the work is visible before the work exists.
 
+pub mod assessment;
 pub mod config;
 pub mod domain;
 pub mod error;
@@ -27,6 +28,9 @@ pub mod events;
 pub mod ids;
 pub mod paths;
 pub mod ports;
+pub mod prompt;
+pub mod query;
+pub mod sidecar;
 pub mod time;
 
 pub use error::{Error, Result};

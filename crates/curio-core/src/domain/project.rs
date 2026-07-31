@@ -75,6 +75,44 @@ pub const MARKER_FINGERPRINT_PREFIX: &str = "mark:";
 /// The marker file Curio mints into a folder it adopts.
 pub const MARKER_FILE_NAME: &str = ".curio-project";
 
+/// What a `.curio-project` marker holds.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ProjectMarker {
+    /// A ULID minted at adoption. Copying the folder does **not** copy an identity: the
+    /// copy is a different project and gets a fresh id the first time it is adopted.
+    pub id: String,
+    /// Which tool wrote the folder, when that is knowable. Informational.
+    #[serde(default)]
+    pub tool: Option<String>,
+    #[serde(default)]
+    pub note: Option<String>,
+}
+
+impl ProjectMarker {
+    /// The fingerprint this marker produces.
+    #[must_use]
+    pub fn fingerprint(&self) -> String {
+        format!("{MARKER_FINGERPRINT_PREFIX}{}", self.id)
+    }
+}
+
+/// A catalogued project folder.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Project {
+    pub id: String,
+    pub name: String,
+    /// Absolute, unlike an item's screenshot path: a project lives wherever the user's AI
+    /// tool put it, which is not necessarily under any Curio-owned root.
+    pub path: String,
+    pub origin: ProjectOrigin,
+    /// The prompt that claimed this folder, if one did.
+    pub prompt_id: Option<String>,
+    pub status: ProjectStatus,
+    pub fingerprint: Option<String>,
+    pub detected_at: String,
+    pub last_opened_at: Option<String>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -63,6 +63,18 @@ impl Default for IdGenerator {
     }
 }
 
+/// Mint an id from the process-wide generator.
+///
+/// The monotonic guarantee holds **within one generator**, so there has to be exactly one
+/// (R-DA-5). Handing every call site its own [`IdGenerator`] would give each a private
+/// counter, and two ids minted in the same millisecond from different ones could sort the
+/// wrong way — breaking the FIFO job claim and the keyset cursor in a way that only shows
+/// up under load.
+pub fn generate() -> String {
+    static GENERATOR: std::sync::OnceLock<IdGenerator> = std::sync::OnceLock::new();
+    GENERATOR.get_or_init(IdGenerator::new).next_string()
+}
+
 /// Parse a stored id, rejecting anything that isn't a ULID.
 ///
 /// # Errors

@@ -24,6 +24,14 @@ pub enum Error {
     #[error("{0}")]
     Invalid(String),
 
+    /// The request collides with something already stored.
+    ///
+    /// Separate from [`Error::Invalid`] because the fix is usually a different action —
+    /// merge into the existing family rather than correct the name — and because the
+    /// transports render it as a 409 rather than a 400.
+    #[error("{0}")]
+    Conflict(String),
+
     /// A limit was exceeded, and the operation refused rather than trimming.
     ///
     /// Never silently truncate: a bulk request over the 500-item cap returns this so the

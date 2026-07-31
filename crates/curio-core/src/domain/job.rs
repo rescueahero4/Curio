@@ -92,6 +92,28 @@ impl JobStatus {
     }
 }
 
+/// A row in the queue.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Job {
+    pub id: String,
+    pub kind: String,
+    /// The job's input, frozen at enqueue.
+    ///
+    /// A bulk operation stores **ids**, never a filter (R-BE-18). Re-resolving the filter
+    /// at run time would let a job silently change what it operates on between the moment
+    /// the user pressed the button and the moment the worker got to it.
+    pub payload: serde_json::Value,
+    pub status: JobStatus,
+    pub attempts: u32,
+    pub error: Option<String>,
+    /// Progress while running, summary when finished.
+    pub result: Option<serde_json::Value>,
+    /// Set while parked. A parked job is `Queued` with a timer, not a fourth state.
+    pub not_before: Option<String>,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -6,19 +6,24 @@
 //! one of these strings wrong is not a compile error; it is a constraint violation on a
 //! real user's library, so they are written once here and reused everywhere.
 //!
-//! The record structs (`Item`, `Prompt`, `Project`, `Job`) land with P2, when the
-//! repositories that read them exist. Defining them now would mean guessing at
-//! serialization boundaries the API surface has not yet had to satisfy.
+//! The record structs sit beside their enums: what the API publishes, what the sidecar
+//! renders, and what the repositories read are one shape, so a column added in one place
+//! cannot quietly fail to appear in the other two.
 
 mod item;
 mod job;
 mod project;
+mod prompt;
 mod vocabulary;
 
-pub use item::{ItemStatus, LastEditedBy};
-pub use job::{JobKind, JobStatus};
-pub use project::{MARKER_FILE_NAME, MARKER_FINGERPRINT_PREFIX, ProjectOrigin, ProjectStatus};
-pub use vocabulary::{CreatedBy, MAX_NAME_LEN, VocabularyKind};
+pub use item::{Item, ItemFamily, ItemStatus, LastEditedBy};
+pub use job::{Job, JobKind, JobStatus};
+pub use project::{
+    MARKER_FILE_NAME, MARKER_FINGERPRINT_PREFIX, Project, ProjectMarker, ProjectOrigin,
+    ProjectStatus,
+};
+pub use prompt::{Prompt, SENT_CLAIM_WINDOW_SECONDS};
+pub use vocabulary::{CreatedBy, Family, MAX_NAME_LEN, Term, VocabularyKind};
 
 /// The largest number of items one bulk operation may touch.
 ///

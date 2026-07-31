@@ -89,6 +89,36 @@ impl CreatedBy {
 /// filter is permanent clutter (Inventory §9, `cleanVocabularyNames`).
 pub const MAX_NAME_LEN: usize = 60;
 
+/// An aesthetic family.
+///
+/// The description is not decoration: it is shown to the vision model as part of the
+/// rubric, and it is what a prompt chip serializes into an `Aesthetic:` line. A thin
+/// description therefore degrades both assessment quality and every prompt that cites the
+/// family (FR-13, FR-14).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Family {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub created_by: CreatedBy,
+    pub created_at: String,
+    pub updated_at: String,
+    /// How many items link to it. Joined rather than stored — a cached count is a second
+    /// source of truth that merges and deletes have to remember to update.
+    #[serde(default)]
+    pub item_count: i64,
+}
+
+/// A tag or a design type: a name, and how many items carry it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Term {
+    pub id: String,
+    pub name: String,
+    pub created_by: CreatedBy,
+    #[serde(default)]
+    pub item_count: i64,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
