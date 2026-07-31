@@ -1,30 +1,291 @@
 @import "tailwindcss";
 
 /*
- * Tailwind 4, for parity with the previous implementation's styling layer
- * (Inventory §10.32). Design tokens land with the real dashboard in P3; what is here is
- * the minimum for the scaffold's screens to be legible rather than a design system
- * invented ahead of the interface it has to serve.
+ * The design language, expressed once, as tokens.
+ *
+ * Provenance, stated plainly because PRD §5 says "extracted verbatim from the current
+ * styles.css" and that file lives in a repo this one does not vendor: the values below are
+ * **derived from PRD §5's written description**, not lifted from that stylesheet. Only
+ * `#fafaf9` and the three tint names are quoted there directly. When the original is at
+ * hand, this block is the single place where the two have to be reconciled — nothing
+ * downstream carries a colour of its own (NFR-8).
  */
 
 @theme {
-  --color-canvas: oklch(99% 0 0);
-  --color-ink: oklch(23% 0.01 260);
-  --color-muted: oklch(55% 0.01 260);
-  --color-line: oklch(91% 0.005 260);
+  /*
+   * Ground and cards. A card is white on the warm ground and is separated from it by a
+   * border, never by a shadow — which is why there is no shadow token here to reach for.
+   */
+  --color-ground: #fafaf9;
+  --color-card: #ffffff;
+  --color-desk: #f5f5f4;
+  --color-line: #e7e5e4;
+  --color-line-strong: #d6d3d1;
+
+  /* Quiet monochrome chrome: the accent is ink itself, so the "primary" colour and the
+   * body colour are the same colour at different weights. */
+  --color-ink: #1c1917;
+  --color-ink-muted: #57534e;
+  --color-ink-faint: #78716c;
+  --color-ink-invert: #fafaf9;
+
+  /*
+   * Exactly three semantic tints, and no fourth. A new state either borrows one of these
+   * or is said in ink — the palette is closed on purpose, because a fourth tint is how a
+   * quiet interface stops being quiet.
+   */
+  --color-caution: #92400e; /* amber — caution / needs review */
+  --color-caution-surface: #fffbeb;
+  --color-caution-line: #fde68a;
+
+  --color-confirm: #166534; /* green — confirmation */
+  --color-confirm-surface: #f0fdf4;
+  --color-confirm-line: #bbf7d0;
+
+  --color-proposal: #5b21b6; /* violet — proposed by Curio */
+  --color-proposal-surface: #f5f3ff;
+  --color-proposal-line: #ddd6fe;
+
+  /* A small scale: 14 px is the base, not the large end. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.125rem;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 0.875rem;
+  --text-base--line-height: 1.375rem;
+  --text-lg: 1rem;
+  --text-lg--line-height: 1.5rem;
+  --text-xl: 1.125rem;
+  --text-xl--line-height: 1.625rem;
+  --text-2xl: 1.375rem;
+  --text-2xl--line-height: 1.875rem;
+
+  --radius-card: 0.5rem;
+  --radius-sheet: 0.75rem;
+  --radius-pill: 9999px;
+
+  /* Screenshot cards are 16:10, and the frame is reserved before the image loads so the
+   * grid does not reflow underneath a reader mid-scroll. */
+  --aspect-shot: 16 / 10;
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Consolas", monospace;
 }
 
+/*
+ * Motion. Declared outside `@theme` because these generate no utility — they are consumed
+ * by the component classes below and by nothing else.
+ */
+:root {
+  --duration-hover: 120ms;
+  --ease-hover: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/*
+ * Light is canonical. Dark is a courtesy for a user whose OS asks for it, and it moves the
+ * same tokens rather than introducing a second vocabulary: the tints stay the same three,
+ * and cards stay border-defined.
+ */
 @media (prefers-color-scheme: dark) {
-  @theme {
-    --color-canvas: oklch(17% 0.01 260);
-    --color-ink: oklch(94% 0.005 260);
-    --color-muted: oklch(65% 0.01 260);
-    --color-line: oklch(28% 0.01 260);
+  :root {
+    --color-ground: #1c1917;
+    --color-card: #262322;
+    --color-desk: #201d1c;
+    --color-line: #3a3533;
+    --color-line-strong: #4b4542;
+
+    --color-ink: #f5f5f4;
+    --color-ink-muted: #b6afaa;
+    --color-ink-faint: #918a85;
+    --color-ink-invert: #1c1917;
+
+    --color-caution: #fcd34d;
+    --color-caution-surface: #2c2109;
+    --color-caution-line: #5c4410;
+
+    --color-confirm: #86efac;
+    --color-confirm-surface: #0d2417;
+    --color-confirm-line: #17512f;
+
+    --color-proposal: #c4b5fd;
+    --color-proposal-surface: #1e173a;
+    --color-proposal-line: #3a2f6b;
   }
 }
 
-body {
-  background: var(--color-canvas);
-  color: var(--color-ink);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+@layer base {
+  body {
+    background: var(--color-ground);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+
+  /*
+   * Numbers hold their column. Counts, scores and bulk progress all update in place, and
+   * proportional digits make a ticking number visibly twitch (PRD §5).
+   */
+  :where(output, time, meter, progress, input[type="number"]) {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .numeric {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .card {
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+  }
+
+  /* The Prompt Helper's white sheet on a grey desk (PRD §5). */
+  .sheet {
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sheet);
+  }
+
+  .desk {
+    background: var(--color-desk);
+  }
+
+  /* The screenshot frame: reserved at 16:10 before anything loads. */
+  .shot {
+    aspect-ratio: var(--aspect-shot);
+    background: var(--color-desk);
+    border-radius: calc(var(--radius-card) - 1px);
+    object-fit: cover;
+    width: 100%;
+  }
+
+  /* Controls are pills. One transition length, one curve, everywhere. */
+  .pill {
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+    color: var(--color-ink-muted);
+    display: inline-flex;
+    font-size: var(--text-sm);
+    gap: 0.375rem;
+    line-height: var(--text-sm--line-height);
+    padding: 0.3125rem 0.75rem;
+    transition-property: background-color, border-color, color, opacity;
+    transition-duration: var(--duration-hover);
+    transition-timing-function: var(--ease-hover);
+    white-space: nowrap;
+  }
+
+  .pill:hover:not(:disabled, [aria-disabled="true"]) {
+    background: var(--color-line);
+    color: var(--color-ink);
+  }
+
+  .pill:disabled,
+  .pill[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  /* The current page, and the only "selected" affordance the chrome owns. */
+  .pill-current {
+    background: var(--color-card);
+    border-color: var(--color-line-strong);
+    color: var(--color-ink);
+  }
+
+  /* The one filled control per surface. Ink is the accent, so this is the accent. */
+  .pill-ink {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-ink-invert);
+  }
+
+  .pill-ink:hover:not(:disabled, [aria-disabled="true"]) {
+    background: var(--color-ink-muted);
+    border-color: var(--color-ink-muted);
+    color: var(--color-ink-invert);
+  }
+
+  .pill-outline {
+    background: var(--color-card);
+    border-color: var(--color-line-strong);
+    color: var(--color-ink);
+  }
+
+  .field {
+    background: var(--color-card);
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-pill);
+    color: var(--color-ink);
+    font-size: var(--text-sm);
+    padding: 0.375rem 0.875rem;
+    transition-property: border-color;
+    transition-duration: var(--duration-hover);
+    transition-timing-function: var(--ease-hover);
+    width: 100%;
+  }
+
+  .field::placeholder {
+    color: var(--color-ink-faint);
+  }
+
+  .field-block {
+    border-radius: var(--radius-card);
+  }
+
+  /* The three tints, as the only way to reach them. */
+  .tint-caution {
+    background: var(--color-caution-surface);
+    border: 1px solid var(--color-caution-line);
+    color: var(--color-caution);
+  }
+
+  .tint-confirm {
+    background: var(--color-confirm-surface);
+    border: 1px solid var(--color-confirm-line);
+    color: var(--color-confirm);
+  }
+
+  .tint-proposal {
+    background: var(--color-proposal-surface);
+    border: 1px solid var(--color-proposal-line);
+    color: var(--color-proposal);
+  }
+
+  .banner {
+    align-items: baseline;
+    border-radius: var(--radius-card);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: var(--text-sm);
+    gap: 0.5rem;
+    line-height: var(--text-sm--line-height);
+    padding: 0.625rem 0.875rem;
+  }
+}
+
+/*
+ * PRD §5: reduced motion is respected. The 120 ms hover is decoration, and decoration is
+ * the first thing to go when the user has asked the OS for less of it.
+ *
+ * Done by moving the token rather than by a blanket `!important` reset, which is both
+ * narrower and stronger here: every transition in this app reads `--duration-hover`, so
+ * zeroing it disables all of them without fighting the cascade for the privilege.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-hover: 0s;
+    scroll-behavior: auto;
+  }
 }

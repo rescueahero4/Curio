@@ -1,30 +1,149 @@
+import { useSearchParams } from "@solidjs/router";
+import { createEffect, createMemo, createSignal, For, on, onCleanup, Show } from "solid-js";
+import { BulkBar } from "~/components/library/BulkBar";
+import { createDensity } from "~/components/library/density";
+import { FilterBar } from "~/components/library/FilterBar";
+import { createItemFeed, createSentinel } from "~/components/library/feed";
+import {
+  type Facets,
+  filterKey,
+  isNarrowed,
+  NO_FACETS,
+  toFilter,
+} from "~/components/library/filters";
+import { ItemCard } from "~/components/library/ItemCard";
+import { createSelection } from "~/components/library/selection";
+import { ensureVocabulary } from "~/components/library/vocab";
+import { items } from "~/lib/stores";
+
+/** R-FE-9. A contract, not a tuning knob: the old app settled on it and users learned it. */
+const SEARCH_DEBOUNCE_MS = 200;
+
 /**
  * The library grid — the dashboard's home.
  *
- * **P3.** The behaviors this route owes are contracts rather than design choices, and each
- * one is numbered, so they are listed here where whoever builds it will read them:
+ * The route owns the query and hands it to three collaborators: the feed fetches pages, the
+ * selection interprets clicks, and the bulk bar acts on what is selected. Each of those
+ * lives in its own file (NFR-8); what is left here is the arrangement.
  *
- * - 200 ms debounced search; density toggle persisted in `localStorage` under `curio.dense`
- *   (R-FE-9).
- * - Infinite scroll via `IntersectionObserver` with a 400 px `rootMargin`, driving
- *   **keyset** pagination on a `created_at|id` cursor — never an offset, because a capture
- *   arriving mid-scroll would shift an offset page under the reader (R-FE-9).
- * - `item.created` is **ignored while any filter or search is active**, and prepends only
- *   in the unfiltered view. `item.updated` replaces in place; `item.deleted` removes
- *   (R-FE-10, Inventory §10.25).
- * - Two selection modes, `picked(ids)` and `matching` (= the current filter). Shift-click
- *   ranges from the anchor. A filter change **voids** a `matching` selection but keeps
- *   picked ids. Escape clears. The 500 cap is a **named refusal** carrying the server's
- *   `matched` and `limit` — never a silent trim (R-FE-11).
+ * Search comes from the URL rather than from a signal, so a result is reloadable and
+ * shareable — `SearchBox` writes `?q=`, and the 200 ms debounce lives here because the
+ * grid is what pays for a request (R-FE-9).
  */
 export function Library() {
+  const [searchParams] = useSearchParams();
+  const [facets, setFacets] = createSignal<Facets>(NO_FACETS);
+  const [dense, setDense] = createDensity();
+
+  const typed = () => (typeof searchParams.q === "string" ? searchParams.q : "");
+  const [search, setSearch] = createSignal(typed());
+
+  createEffect(
+    on(typed, (value) => {
+      const timer = setTimeout(() => setSearch(value), SEARCH_DEBOUNCE_MS);
+      onCleanup(() => clearTimeout(timer));
+    }),
+  );
+
+  const filter = createMemo(() => toFilter(facets(), search().trim()));
+  const narrowed = () => isNarrowed(filter());
+
+  const feed = createItemFeed(filter);
+  const selection = createSelection(
+    () => items.list.map((item) => item.id),
+    () => filterKey(filter()),
+  );
+
+  ensureVocabulary();
+  const sentinel = createSentinel(feed.loadMore);
+
   return (
-    <section class="flex flex-col gap-3">
-      <h1 class="text-xl font-semibold">Library</h1>
-      <p style={{ color: "var(--color-muted)" }}>
-        The grid, filters, search, and bulk operations land in P3. The server is running and the
-        shell is wired — this is the scaffold.
-      </p>
+    <section class="flex flex-col gap-4">
+      <FilterBar facets={facets()} onFacets={setFacets} dense={dense()} onDense={setDense} />
+
+      <Show when={feed.problem()}>
+        {(message) => (
+          <output class="banner tint-caution">
+            {message()}
+            <button type="button" class="pill pill-outline" onClick={feed.retry}>
+              Try again
+            </button>
+          </output>
+        )}
+      </Show>
+
+      <Show
+        when={items.list.length}
+        fallback={<Empty ready={feed.ready()} narrowed={narrowed()} />}
+      >
+        <ul
+          class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          classList={{
+            "sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3": dense(),
+            "xl:grid-cols-4": !dense(),
+          }}
+        >
+          <For each={items.list}>
+            {(item) => (
+              <li>
+                <ItemCard
+                  item={item}
+                  dense={dense()}
+                  selected={selection.isSelected(item.id)}
+                  onToggle={selection.toggle}
+                />
+              </li>
+            )}
+          </For>
+        </ul>
+      </Show>
+
+      {/* The sentinel is rendered only while the server says there is another page, so a
+          fully-loaded library cannot sit in a loop asking for one that is not there. */}
+      <Show when={feed.more()}>
+        <div ref={sentinel} class="h-8" aria-hidden="true" />
+      </Show>
+
+      <Show when={feed.loading() && items.list.length > 0}>
+        <p class="text-center text-xs text-ink-faint">Loading more…</p>
+      </Show>
+
+      <BulkBar selection={selection} filter={filter} narrowed={narrowed} />
     </section>
+  );
+}
+
+/**
+ * The empty states, which are three different situations and must not read as one.
+ *
+ * PRD §5: an empty state teaches the next action. "No results" tells the user something
+ * they can already see.
+ */
+function Empty(props: { ready: boolean; narrowed: boolean }) {
+  return (
+    <Show
+      when={props.ready}
+      fallback={<p class="py-12 text-center text-sm text-ink-faint">Reading the library…</p>}
+    >
+      <div class="card flex flex-col items-center gap-2 px-6 py-12 text-center">
+        <Show
+          when={props.narrowed}
+          fallback={
+            <>
+              <p class="font-medium">Nothing here yet.</p>
+              <p class="text-sm text-ink-muted">
+                Capture a page with the Curio extension, or use + Add Item in the top bar. Curio
+                describes each one as it lands.
+              </p>
+            </>
+          }
+        >
+          <p class="font-medium">Nothing matches this search.</p>
+          <p class="text-sm text-ink-muted">
+            Clear a filter pill, or search for a word from a name or description.
+          </p>
+        </Show>
+      </div>
+    </Show>
   );
 }

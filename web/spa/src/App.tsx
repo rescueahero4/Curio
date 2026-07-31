@@ -1,10 +1,14 @@
 import { Route, Router } from "@solidjs/router";
 import { lazy } from "solid-js";
 import { AppShell } from "~/components/AppShell";
+import { ItemDetail } from "~/routes/ItemDetail";
 import { Library } from "~/routes/Library";
 import { NotFound } from "~/routes/NotFound";
 import { Pair } from "~/routes/Pair";
-import { Placeholder } from "~/routes/Placeholder";
+import { Projects } from "~/routes/Projects";
+import { Prompts } from "~/routes/Prompts";
+import { Settings } from "~/routes/Settings";
+import { Vocabulary } from "~/routes/Vocabulary";
 
 /**
  * The editor route, and the only lazy boundary.
@@ -28,12 +32,12 @@ export function App() {
   return (
     <Router root={AppShell}>
       <Route path="/" component={Library} />
-      <Route path="/items/:id" component={() => <Placeholder title="Item" phase="P3" />} />
-      <Route path="/projects" component={() => <Placeholder title="Projects" phase="P3" />} />
-      <Route path="/prompts" component={() => <Placeholder title="Prompts" phase="P3" />} />
+      <Route path="/items/:id" component={ItemDetail} />
+      <Route path="/projects" component={Projects} />
+      <Route path="/prompts" component={Prompts} />
       <Route path="/prompts/:id" component={PromptEditor} />
-      <Route path="/vocabulary" component={() => <Placeholder title="Vocabulary" phase="P3" />} />
-      <Route path="/settings" component={() => <Placeholder title="Settings" phase="P3" />} />
+      <Route path="/vocabulary" component={Vocabulary} />
+      <Route path="/settings" component={Settings} />
       <Route path="/pair" component={Pair} />
       <Route path="*" component={NotFound} />
     </Router>

@@ -2,6 +2,7 @@ import { render } from "solid-js/web";
 import { App } from "~/App";
 import { events } from "~/lib/events";
 import { bootstrapSession } from "~/lib/session";
+import { connectStores } from "~/lib/stores";
 import { NoSession } from "~/routes/NoSession";
 import "~/styles.css";
 
@@ -19,6 +20,9 @@ async function start() {
   const session = await bootstrapSession();
 
   if (session.kind === "authenticated") {
+    // Subscribed before the stream opens, so the caches do not miss an event that arrives
+    // between connecting and the first component mounting (R-FE-5, ARCH-03 store discipline).
+    connectStores();
     events.connect();
     render(() => <App />, root);
     return;
