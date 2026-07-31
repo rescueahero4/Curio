@@ -1,16 +1,16 @@
-# Graph Report - Curio  (2026-07-31)
+# Graph Report - Curio  (2026-08-01)
 
 ## Corpus Check
-- 96 files · ~81,090 words
+- 96 files · ~81,131 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 920 nodes · 1351 edges · 67 communities (61 shown, 6 thin omitted)
+- 922 nodes · 1353 edges · 68 communities (62 shown, 6 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 2 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `083b0a64`
+- Built from commit: `db319bcc`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -77,6 +77,7 @@
 - [[_COMMUNITY_Community 59|Community 59]]
 - [[_COMMUNITY_Community 60|Community 60]]
 - [[_COMMUNITY_Community 61|Community 61]]
+- [[_COMMUNITY_Community 67|Community 67]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `AppState` - 25 edges
@@ -91,21 +92,21 @@
 10. `Curio parity inventory — mined from the running Bun/React implementation (Curiol repo)` - 11 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `Db` --references--> `Connection`  [EXTRACTED]
+  crates/curio-db/src/lib.rs → web/extension/src/shared/storage.ts
+- `configure()` --references--> `Connection`  [EXTRACTED]
+  crates/curio-db/src/lib.rs → web/extension/src/shared/storage.ts
 - `create()` --references--> `Connection`  [EXTRACTED]
   crates/curio-db/src/fts.rs → web/extension/src/shared/storage.ts
 - `indexed()` --references--> `Connection`  [EXTRACTED]
   crates/curio-db/src/fts.rs → web/extension/src/shared/storage.ts
 - `search()` --references--> `Connection`  [EXTRACTED]
   crates/curio-db/src/fts.rs → web/extension/src/shared/storage.ts
-- `Db` --references--> `Connection`  [EXTRACTED]
-  crates/curio-db/src/lib.rs → web/extension/src/shared/storage.ts
-- `configure()` --references--> `Connection`  [EXTRACTED]
-  crates/curio-db/src/lib.rs → web/extension/src/shared/storage.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (67 total, 6 thin omitted)
+## Communities (68 total, 6 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.27
@@ -188,24 +189,24 @@ Cohesion: 0.50
 Nodes (3): For --cluster-only, For --update (incremental re-extraction), graphify reference: incremental update and cluster-only
 
 ### Community 22 - "Community 22"
-Cohesion: 0.22
-Nodes (8): Behavior, Graphify, Live commentary of corrections, Responsding, Scoping, Tool calling issues, When to delegate to Agents, Writing Docs
+Cohesion: 0.18
+Nodes (10): Behavior, Goal and Architecture, Graphify, Live commentary of corrections, Project, Responsding, Scoping, Tool calling issues (+2 more)
 
 ### Community 25 - "Community 25"
 Cohesion: 0.06
 Nodes (29): AppShell(), EVENT_NAMES, EventName, events, EventStream, Handler, bootstrapSession(), probeSession() (+21 more)
 
 ### Community 26 - "Community 26"
-Cohesion: 0.08
-Nodes (34): buttons, dot, hint, render(), setCaptureEnabled(), text, clearConnection(), Connection (+26 more)
+Cohesion: 0.09
+Nodes (36): buttons, dot, hint, render(), setCaptureEnabled(), text, clearConnection(), Connection (+28 more)
 
 ### Community 27 - "Community 27"
-Cohesion: 0.06
-Nodes (25): I, Option, decode_base64(), extension_id(), host_is_loopback(), hostname_of(), origin_is_allowed(), sec_fetch_site_is_hostile() (+17 more)
+Cohesion: 0.08
+Nodes (15): I, Option, decode_base64(), extension_id(), host_is_loopback(), hostname_of(), origin_is_allowed(), sec_fetch_site_is_hostile() (+7 more)
 
 ### Community 28 - "Community 28"
 Cohesion: 0.09
-Nodes (29): Arc, AtomicBool, Debug, FnOnce, Formatter, Into, Json, Mutex (+21 more)
+Nodes (27): Arc, AtomicBool, Debug, Formatter, Into, Json, Mutex, MutexGuard (+19 more)
 
 ### Community 29 - "Community 29"
 Cohesion: 0.09
@@ -216,12 +217,12 @@ Cohesion: 0.10
 Nodes (22): main(), OffsetDateTime, Send, usage(), quote_ident(), Clock, Embedder, EventSink (+14 more)
 
 ### Community 31 - "Community 31"
-Cohesion: 0.11
-Nodes (15): Error, main(), Display, From, Self, Error, deleted_carries_only_an_id(), Event (+7 more)
+Cohesion: 0.08
+Nodes (18): main(), Display, Generator, Self, Error, deleted_carries_only_an_id(), Event, EventName (+10 more)
 
 ### Community 32 - "Community 32"
-Cohesion: 0.10
-Nodes (15): Default, Generator, an_absent_port_stays_absent_through_a_round_trip(), Config, defaults_match_the_shipped_values(), field_names_are_camel_case_on_disk(), Models, SendToClaudeTarget (+7 more)
+Cohesion: 0.16
+Nodes (9): Default, an_absent_port_stays_absent_through_a_round_trip(), Config, defaults_match_the_shipped_values(), field_names_are_camel_case_on_disk(), Models, SendToClaudeTarget, the_pairing_token_field_is_gone() (+1 more)
 
 ### Community 33 - "Community 33"
 Cohesion: 0.08
@@ -331,22 +332,26 @@ Nodes (3): Packaging, The NM manifest stays data-driven (R-EXT-20), Uninstall is
 Cohesion: 0.60
 Nodes (4): isAcceptableToken(), isPairPage(), observer, pickUp()
 
+### Community 67 - "Community 67"
+Cohesion: 0.13
+Nodes (13): Error, FnOnce, From, checkpointing_works_on_a_file_backed_library(), configure(), curio_core::Error, Db, deleting_an_item_cascades_to_its_links() (+5 more)
+
 ## Knowledge Gaps
-- **335 isolated node(s):** `Error`, `Assets`, `UserEvent`, `$schema`, `includes` (+330 more)
+- **336 isolated node(s):** `Error`, `Assets`, `UserEvent`, `$schema`, `includes` (+331 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **6 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `AppState` connect `Community 28` to `Community 25`, `Community 13`?**
+- **Why does `AppState` connect `Community 28` to `Community 25`, `Community 67`, `Community 13`?**
   _High betweenness centrality (0.076) - this node is a cross-community bridge._
-- **Why does `Db` connect `Community 26` to `Community 28`, `Community 13`?**
-  _High betweenness centrality (0.070) - this node is a cross-community bridge._
-- **Why does `Inner` connect `Community 28` to `Community 26`, `Community 30`?**
+- **Why does `Db` connect `Community 67` to `Community 26`, `Community 28`, `Community 13`?**
+  _High betweenness centrality (0.069) - this node is a cross-community bridge._
+- **Why does `Inner` connect `Community 28` to `Community 67`, `Community 30`?**
   _High betweenness centrality (0.058) - this node is a cross-community bridge._
 - **What connects `Error`, `Assets`, `UserEvent` to the rest of the system?**
-  _335 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _336 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
 - **Should `Community 10` be split into smaller, more focused modules?**
