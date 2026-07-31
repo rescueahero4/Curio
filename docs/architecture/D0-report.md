@@ -25,21 +25,26 @@ governs: [verification]
 
 | | Count |
 |---|---|
-| Verified | 7 |
-| Partial (a real result, with a named gap) | 2 |
-| Outstanding (no recorded result) | 5 |
+| Verified | 10 |
+| Partial (a real result, with a named gap) | 3 |
+| Outstanding (no recorded result) | 1 |
 | Post-v1 sub-group (verified at the vector-activation release) | 2 |
 
-**E0 is NOT complete, and it gates everything (R-DEL-20).** Five rows still have no
-recorded result: **5** (EcoQoS, blocks P1), **7** (rmcp pin — an owner decision, blocks
-P4), **8** and **13** (block P5), **11** and **12** (block P6). Row 7 cannot be closed by
-a maintainer at all; it needs an owner to choose a major version and amend R-MCP-14 in the
-same PR.
+**E0 is not complete, and it gates everything (R-DEL-20) — but what remains is now four
+named items, not a fog.** Nothing left is blocked on engineering effort:
 
-Last updated 2026-08-01. The E1–E6 build closed rows 3, 6, 9 and 10, re-measured row 2
-against the finished server rather than an empty shell, and turned row 4 into a partial
-with its remaining gap named. **That build merged before rows 6 and 9 were verified** —
-see the process finding below, which is the most important entry in this document.
+| # | What remains | Who can close it |
+|---|---|---|
+| 7 | **rmcp pin** — crates.io publishes 3.0.1 against R-MCP-14's "major version 2" | **Owner.** Requires amending R-MCP-14 in the same PR (R-DEL-18); a maintainer cannot choose this. |
+| 11 | **MSI vs MSIX** — untested under MSIX sandboxing | **Owner**, cheaply: MSI is the pre-documented safe default, so *consciously choosing the fallback* closes the row without building anything. |
+| 1 | **Tray on macOS** — the main-thread rule is exactly where macOS differs | Anyone **with a Mac**. Genuinely blocked on hardware. |
+| 4 | **scrypt parameters** for the encrypted-file fallback | Anyone with a **Bun-era `.secrets.json`** to compare against. Blocked on the artifact, not on effort. |
+
+Last updated 2026-08-01. Rows **5, 6, 8, 9, 12 and 13** were closed in one pass after the
+E1–E6 merge, and row 2 was re-measured against the finished server. **That build merged
+before any of them were verified** — see the process finding below, which remains the most
+important entry in this document. Row 13's verification found a shipped bug (`/ws` was
+unreachable), which is the clearest available argument that the gate is not ceremony.
 
 Platform coverage so far: **Windows 11 only.** Every row below is a macOS gap until someone
 runs it on macOS, and the rows most likely to differ — the tray, the single-instance guard,
@@ -53,15 +58,15 @@ file permissions, keychain — are exactly the ones with no shared implementatio
 | 2 | **Empty-shell RSS ≤ 12 MB** | [ARCH-01](01-backend-architecture.md) OQ-4, R-BE-31 | ✅ Pass (Windows) | **2.0 MB private commit** at scaffold (tray + axum listener + SQLite open, empty library). **Re-measured 2026-08-01 with the full P1–P3 server** — every route, both push transports, the projects watcher, one item in the library: **2.2 MB**. The entire route surface, SSE, WebSocket and watcher cost ~0.2 MB against a 12 MB gate. **See the measurement note below — the method matters more than the number.** |
 | 3 | **TipTap core sans React**: chip node views and the slash menu under Solid's lifecycle | [ARCH-03](03-frontend-architecture.md) OQ-2 | ✅ Pass — **the ProseMirror fallback is not needed** | Verified 2026-08-01 by building the editor and shipping it. `@tiptap/core` + `@tiptap/pm` + `@tiptap/starter-kit`, all pinned **3.29.2**; `@tiptap/react` appears in neither `package.json` nor the lockfile, and no React arrives transitively. Eleven checks pass, three of which mount `EditorSurface` through `solid-js/web`'s `render()` and then `dispose()` — so `onMount → new Editor(el)` and `onCleanup → editor.destroy()` are exercised through Solid's own lifecycle rather than called directly. Chip node views render plain DOM, `itemRef` falls back to its stored label, the `section` attribute survives a round trip, ghost decoration lands on the empty paragraph, and the slash trigger fires after a space but **not** inside `http://`. See the finding below for what the spike actually cost. |
 | 4 | **Keychain crates** (DPAPI + Security.framework; scrypt fallback parameters matching the previous implementation) | [ARCH-06](06-security-architecture.md) OQ-3 | ⚠️ Partial — **DPAPI done, the scrypt half is still open** | `curio-server/src/secrets.rs` implements the keychain-first store: `ANTHROPIC_API_KEY` → DPAPI (`CryptProtectData`, via `windows-sys` directly — no wrapper crate) on Windows, the `security` CLI with the previous implementation's `curio-anthropic-api-key` service name on macOS. **The AES-256-GCM encrypted-file fallback is deliberately absent.** Its scrypt parameters are exactly what this row has not verified, and guessing them produces a file the old app wrote and this one silently cannot read. Until it is verified, a platform with no keychain backend **refuses to store a key** rather than writing one in plaintext — see the finding below. |
-| 5 | **EcoQoS** via `SetThreadInformation` on the service thread (the Windows 11 ControlMask/StateMask gotcha) | [ARCH-01](01-backend-architecture.md) OQ-5 | ⬜ Not started | Blocks P1. Fallback: ship at default QoS. |
+| 5 | **EcoQoS** via `SetThreadInformation` on the service thread (the Windows 11 ControlMask/StateMask gotcha) | [ARCH-01](01-backend-architecture.md) OQ-5 | ✅ Pass (Windows 11) — **implemented** | Verified 2026-08-01. `curio-tray/src/qos.rs` sets `THREAD_POWER_THROTTLING_STATE` on the service thread and Windows accepts it; the test asserts the **return value**, because a wrong mask pairing is a silent no-op that looks identical to success from outside. The gotcha resolved: `ControlMask` and `StateMask` must **both** carry `EXECUTION_SPEED` — control alone means "I manage this", state alone is ignored, and both zero clears the override. The main thread deliberately stays at default QoS so a Pause click never waits behind a throttled scheduler. |
 | 6 | **`Sec-Fetch-Site`** actually sent on loopback fetches from extension and SPA contexts | [ARCH-06](06-security-architecture.md) OQ-1 | ✅ Pass (Chromium 1234, Windows) — **R-SEC-12 may be enforced** | Measured 2026-08-01 by loading the real unpacked extension into Chromium and fetching a throwaway echo server on loopback, so the answer is the browser's behaviour and not a property of our middleware. Extension **service worker** → `none`; extension **page** → `none`; **same-origin** page fetch → `same-origin`; a page on a **different site** (`localhost` → `127.0.0.1`, which Chrome treats as cross-site) → **`cross-site`, with an `Origin` header**. So the header is sent (the check is not vacuous), no legitimate context ever reports `cross-site` (enforcement cannot 403 capture), and the attack case does (the check does real work). See the finding below — this row was verified *after* the code that depends on it shipped. |
 | 7 | **rmcp pin** | [ARCH-05](05-mcp-architecture.md) OQ-1 | ⚠️ **Finding — needs an owner decision** | See below. |
-| 8 | **NMH cold-start on Windows** (Defender's first-run scan) keeps the popup dot sub-second | [ARCH-04](04-extension-architecture.md) OQ-4 | ⬜ Not started | Blocks P5. The binary is built and is 180 KB, which is the right order of magnitude; the latency itself is unmeasured. |
+| 8 | **NMH cold-start on Windows** (Defender's first-run scan) keeps the popup dot sub-second | [ARCH-04](04-extension-architecture.md) OQ-4 | ✅ Pass (Windows 11) | Measured 2026-08-01, spawn → reply, which is what the popup actually waits on. **Cold 72.3 ms** against a binary copied to a path Windows had never seen, so the first call paid whatever first-run scan cost exists; **warm median 5.2 ms** over five runs. Against a 1 s budget that is ~14× headroom cold and ~190× warm, so no `{port, token}` caching ladder is needed. The reply on a dead instance was `{"state":"stale"}`, which also exercises R-BE-34's PID-liveness path. |
 | 9 | **Unpacked-extension `key`/id**: same id unpacked as packed | [ARCH-04](04-extension-architecture.md) OQ-2 | ✅ Pass (Chromium, Windows) | The id **derivation** was already verified by test: `curio-server`'s `the_pinned_origin_is_the_one_chrome_derives_from_the_manifest_key` re-derives `oehjmjhhelijpkojhpichkfcgbdejhfa` from the manifest key and asserts it against the server's allowlist, so the two files cannot drift. The remaining half — whether Chrome assigns that id to an **unpacked** load — was answered incidentally on 2026-08-01 while verifying row 6: `--load-extension=web/extension/dist` produced exactly `chrome-extension://oehjmjhhelijpkojhpichkfcgbdejhfa`. Unpacked and packed agree, so the pinned origin allowlist works for a development install. |
 | 10 | **`opt-level "z"` vs `"s"`**: size and hot-path speed | [ARCH-07](07-delivery-open-source.md) OQ-1 | ✅ Pass (Windows) — **pinned to `"z"`** | Measured 2026-08-01, x86_64-pc-windows-msvc, `curio.exe` with no SPA assets embedded: **`"z"` 3,207,168 bytes vs `"s"` 3,462,656** — `"z"` is 7.4 % (250 KB) smaller. Hot-path speed did not turn out to be the tiebreak OQ-1 expected: the process is idle almost all of the time, and the one genuinely hot path — SQLite — is bundled C that `opt-level` does not touch. `Cargo.toml` now pins `"z"` with the measurement recorded beside it. ARCH-07 OQ-1 is closed. |
 | 11 | **MSI vs MSIX**: the NM registry write and Run-key autostart under MSIX sandboxing | [ARCH-07](07-delivery-open-source.md) OQ-2 | ⬜ Not started | Blocks P6. MSI is the safe default. |
-| 12 | **MCPB tooling**: `mcpb pack` CLI shape and binary-server manifest fields | [ARCH-07](07-delivery-open-source.md) OQ-3, [ARCH-05](05-mcp-architecture.md) OQ-3 | ⬜ Not started | Blocks P6. |
-| 13 | **Chrome ~147 LNA gating** of loopback WebSockets | [ARCH-04](04-extension-architecture.md) OQ-1, [ARCH-06](06-security-architecture.md) OQ-5 | ⬜ Not started | Blocks P5. Secondary-sourced; verify against current Chrome. |
+| 12 | **MCPB tooling**: `mcpb pack` CLI shape and binary-server manifest fields | [ARCH-07](07-delivery-open-source.md) OQ-3, [ARCH-05](05-mcp-architecture.md) OQ-3 | ✅ Pass | Verified 2026-08-01 against `@anthropic-ai/mcpb` **2.1.2**. The CLI shape R-DEL-10 assumes exists: `mcpb pack [directory] [output]`, alongside `init`, `validate`, `sign`, `verify` and `info`. A **binary-server** manifest validates — `manifest_version 0.2`, `server.type: "binary"`, `server.entry_point`, and `server.mcp_config.{command,args}` with `${__dirname}` interpolation, which is how the bundle finds the packaged `curio` binary to run `--mcp-stdio` against. Signing exists as a separate step, so R-DEL-10's release job gains one. |
+| 13 | **Chrome ~147 LNA gating** of loopback WebSockets | [ARCH-04](04-extension-architecture.md) OQ-1, [ARCH-06](06-security-architecture.md) OQ-5 | ✅ Pass (Chromium 1234) — **and it found a real bug** | Verified 2026-08-01 by opening `ws://127.0.0.1:<port>/ws` from the **real extension's MV3 service worker** and completing the D23 first-message handshake: `hello {state, version}` in **5 ms**, not gated. The secondary-sourced concern does not reproduce. The first attempt failed, and isolating it — a plain Node client failed identically, with no browser involved — proved the cause was ours, not Chrome's: see the finding below. |
 
 ### New row, added at scaffold
 
@@ -93,6 +98,35 @@ Three things need deciding together before P4:
 
 Whatever is chosen, **R-MCP-14 must be amended in the same PR** (R-DEL-18). The `deny.toml`
 ban on `rmcp < 1.4.0` is already in place and holds regardless of the major version.
+
+### Row 13 — verifying it found that `/ws` had never worked
+
+The first attempt to open a loopback WebSocket from the extension's service worker failed.
+The tempting conclusion was the one the row was written to expect: Chrome's LNA work is
+gating loopback sockets. That conclusion would have been wrong, and acting on it would
+have meant redesigning the extension's push channel around a browser restriction that does
+not exist.
+
+Isolating it took one step — a plain Node client, no browser and therefore no LNA, failed
+identically. The cause was ours: `/ws` had been grouped with the read routes, which put the
+bearer/cookie credential layer in front of it. A browser `WebSocket` can send neither
+headers nor cookies on the upgrade, so **every client was rejected with a 401 before the
+handler ran**. R-BE-32 says the credential is the first message precisely because of that
+constraint; the route's own comment said the shared layer did not apply, while the code
+applied it.
+
+Nothing caught this. The `/ws` unit tests asserted constants — the auth deadline, the shape
+of the handshake frame — and never drove a socket, so they passed against a route no client
+could reach. `cargo gate` was green throughout.
+
+Fixed by moving `/ws` into the identity-only group, with a regression test that asserts a
+credential-less upgrade is **not** a 401. The handshake now completes in 5 ms and returns
+`hello {state, version}`.
+
+Two things worth keeping from this. First, the row is genuinely a **pass**: LNA does not
+gate loopback WebSockets from an MV3 service worker. Second, and more useful — a D0 row
+that looks like it is about someone else's software found a defect in ours, in a feature
+that would otherwise have appeared broken at P5 with the extension as the obvious suspect.
 
 ### Process — R-DEL-20's merge gate was crossed, and this is the record of it
 

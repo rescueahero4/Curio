@@ -157,7 +157,7 @@ The rewrite **preserves the existing design language** — it is the product's i
 >
 > | Epic | Status | Note |
 > |---|---|---|
-> | E0 | ◐ **Incomplete — and it gates the rest** | Rows 3, 6, 9, 10 closed and row 2 re-measured *after* E1–E6 merged. **Five rows still unrecorded**: 5 (P1), 7 (owner decision, P4), 8 + 13 (P5), 11 + 12 (P6). |
+> | E0 | ◐ **Incomplete — and it gates the rest** | Ten of fourteen rows now pass. **What remains needs a decision or hardware, not effort**: row 7 (rmcp pin) and row 11 (MSI vs MSIX) are owner calls; row 1's macOS half needs a Mac; row 4's scrypt parameters need a Bun-era `.secrets.json`. Closing row 13 found that `/ws` had never worked — see [D0-report](architecture/D0-report.md). |
 > | E1 | ✅ Done | Auth stack, nonce→cookie session, `/pair` fallback, pause soft-disable, SSE, `/ws`, both serve jails. |
 > | E2 | ✅ Done | Exit criterion met: a real shipped `library.db` opens and round-trips on the existing chain. |
 > | E3 | ✅ Done | Tokens, session bootstrap, shell, Settings as nine composed sections. |
