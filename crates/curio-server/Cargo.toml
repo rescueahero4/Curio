@@ -16,9 +16,15 @@ curio-core = { workspace = true }
 curio-db = { workspace = true }
 curio-runtime = { workspace = true }
 
-axum = { workspace = true }
+axum = { workspace = true, features = ["ws", "multipart"] }
 tokio = { workspace = true }
+tokio-stream = { workspace = true }
 tower = { workspace = true }
+
+# The SSE handler returns a `Stream`; these are the two traits it needs and nothing more.
+# `futures` (the umbrella crate) would pull in an executor we already have.
+futures-core = "0.3"
+futures-util = { version = "0.3", default-features = false }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -34,5 +40,12 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 
+# DPAPI for the API key (R-SEC-10). Two functions, called directly rather than through a
+# wrapper crate, because the idle-footprint budget counts dependencies.
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true, features = ["Win32_Security_Cryptography"] }
+
 [dev-dependencies]
 tempfile = "3.27.0"
+tokio = { workspace = true, features = ["rt", "macros"] }
+http-body-util = { workspace = true }

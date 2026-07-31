@@ -79,9 +79,13 @@ impl Status {
 
 /// Everything the service thread needs to start.
 pub struct ServiceThreadConfig {
-    pub database: PathBuf,
+    /// Everything the user owns. `library.db` sits directly inside it (R-DA-1).
+    pub data_root: PathBuf,
     pub runtime_file: PathBuf,
     pub port: Option<u16>,
+    /// Minted into the lock file at boot; never the runtime token (R-SEC-8).
+    pub quit_token: String,
+    pub settings: curio_core::config::Config,
 }
 
 /// Status flows back on a blocking channel rather than a tokio one: the tray thread has no
@@ -114,10 +118,12 @@ pub fn run(
 
     runtime.block_on(async move {
         let service = match Service::start(ServiceConfig {
-            database: config.database,
+            data_root: config.data_root,
             runtime_file: config.runtime_file,
             port: config.port,
             version: curio_core::VERSION.to_owned(),
+            quit_token: config.quit_token,
+            config: config.settings,
         })
         .await
         {
@@ -136,7 +142,20 @@ pub fn run(
         let port = service.port();
         let _ = status.send(Status::Running { port });
 
-        while let Some(command) = commands.recv().await {
+        // Two ways to stop, one shutdown sequence (R-BE-7). The tray's Quit arrives as a
+        // command; `POST /api/system/quit` raises the state's quit signal. Selecting over
+        // both here is what keeps them converging rather than growing a second ordering
+        // that skips the WAL checkpoint.
+        loop {
+            let command = tokio::select! {
+                received = commands.recv() => match received {
+                    Some(command) => command,
+                    // The tray dropped its sender, which means the main thread is gone.
+                    None => break,
+                },
+                () = service.state().quit_requested() => Command::Shutdown,
+            };
+
             match command {
                 Command::Pause => {
                     if let Err(err) = service.set_paused(true) {

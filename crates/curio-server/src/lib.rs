@@ -25,9 +25,11 @@
 //! (R-BE-7).
 
 pub mod routes;
+pub mod secrets;
 pub mod security;
 pub mod spa;
 pub mod state;
+pub mod watcher;
 
 use std::net::{Ipv4Addr, SocketAddr};
 use std::path::PathBuf;
@@ -70,8 +72,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// How to bring the service up.
 #[derive(Debug, Clone)]
 pub struct ServiceConfig {
-    /// The library file.
-    pub database: PathBuf,
+    /// Everything the user owns. `library.db` sits directly inside it (R-DA-1).
+    pub data_root: PathBuf,
     /// Where to publish `runtime.json` — the app-data directory, never the data root
     /// (R-DA-2).
     pub runtime_file: PathBuf,
@@ -81,6 +83,18 @@ pub struct ServiceConfig {
     pub port: Option<u16>,
     /// The single stamped version (R-DEL-12).
     pub version: String,
+    /// The quit token from the lock file — never the runtime token (R-SEC-8).
+    pub quit_token: String,
+    /// User settings, already resolved from `config.json` and the environment.
+    pub config: curio_core::config::Config,
+}
+
+impl ServiceConfig {
+    /// The library file.
+    #[must_use]
+    pub fn database(&self) -> PathBuf {
+        self.data_root.join(curio_core::paths::DB_FILE_NAME)
+    }
 }
 
 /// A running service.
@@ -102,8 +116,16 @@ impl Service {
     pub async fn start(config: ServiceConfig) -> Result<Self> {
         // 1. The library, migrated. Before the bind, so a broken library never reaches
         //    the point of having an address to advertise.
-        let db = Db::open(&config.database)?;
+        let db = Db::open(&config.database())?;
         tracing::info!(schema = db.schema_version().unwrap_or(-1), "library opened");
+
+        // R-BE-19: a job left `running` by a crash is claimed by nobody, and the item
+        // behind it sits at `processing` with no worker interested in it.
+        match curio_db::jobs::reclaim_orphans(db.conn()) {
+            Ok(0) => {}
+            Ok(count) => tracing::info!(count, "returned orphaned jobs to the queue"),
+            Err(err) => tracing::warn!(%err, "could not reclaim orphaned jobs"),
+        }
 
         // 2. The address. One bind attempt, bound or failed — no walk in any mode
         //    (R-BE-6).
@@ -118,7 +140,15 @@ impl Service {
 
         // 3. The token, minted fresh for this run and dead at quit (D21).
         let token = RuntimeToken::mint();
-        let state = AppState::new(token, config.version.clone(), db);
+        let state = AppState::new(
+            token,
+            config.quit_token.clone(),
+            config.version.clone(),
+            port,
+            config.data_root.clone(),
+            config.config.clone(),
+            db,
+        );
 
         // 4. Only now is there something true to advertise.
         let published = RuntimeFile {
@@ -148,8 +178,16 @@ impl Service {
             let _ = finished_tx.send(());
         });
 
-        // The jobs worker and the projects watcher start here in P2. Neither exists yet,
-        // so the boot order has nothing to run between publishing and ready.
+        // The watcher starts after the listener is up, as R-BE-5 requires: a project
+        // detected before the server could serve it would announce a card whose Launch
+        // button had nowhere to go.
+        let watched = PathBuf::from(&config.config.projects_root);
+        if watched.as_os_str().is_empty() {
+            tracing::info!("no projects root configured; the watcher is idle");
+        } else {
+            let watcher_state = state.clone();
+            tokio::spawn(async move { crate::watcher::run(watcher_state, watched).await });
+        }
 
         tracing::info!(port, "listening on 127.0.0.1");
         Ok(Self {

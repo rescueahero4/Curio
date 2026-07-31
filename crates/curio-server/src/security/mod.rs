@@ -11,12 +11,16 @@
 //! legitimate paused client gets a clean 503 on a write without needing fresh credentials
 //! first.
 //!
-//! This module holds the pure decisions. Wiring them into the axum stack is P1's work; the
-//! route-group table that says which applies where lives in ARCH-01 §Middleware map.
+//! [`origin`] and [`token`] hold the pure decisions; [`guard`] wires them into the axum
+//! stack in that order, and [`session`] owns the cookie the exchange mints. The route-group
+//! table that says which layer applies where lives in ARCH-01 §Middleware map.
 
+pub mod guard;
 pub mod origin;
+pub mod session;
 pub mod token;
 
+pub use guard::{Access, authenticate, authenticate_quit, identity, refuse_while_paused};
 pub use origin::{
     EXTENSION_ORIGIN, host_is_loopback, origin_is_allowed, sec_fetch_site_is_hostile,
 };

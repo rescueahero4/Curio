@@ -1,12 +1,24 @@
 //! What the service knows while it is running.
 
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
+use curio_core::config::Config;
+use curio_core::events::Event;
 use curio_db::Db;
 use curio_runtime::State;
+use tokio::sync::broadcast;
 
 use crate::security::{NonceStore, RuntimeToken};
+
+/// How many events a slow subscriber may fall behind before it is dropped.
+///
+/// A dashboard tab that has been asleep in a background window is the normal case. Dropping
+/// it is correct rather than unfortunate: the client's reconnect refetches, so a lagged
+/// subscriber recovers with the truth, while an unbounded buffer would hold the whole
+/// backlog of a bulk retag in memory against a 25 MB budget (R-BE-31).
+const EVENT_BUFFER: usize = 256;
 
 /// Shared service state, cloned into every handler.
 ///
@@ -24,8 +36,29 @@ struct Inner {
     /// request and writes are rare: pausing is a menu click, not a hot path.
     paused: AtomicBool,
     token: RuntimeToken,
+    /// The separate secret for `POST /api/system/quit` (R-SEC-8).
+    ///
+    /// Never the runtime token, and never in any CORS allow-headers list: a paired
+    /// extension holding the runtime token must not thereby hold a kill switch
+    /// (Inventory §10.3).
+    quit_token: String,
     nonces: Mutex<NonceStore>,
     version: String,
+    /// The port actually bound this run.
+    ///
+    /// Carried in the state rather than threaded to each handler because with an ephemeral
+    /// port there is no configured value to fall back on, and two surfaces need it —
+    /// `/health` and the MCP snippet in Settings (R-BE-6).
+    port: u16,
+    data_root: PathBuf,
+    config: Mutex<Config>,
+    events: broadcast::Sender<Event>,
+    /// Raised by `POST /api/system/quit`, awaited by the tray.
+    ///
+    /// A notification rather than a direct shutdown call because R-BE-7 has exactly one
+    /// shutdown sequence: the quit route and the tray's Quit menu item converge here, so
+    /// neither can drift into a second ordering that skips the WAL checkpoint.
+    quit_requested: tokio::sync::Notify,
     /// The single write connection (R-DA-8).
     ///
     /// A mutex rather than a pool because there is exactly one writer by design. Handlers
@@ -37,13 +70,28 @@ struct Inner {
 
 impl AppState {
     #[must_use]
-    pub fn new(token: RuntimeToken, version: impl Into<String>, db: Db) -> Self {
+    pub fn new(
+        token: RuntimeToken,
+        quit_token: impl Into<String>,
+        version: impl Into<String>,
+        port: u16,
+        data_root: impl Into<PathBuf>,
+        config: Config,
+        db: Db,
+    ) -> Self {
+        let (events, _) = broadcast::channel(EVENT_BUFFER);
         Self {
             inner: Arc::new(Inner {
                 paused: AtomicBool::new(false),
                 token,
+                quit_token: quit_token.into(),
                 nonces: Mutex::new(NonceStore::new()),
                 version: version.into(),
+                port,
+                data_root: data_root.into(),
+                config: Mutex::new(config),
+                events,
+                quit_requested: tokio::sync::Notify::new(),
                 db: Mutex::new(db),
             }),
         }
@@ -51,12 +99,12 @@ impl AppState {
 
     /// Run `f` against the library.
     pub fn with_db<T>(&self, f: impl FnOnce(&Db) -> T) -> T {
-        let guard = self
-            .inner
-            .db
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        f(&guard)
+        f(&self.lock_db())
+    }
+
+    /// Run `f` against the library with write access.
+    pub fn with_db_mut<T>(&self, f: impl FnOnce(&mut Db) -> T) -> T {
+        f(&mut self.lock_db())
     }
 
     /// Whether the app is currently refusing mutations.
@@ -89,27 +137,94 @@ impl AppState {
         &self.inner.token
     }
 
+    /// Whether `presented` is the quit token (R-SEC-8). Timing-safe.
+    #[must_use]
+    pub fn quit_token_matches(&self, presented: &str) -> bool {
+        crate::security::secrets_match(&self.inner.quit_token, presented)
+    }
+
     #[must_use]
     pub fn version(&self) -> &str {
         &self.inner.version
     }
 
+    /// The port this run bound.
+    #[must_use]
+    pub fn port(&self) -> u16 {
+        self.inner.port
+    }
+
+    #[must_use]
+    pub fn data_root(&self) -> &Path {
+        &self.inner.data_root
+    }
+
+    /// A copy of the current configuration.
+    ///
+    /// Cloned rather than borrowed because `mcpEnabled` is read **per request**
+    /// (R-MCP-8) and thresholds are re-read per job — holding a lock across either would
+    /// serialise the whole server behind a settings save.
+    #[must_use]
+    pub fn config(&self) -> Config {
+        self.lock(&self.inner.config).clone()
+    }
+
+    pub fn set_config(&self, config: Config) {
+        *self.lock(&self.inner.config) = config;
+    }
+
+    /// Announce something. Never fails: an item was created whether or not anyone was
+    /// listening (see [`curio_core::ports::EventSink`]).
+    pub fn publish(&self, event: Event) {
+        let _ = self.inner.events.send(event);
+    }
+
+    /// Subscribe to the push stream. One receiver per SSE or WebSocket connection.
+    #[must_use]
+    pub fn subscribe(&self) -> broadcast::Receiver<Event> {
+        self.inner.events.subscribe()
+    }
+
+    /// Ask the process to shut down (R-BE-7).
+    pub fn request_quit(&self) {
+        self.inner.quit_requested.notify_waiters();
+    }
+
+    /// Wait for a quit request. Awaited by the owner of the shutdown sequence.
+    pub async fn quit_requested(&self) {
+        self.inner.quit_requested.notified().await;
+    }
+
     /// Mint a single-use launch nonce (R-SEC-5).
     pub fn mint_nonce(&self) -> String {
-        self.lock_nonces().mint()
+        self.lock(&self.inner.nonces).mint()
     }
 
     /// Consume a launch nonce, returning whether it was valid.
     pub fn consume_nonce(&self, presented: &str) -> bool {
-        self.lock_nonces().consume(presented)
+        self.lock(&self.inner.nonces).consume(presented)
     }
 
-    fn lock_nonces(&self) -> std::sync::MutexGuard<'_, NonceStore> {
-        self.inner.nonces.lock().unwrap_or_else(|poisoned| {
-            // The guarded state is a bounded queue of short-lived values. Recovering is
-            // strictly better than refusing to authenticate for the rest of the run.
-            poisoned.into_inner()
-        })
+    fn lock_db(&self) -> std::sync::MutexGuard<'_, Db> {
+        self.lock(&self.inner.db)
+    }
+
+    /// Recover from a poisoned lock rather than propagating the panic.
+    ///
+    /// Every value guarded here is either a plain snapshot (config, the connection) or a
+    /// bounded queue of short-lived values (nonces). None has an invariant that can be left
+    /// half-updated, so refusing to serve for the rest of the run would be strictly worse
+    /// than carrying on.
+    fn lock<'a, T>(&self, target: &'a Mutex<T>) -> std::sync::MutexGuard<'a, T> {
+        target
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+}
+
+impl curio_core::ports::EventSink for AppState {
+    fn publish(&self, event: Event) {
+        AppState::publish(self, event);
     }
 }
 
@@ -127,11 +242,16 @@ impl std::fmt::Debug for AppState {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use curio_core::events::EventName;
 
     fn state() -> AppState {
         AppState::new(
             RuntimeToken::mint(),
+            "quit-secret",
             "0.1.0",
+            51_234,
+            std::env::temp_dir(),
+            Config::default(),
             Db::open_in_memory().expect("in-memory library"),
         )
     }
@@ -174,6 +294,34 @@ mod tests {
 
         assert!(state.consume_nonce(&nonce));
         assert!(!state.consume_nonce(&nonce));
+    }
+
+    #[test]
+    fn the_quit_token_is_not_the_runtime_token() {
+        // R-SEC-8 / Inventory §10.3. A paired client holding the runtime token must not
+        // thereby hold a kill switch.
+        let state = state();
+
+        assert!(state.quit_token_matches("quit-secret"));
+        assert!(!state.quit_token_matches(state.token().expose()));
+    }
+
+    #[test]
+    fn a_subscriber_receives_what_is_published() {
+        let state = state();
+        let mut stream = state.subscribe();
+
+        state.publish(Event::item_deleted("01A"));
+
+        let received = stream.try_recv().expect("an event");
+        assert_eq!(received.name, EventName::ItemDeleted);
+    }
+
+    #[test]
+    fn publishing_with_nobody_listening_is_fine() {
+        // An item was created whether or not a dashboard was open, and a failed publish
+        // must never fail the operation that triggered it.
+        state().publish(Event::vocabulary_updated());
     }
 
     #[test]

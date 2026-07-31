@@ -68,6 +68,7 @@ axum = { version = "0.8.9", default-features = false, features = [
   "query",
   "matched-path",
 ] }
+tokio-stream = { version = "0.1", features = ["sync"] }
 tower = "0.5.2"
 tower-http = { version = "0.7.0", default-features = false, features = ["trace"] }
 hyper = { version = "1.8", default-features = false }
@@ -126,10 +127,13 @@ cargo_metadata = "0.23.1"
 # then; 9.0.0 is still at rc as of scaffold.
 
 [profile.release]
-# R-DEL-4. `opt-level` is provisionally "s": D0 measures "z" against "s" for size
-# and hot-path speed and pins the winner (ARCH-07 OQ-1). "s" is the documented
-# fallback, so it is the honest default until that row is filled in.
-opt-level = "s"
+# R-DEL-4. ARCH-07 OQ-1 is CLOSED: measured 2026-08-01 on x86_64-pc-windows-msvc,
+# curio.exe with no SPA assets embedded — "z" 3,207,168 bytes against "s"
+# 3,462,656, so "z" is 7.4% (250 KB) smaller. Hot-path speed was not the tiebreak
+# it was expected to be: this process is idle almost all of the time, and the one
+# genuinely hot path — SQLite — is bundled C that `opt-level` does not touch.
+# Size wins uncontested. Re-measure if a compute-bound path ever appears.
+opt-level = "z"
 lto = true
 codegen-units = 1
 panic = "abort"

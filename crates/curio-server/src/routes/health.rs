@@ -75,24 +75,27 @@ pub async fn handler(State(state): State<AppState>, port: u16) -> Json<Health> {
 
 /// Whether an API key is available.
 ///
-/// Reads the environment variable only. The keychain backends — DPAPI on Windows, the
-/// macOS Keychain, and the AES-256-GCM encrypted-file fallback — land in P1 with the rest
-/// of the secrets layer (R-SEC-10); until then this reports the one source that already
-/// works, rather than reporting `false` and making a configured user look unconfigured.
+/// A boolean, never a prefix (R-SEC-11). This endpoint is readable cross-origin, and the
+/// most a caller may learn is that a key exists.
 fn api_key_is_configured() -> bool {
-    std::env::var_os("ANTHROPIC_API_KEY").is_some_and(|value| !value.is_empty())
+    crate::secrets::is_configured()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::security::RuntimeToken;
+    use curio_core::config::Config;
     use curio_db::Db;
 
     fn state() -> AppState {
         AppState::new(
             RuntimeToken::mint(),
+            "quit-secret",
             "0.1.0",
+            51_234,
+            std::env::temp_dir(),
+            Config::default(),
             Db::open_in_memory().expect("library"),
         )
     }

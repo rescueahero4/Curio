@@ -17,6 +17,7 @@
 // with redirected handles reads and writes them normally. Verified as part of D0.
 #![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
 
+mod boot;
 mod cli;
 mod service;
 mod single_instance;
@@ -93,7 +94,7 @@ fn run_mcp_stdio() -> anyhow::Result<()> {
 }
 
 fn run_app(open_browser: bool) -> anyhow::Result<()> {
-    let data_root = resolve_data_root()?;
+    let data_root = boot::resolve_data_root()?;
     let app_data = curio_core::paths::app_data_dir()?;
     let runtime_file = app_data.join(curio_runtime::FILE_NAME);
 
@@ -116,13 +117,21 @@ fn run_app(open_browser: bool) -> anyhow::Result<()> {
         RuntimeFile::remove(&runtime_file)?;
     }
 
+    // After the guard, before the database (R-BE-5). A second launch that created
+    // directories on its way to discovering it was second would leave marks on a library
+    // it never opened.
+    let settings = boot::load_config(&data_root)?;
+    let quit_token = boot::mint_quit_token(&app_data.join(curio_core::paths::LOCK_FILE_NAME))?;
+
     let (command_tx, command_rx) = mpsc::unbounded_channel::<Command>();
     let (status_tx, status_rx) = blocking_mpsc::channel::<Status>();
 
     let service_config = ServiceThreadConfig {
-        database: data_root.join(curio_core::paths::DB_FILE_NAME),
+        data_root,
         runtime_file,
         port: cli::port_override(),
+        quit_token,
+        settings,
     };
     let service_thread = std::thread::Builder::new()
         .name("curio-service".to_owned())
@@ -309,20 +318,4 @@ fn open_url(url: &str) -> std::io::Result<()> {
     };
 
     command.spawn().map(|_| ())
-}
-
-/// Where the library lives.
-///
-/// `CURIO_DATA_ROOT` wins, then the deprecated `CURIOL_DATA_ROOT` with a warning, then the
-/// default `~/Curio` (R-BE-29, R-DA-3). The one-time `~/Curiol` → `~/Curio` migration and
-/// its guards land with P2, alongside the rest of the data-root materialisation.
-fn resolve_data_root() -> anyhow::Result<std::path::PathBuf> {
-    if let Some(explicit) = std::env::var_os("CURIO_DATA_ROOT") {
-        return Ok(std::path::PathBuf::from(explicit));
-    }
-    if let Some(legacy) = std::env::var_os("CURIOL_DATA_ROOT") {
-        tracing::warn!("CURIOL_DATA_ROOT is deprecated; use CURIO_DATA_ROOT");
-        return Ok(std::path::PathBuf::from(legacy));
-    }
-    Ok(curio_core::paths::default_data_root()?)
 }
