@@ -20,6 +20,7 @@
 //! their phases; each has a module here with the rule it must satisfy recorded in its
 //! documentation, so the shape of the work is visible before the work exists.
 
+pub mod ai;
 pub mod assessment;
 pub mod config;
 pub mod domain;
