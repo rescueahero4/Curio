@@ -1,0 +1,68 @@
+# cargo-deny — the licence and advisory gate (R-DEL-6 step 6, R-DEL-14).
+#
+# Curio is MIT, and every dependency must be compatible with shipping it that way. A
+# copyleft addition is not a build error to be worked around: it is an owner decision that
+# belongs in the ARCH-00 register before the dependency lands.
+
+[graph]
+targets = [
+  "x86_64-pc-windows-msvc",
+  "aarch64-apple-darwin",
+  "x86_64-apple-darwin",
+]
+all-features = false
+
+[advisories]
+version = 2
+yanked = "deny"
+# Every ignore needs a dated justification naming who accepted the risk. An undated ignore
+# becomes permanent by accident.
+ignore = []
+
+[licenses]
+version = 2
+# The allowlist is written for the dependency tree this project will have, not only the one
+# it has today, so entries nothing currently uses are expected rather than dead config.
+# Warning about them would train everyone to ignore this tool's output.
+unused-allowed-license = "allow"
+# Permissive only. This is the allowlist R-DEL-14 requires; adding to it is a decision.
+allow = [
+  "MIT",
+  "Apache-2.0",
+  "Apache-2.0 WITH LLVM-exception",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "ISC",
+  "Zlib",
+  "Unicode-3.0",
+  "MPL-2.0",     # file-level copyleft; does not affect our own sources
+  "CC0-1.0",
+  "Unlicense",
+  "BSL-1.0",
+]
+confidence-threshold = 0.9
+
+# No per-crate exceptions yet. `ring` will likely need one when the AI client brings in a
+# TLS stack — its licence text is a composite that scanners cannot classify cleanly, though
+# it is permissive in substance. Left out until the dependency actually exists, because an
+# exception for an absent crate is a claim about the tree that is not true.
+
+[bans]
+# A warning, not an error: duplicate versions are common in a young dependency tree and
+# each one is a judgement call about binary size rather than a correctness problem.
+multiple-versions = "warn"
+wildcards = "deny"
+
+[[bans.deny]]
+# rmcp below 1.4.0 shipped the DNS-rebinding hole (CVE-2026-42559), and the Host-only fix
+# is the floor Curio's own Origin middleware sits in front of (R-MCP-14, R-SEC-7).
+# Downgrading past it is forbidden, not discouraged.
+name = "rmcp"
+version = "<1.4.0"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+# No git dependencies. A crates.io release is auditable and immutable; a git ref is neither,
+# and this is a binary that holds a user's API key.
+allow-git = []

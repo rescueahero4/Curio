@@ -1,0 +1,75 @@
+# The pull-request gate.
+#
+# This workflow invokes the gate script and **restates none of its steps** (R-DEL-6). That
+# is the whole point of having one script: a checklist duplicated here would drift from the
+# one contributors run, and the drift would only surface when a green branch turned red on
+# merge. If you want to change what the gate does, change crates/xtask.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  # A local build has an incremental cache to amortise; a CI job runs once and throws the
+  # machine away.
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  gate:
+    # R-DEL-5: the gate must pass on at least one Windows and one macOS runner before
+    # merge. Both platforms are targets, and the parts most likely to diverge — the tray,
+    # the single-instance guard, file permissions — are exactly the parts with no shared
+    # implementation.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-14]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The toolchain is pinned in rust-toolchain.toml, so this installs that version and
+      # not whatever the runner image happens to ship.
+      - name: Install Rust
+        run: rustup show
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ matrix.os }}-cargo-
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            web/spa/package-lock.json
+            web/extension/package-lock.json
+
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny
+
+      - name: Install web dependencies
+        run: |
+          npm --prefix web/spa ci
+          npm --prefix web/extension ci
+
+      # The one command. Everything the gate checks is defined in crates/xtask.
+      - name: Gate
+        run: cargo gate
