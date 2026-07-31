@@ -1,0 +1,5 @@
+# Biome formats to LF, and this repo is developed on Windows where git's
+# `core.autocrlf=true` checks files out with CRLF. Without this, `npm run gate` fails on
+# every file in the directory with a formatting error nobody introduced — which trains
+# contributors to ignore the gate.
+* text=auto eol=lf
