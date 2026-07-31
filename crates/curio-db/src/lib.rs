@@ -16,9 +16,15 @@
 //! second process opening the same file (D24).
 
 pub mod fts;
+pub mod items;
+pub mod jobs;
 pub mod migrations;
+pub mod projects;
+pub mod prompts;
+pub mod sidecars;
+pub mod vocabulary;
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use rusqlite::Connection;
 
@@ -36,11 +42,30 @@ pub enum Error {
     )]
     SchemaTooNew { found: i64, supported: i64 },
 
+    /// A row the caller named does not exist.
+    #[error("{kind} {id} not found")]
+    NotFound { kind: &'static str, id: String },
+
+    /// The request was well-formed and refused.
+    #[error("{0}")]
+    Invalid(String),
+
+    /// The request collides with something already stored.
+    ///
+    /// Distinct from [`Error::Invalid`] because the transports render it differently — a
+    /// 409 rather than a 400 — and because the fix is usually a different action (merge
+    /// rather than rename), not a corrected field.
+    #[error("{0}")]
+    Conflict(String),
+
     #[error("sqlite: {0}")]
     Sqlite(#[from] rusqlite::Error),
 
     #[error("io: {0}")]
     Io(#[from] std::io::Error),
+
+    #[error("json: {0}")]
+    Json(#[from] serde_json::Error),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -52,7 +77,15 @@ impl From<Error> for curio_core::Error {
     /// the boundary as text. [`Error::SchemaTooNew`] keeps its full message because it is
     /// the one storage failure a user is expected to act on.
     fn from(err: Error) -> Self {
-        curio_core::Error::Storage(err.to_string())
+        match err {
+            // These three are domain refusals that happen to be detected in SQL. Flattening
+            // them to `Storage` would render a duplicate tag name as a 500 instead of the
+            // 409 the user needs to see.
+            Error::NotFound { kind, id } => curio_core::Error::NotFound { kind, id },
+            Error::Invalid(message) => curio_core::Error::Invalid(message),
+            Error::Conflict(message) => curio_core::Error::Conflict(message),
+            other => curio_core::Error::Storage(other.to_string()),
+        }
     }
 }
 
@@ -60,6 +93,17 @@ impl From<Error> for curio_core::Error {
 #[derive(Debug)]
 pub struct Db {
     conn: Connection,
+    /// The data root, which is the directory holding `library.db` (R-DA-1).
+    ///
+    /// This crate writes files as well as rows because the sidecar contract requires it:
+    /// `item.md` is regenerated **inside the same transaction** as the mutation that
+    /// changed the item (R-DA-4). Splitting the two across crates would mean a committed
+    /// row with an un-rewritten file whenever the process died between them — the exact
+    /// disagreement the projection rule exists to make impossible.
+    ///
+    /// `None` for in-memory libraries, where there is nowhere to write and nothing to
+    /// project.
+    data_root: Option<PathBuf>,
 }
 
 impl Db {
@@ -94,7 +138,10 @@ impl Db {
 
         fts::create(&conn)?;
 
-        Ok(Self { conn })
+        Ok(Self {
+            conn,
+            data_root: path.parent().map(Path::to_path_buf),
+        })
     }
 
     /// Open an in-memory library. Tests only.
@@ -107,7 +154,10 @@ impl Db {
         conn.execute_batch(migrations::BASELINE_SQL)?;
         migrations::run(&mut conn)?;
         fts::create(&conn)?;
-        Ok(Self { conn })
+        Ok(Self {
+            conn,
+            data_root: None,
+        })
     }
 
     #[must_use]
@@ -118,6 +168,17 @@ impl Db {
     #[must_use]
     pub fn conn_mut(&mut self) -> &mut Connection {
         &mut self.conn
+    }
+
+    /// The directory holding the library and everything the user owns.
+    #[must_use]
+    pub fn data_root(&self) -> Option<&Path> {
+        self.data_root.as_deref()
+    }
+
+    /// Point this handle at a data root. Tests only — the open path derives it.
+    pub fn set_data_root(&mut self, root: impl Into<PathBuf>) {
+        self.data_root = Some(root.into());
     }
 
     /// The schema version this library is stamped with.
