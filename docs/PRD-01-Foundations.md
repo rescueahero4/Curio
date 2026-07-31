@@ -4,7 +4,7 @@ title: Curio — Product Requirements (Rust + SolidJS rewrite)
 status: in-progress
 version: 1.2.0
 date: 2026-08-01
-delivery: "E0 complete; E1–E7 built and green; E8–E10 not started (see §6)"
+delivery: "E0 complete; E1–E7 built and green; E8 partial (S8.1); E9–E10 not started (see §6)"
 owner: Robert Bagares
 companion: "docs/architecture/00-architecture-overview.md (ARCH-00..08 own the how; this doc owns the what)"
 supersedes: "Curiol docs/01-PRD-Foundations.md (FR numbering continues from it)"
@@ -142,7 +142,7 @@ The rewrite **preserves the existing design language** — it is the product's i
 ## 6. Epic list
 
 > **Delivery status — updated 2026-08-01.** E0 is partly discharged, **E1, E2, E3, E4, E5
-> and E7 are built and green**; E8, E9 and E10 have not started. The status column
+> and E7 are built and green**; E8 is partial and E9 and E10 have not started. The status column
 > below is the record. What "built" means here is specific: the gate passes
 > (`fmt`, `clippy -D warnings`, 415 Rust tests, SPA typecheck/lint/build, extension build,
 > file-length, dependency-direction), and the behaviour was exercised against a running
@@ -167,7 +167,8 @@ The rewrite **preserves the existing design language** — it is the product's i
 > | E5 | ✅ Done | TipTap headless under Solid — which also closed E0's D0 row for it. |
 > | E6 | ✅ Done | Watcher with marker identity, prompt claim, missing-not-deleted; Projects UI. |
 > | E7 | ✅ Done | The queue drains. Worker loop (claim/park/refund/cancel), Anthropic transport, vision assessment with two cache breakpoints, image downscale, bulk retag (serial + Batch API), vocabulary dedupe, `verify-key`. Verified end to end against a stub API: a capture reaches `ready` with tags, a family, and a sidecar, unprompted. Two decisions recorded — D32 (JPEG container) and D33 (text re-tag). |
-> | E8–E10 | ⬜ Not started | Extension pairing/capture, MCP transport, packaging. |
+> | E8 | ◐ S8.1 done | `curio-nmh --register`/`--unregister` writes the native-messaging manifest and the four browser registry keys; verified round-trip on Windows. **S8.2 (worker: NM bootstrap, WS + keepalive, capture pipeline) and S8.3 (popup) are not started** — the extension is scaffolded with its contracts written down but no runtime behaviour. |
+> | E9–E10 | ⬜ Not started | MCP transport (rmcp 3.x pin lands here per D28), packaging. |
 
 
 Phases and exit criteria are owned by ARCH-07 R-DEL-21; epics map onto them. Convention: an epic spanning server + UI lands its server semantics in P2 and its UI in P3. Stories are `S<epic>.<n>`; sub-tasks inline; a story's acceptance = the ARCH-08 rows for its FRs plus the §7 demo lines it enables. No estimates — risk is the sizing signal.
