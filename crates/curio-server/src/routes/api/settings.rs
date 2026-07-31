@@ -153,6 +153,52 @@ pub async fn put(
     Ok(Json(project(&state)))
 }
 
+#[derive(Debug, serde::Serialize)]
+pub struct KeyCheck {
+    pub ok: bool,
+    /// Why not, when `ok` is false. Shown verbatim, because "rejected" and "unreachable"
+    /// call for completely different actions from the user.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+}
+
+/// `POST /api/settings/verify-key` — prove the stored key works.
+///
+/// Always `200`: a key that does not work is an answer, not a server error, and the UI
+/// wants to render it beside the field rather than in an error toast. The check is the
+/// cheapest call that can distinguish a wrong key from a working one — sixteen tokens
+/// (Inventory §9) — so it is affordable on every save.
+pub async fn verify_key(State(state): State<AppState>) -> Json<KeyCheck> {
+    let Some(key) = crate::secrets::api_key() else {
+        return Json(KeyCheck {
+            ok: false,
+            reason: Some("no API key is configured".to_owned()),
+        });
+    };
+
+    let model = state.config().models.utility;
+    let client = match crate::ai::Anthropic::new(key) {
+        Ok(client) => client,
+        Err(err) => {
+            return Json(KeyCheck {
+                ok: false,
+                reason: Some(err.to_string()),
+            });
+        }
+    };
+
+    match client.verify_key(&model).await {
+        Ok(()) => Json(KeyCheck {
+            ok: true,
+            reason: None,
+        }),
+        Err(err) => Json(KeyCheck {
+            ok: false,
+            reason: Some(err.to_string()),
+        }),
+    }
+}
+
 /// `DELETE /api/settings/api-key`.
 pub async fn clear_api_key(State(state): State<AppState>) -> ApiResult<Json<PublicSettings>> {
     crate::secrets::clear_api_key()?;

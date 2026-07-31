@@ -6,6 +6,7 @@
 //! reconciled — that logic belongs one layer down, where it is tested without a router and
 //! shared with the MCP tools that expose the same operations.
 
+pub mod bulk;
 pub mod ingest;
 pub mod items;
 pub mod projects;

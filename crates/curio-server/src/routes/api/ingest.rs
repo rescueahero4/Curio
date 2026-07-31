@@ -24,6 +24,10 @@ use crate::state::AppState;
 /// The screenshot every item must have.
 const SCREENSHOT_FILE: &str = "screenshot.png";
 
+/// The grid's copy. The name must contain "thumb": the file route falls back to the
+/// screenshot on a 404 only for filenames that do (Inventory §10.20).
+const THUMBNAIL_FILE: &str = "thumb.jpg";
+
 #[derive(Debug, Serialize)]
 pub struct Ingested {
     pub item_id: String,
@@ -36,6 +40,8 @@ pub async fn create(State(state): State<AppState>, mut form: Multipart) -> ApiRe
     let mut screenshot: Option<Vec<u8>> = None;
     let mut source_url = None;
     let mut title = None;
+    let mut viewport_width: Option<f64> = None;
+    let mut viewport_height: Option<f64> = None;
 
     while let Some(field) = form.next_field().await.map_err(|err| {
         ApiError(curio_core::Error::invalid(format!(
@@ -60,6 +66,23 @@ pub async fn create(State(state): State<AppState>, mut form: Multipart) -> ApiRe
             // name since before the rewrite (Inventory §1).
             "source_url" | "url" => source_url = field.text().await.ok().filter(|s| !s.is_empty()),
             "title" => title = field.text().await.ok().filter(|s| !s.is_empty()),
+            // The viewport is what makes "the first fold" a real measurement rather than a
+            // guess, and this is the only place it exists — the extension sends it with
+            // the capture and nothing stores it (R-BE-26).
+            "viewport_width" => {
+                viewport_width = field
+                    .text()
+                    .await
+                    .ok()
+                    .and_then(|v| v.trim().parse::<f64>().ok())
+            }
+            "viewport_height" => {
+                viewport_height = field
+                    .text()
+                    .await
+                    .ok()
+                    .and_then(|v| v.trim().parse::<f64>().ok())
+            }
             // Unknown fields are ignored rather than refused: the extension sends
             // `captured_at` and viewport dimensions that nothing reads yet, and rejecting
             // an upload over a field we do not use would break capture for no gain.
@@ -99,8 +122,34 @@ pub async fn create(State(state): State<AppState>, mut form: Multipart) -> ApiRe
     std::fs::write(directory.join(SCREENSHOT_FILE), &bytes)?;
 
     let relative = format!("items/{}/{SCREENSHOT_FILE}", item.id);
-    let item =
-        state.with_db(|db| items::set_media(db.conn(), Some(&root), &item.id, &relative, None))?;
+
+    // Built here rather than in the worker: this is the only moment the viewport is known,
+    // and a card that shows a full 20,000-pixel stitch scaled to fit is a grey smear that
+    // identifies nothing (R-BE-26). A failure costs the thumbnail, never the capture.
+    let aspect = match (viewport_width, viewport_height) {
+        (Some(width), Some(height)) if height > 0.0 => Some(width / height),
+        _ => None,
+    };
+    let thumbnail = crate::images::thumbnail(&bytes, aspect);
+    let thumbnail_relative = if thumbnail.processed
+        && std::fs::write(directory.join(THUMBNAIL_FILE), &thumbnail.bytes).is_ok()
+    {
+        Some(format!("items/{}/{THUMBNAIL_FILE}", item.id))
+    } else {
+        // R-BE-26 degrades rather than fails. `None` means the grid serves the screenshot,
+        // which is correct and merely heavier.
+        None
+    };
+
+    let item = state.with_db(|db| {
+        items::set_media(
+            db.conn(),
+            Some(&root),
+            &item.id,
+            &relative,
+            thumbnail_relative.as_deref(),
+        )
+    })?;
 
     // Enqueued, not run. The worker is what turns this into a description; until it does,
     // the item is visible, editable, and honestly labelled `processing` (FR-26).
@@ -115,6 +164,12 @@ pub async fn create(State(state): State<AppState>, mut form: Multipart) -> ApiRe
     if let Ok(payload) = serde_json::to_value(&item) {
         state.publish(Event::new(EventName::ItemCreated, payload));
     }
+    if let Ok(payload) = serde_json::to_value(&job) {
+        state.publish(Event::new(EventName::JobUpdated, payload));
+    }
+    // Start assessing now rather than at the next two-second tick. The poll would find it
+    // anyway (Inventory §9); this is what makes a capture feel immediate.
+    state.wake_worker();
 
     Ok((
         StatusCode::CREATED,

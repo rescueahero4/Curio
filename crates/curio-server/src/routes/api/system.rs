@@ -41,6 +41,25 @@ pub async fn cancel_job(
     Path(id): Path<String>,
 ) -> ApiResult<Json<Job>> {
     let job = state.with_db(|db| jobs::cancel(db.conn(), &id))?;
+
+    // R-BE-19: a batch-backed job cancelled locally leaves the batch running upstream —
+    // still working, still billing, after the user believes they stopped it. The worker
+    // would catch this on its next poll; doing it here makes "cancel" mean cancelled at
+    // the moment the button is pressed.
+    if let Some(batch_id) = job
+        .result
+        .as_ref()
+        .and_then(|result| result.get("batch_id"))
+        .and_then(serde_json::Value::as_str)
+        && let Some(key) = crate::secrets::api_key()
+        && let Ok(client) = crate::ai::Anthropic::new(key)
+        && let Err(err) = client.cancel_batch(batch_id).await
+    {
+        // Not fatal to the request: the local job *is* cancelled, and saying otherwise
+        // would leave the user pressing a button that already worked.
+        tracing::warn!(%err, batch = batch_id, "could not cancel the batch upstream");
+    }
+
     publish_job(&state, &job);
     Ok(Json(job))
 }
@@ -68,6 +87,7 @@ pub async fn reassess(
     })?;
 
     publish_job(&state, &job);
+    state.wake_worker();
     Ok(Json(Enqueued { job_id: job.id }))
 }
 

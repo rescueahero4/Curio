@@ -105,6 +105,7 @@ fn read_routes(state: &AppState) -> Router<AppState> {
         .route("/api/prompts", get(api::prompts::list))
         .route("/api/prompts/{id}", get(api::prompts::get))
         .route("/api/projects", get(api::projects::list))
+        .route("/api/bulk/dedupe/latest", get(api::bulk::dedupe_latest))
         .route("/api/jobs", get(api::system::list_jobs))
         .route("/api/jobs/{id}", get(api::system::get_job))
         .route("/api/settings", get(api::settings::get))
@@ -127,6 +128,8 @@ fn mutating_routes(state: &AppState) -> Router<AppState> {
             post(api::items::resolve_gray_zone),
         )
         .route("/api/bulk/edit", post(api::items::bulk_edit))
+        .route("/api/bulk/retag", post(api::bulk::retag))
+        .route("/api/bulk/dedupe", post(api::bulk::dedupe))
         .route("/api/vocabulary/{kind}", post(api::vocabulary::create))
         .route("/api/vocabulary/prune", post(api::vocabulary::prune))
         .route(
@@ -156,6 +159,7 @@ fn mutating_routes(state: &AppState) -> Router<AppState> {
             "/api/settings/api-key",
             delete(api::settings::clear_api_key),
         )
+        .route("/api/settings/verify-key", post(api::settings::verify_key))
         .route("/api/system/reveal", post(api::system::reveal))
         .route(
             "/api/system/open-skill-file",
