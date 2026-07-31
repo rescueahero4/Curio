@@ -148,9 +148,16 @@ The rewrite **preserves the existing design language** — it is the product's i
 > file-length, dependency-direction), and the behaviour was exercised against a running
 > binary, not only against unit tests.
 >
+> **E0 was not complete when E1–E6 merged, and E0 gates everything.** R-DEL-20 is
+> blanket — no Phase-1 work merges until *every* D0 row has a recorded result — and this
+> build crossed it with six rows unrecorded. Row 6 was the live risk: P1 shipped enforcing
+> `Sec-Fetch-Site` reject-on-cross-site, which ARCH-06 OQ-1 says to verify *first*. It has
+> since been verified and passes, but the sequence was wrong. The full account is the
+> process finding in [D0-report](architecture/D0-report.md); it is not restated here.
+>
 > | Epic | Status | Note |
 > |---|---|---|
-> | E0 | ◐ Partial | Rows 3 and 10 closed, row 2 re-measured, row 4 partial. Rows 5, 6, 8, 11–13 open — see [D0-report](architecture/D0-report.md). |
+> | E0 | ◐ **Incomplete — and it gates the rest** | Rows 3, 6, 9, 10 closed and row 2 re-measured *after* E1–E6 merged. **Five rows still unrecorded**: 5 (P1), 7 (owner decision, P4), 8 + 13 (P5), 11 + 12 (P6). |
 > | E1 | ✅ Done | Auth stack, nonce→cookie session, `/pair` fallback, pause soft-disable, SSE, `/ws`, both serve jails. |
 > | E2 | ✅ Done | Exit criterion met: a real shipped `library.db` opens and round-trips on the existing chain. |
 > | E3 | ✅ Done | Tokens, session bootstrap, shell, Settings as nine composed sections. |

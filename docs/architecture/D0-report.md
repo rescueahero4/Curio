@@ -25,16 +25,21 @@ governs: [verification]
 
 | | Count |
 |---|---|
-| Verified | 5 |
-| Partial (a real result, with a named gap) | 3 |
-| Outstanding | 6 |
+| Verified | 7 |
+| Partial (a real result, with a named gap) | 2 |
+| Outstanding (no recorded result) | 5 |
 | Post-v1 sub-group (verified at the vector-activation release) | 2 |
 
-Last updated 2026-08-01, at the end of the E1–E6 build. That pass closed rows 3 and 10
-outright, re-measured row 2 against the finished server rather than an empty shell, and
-turned row 4 from "not started" into a partial with the remaining gap named. Rows 5, 6, 8,
-11, 12 and 13 are untouched; rows 8, 11, 12 and 13 all block phases (P5, P6) that this
-pass did not reach.
+**E0 is NOT complete, and it gates everything (R-DEL-20).** Five rows still have no
+recorded result: **5** (EcoQoS, blocks P1), **7** (rmcp pin — an owner decision, blocks
+P4), **8** and **13** (block P5), **11** and **12** (block P6). Row 7 cannot be closed by
+a maintainer at all; it needs an owner to choose a major version and amend R-MCP-14 in the
+same PR.
+
+Last updated 2026-08-01. The E1–E6 build closed rows 3, 6, 9 and 10, re-measured row 2
+against the finished server rather than an empty shell, and turned row 4 into a partial
+with its remaining gap named. **That build merged before rows 6 and 9 were verified** —
+see the process finding below, which is the most important entry in this document.
 
 Platform coverage so far: **Windows 11 only.** Every row below is a macOS gap until someone
 runs it on macOS, and the rows most likely to differ — the tray, the single-instance guard,
@@ -49,10 +54,10 @@ file permissions, keychain — are exactly the ones with no shared implementatio
 | 3 | **TipTap core sans React**: chip node views and the slash menu under Solid's lifecycle | [ARCH-03](03-frontend-architecture.md) OQ-2 | ✅ Pass — **the ProseMirror fallback is not needed** | Verified 2026-08-01 by building the editor and shipping it. `@tiptap/core` + `@tiptap/pm` + `@tiptap/starter-kit`, all pinned **3.29.2**; `@tiptap/react` appears in neither `package.json` nor the lockfile, and no React arrives transitively. Eleven checks pass, three of which mount `EditorSurface` through `solid-js/web`'s `render()` and then `dispose()` — so `onMount → new Editor(el)` and `onCleanup → editor.destroy()` are exercised through Solid's own lifecycle rather than called directly. Chip node views render plain DOM, `itemRef` falls back to its stored label, the `section` attribute survives a round trip, ghost decoration lands on the empty paragraph, and the slash trigger fires after a space but **not** inside `http://`. See the finding below for what the spike actually cost. |
 | 4 | **Keychain crates** (DPAPI + Security.framework; scrypt fallback parameters matching the previous implementation) | [ARCH-06](06-security-architecture.md) OQ-3 | ⚠️ Partial — **DPAPI done, the scrypt half is still open** | `curio-server/src/secrets.rs` implements the keychain-first store: `ANTHROPIC_API_KEY` → DPAPI (`CryptProtectData`, via `windows-sys` directly — no wrapper crate) on Windows, the `security` CLI with the previous implementation's `curio-anthropic-api-key` service name on macOS. **The AES-256-GCM encrypted-file fallback is deliberately absent.** Its scrypt parameters are exactly what this row has not verified, and guessing them produces a file the old app wrote and this one silently cannot read. Until it is verified, a platform with no keychain backend **refuses to store a key** rather than writing one in plaintext — see the finding below. |
 | 5 | **EcoQoS** via `SetThreadInformation` on the service thread (the Windows 11 ControlMask/StateMask gotcha) | [ARCH-01](01-backend-architecture.md) OQ-5 | ⬜ Not started | Blocks P1. Fallback: ship at default QoS. |
-| 6 | **`Sec-Fetch-Site`** actually sent on loopback fetches from extension and SPA contexts | [ARCH-06](06-security-architecture.md) OQ-1 | ⬜ Not started | Blocks P1. If it is not sent, R-SEC-12 stays advisory and must not reject. |
+| 6 | **`Sec-Fetch-Site`** actually sent on loopback fetches from extension and SPA contexts | [ARCH-06](06-security-architecture.md) OQ-1 | ✅ Pass (Chromium 1234, Windows) — **R-SEC-12 may be enforced** | Measured 2026-08-01 by loading the real unpacked extension into Chromium and fetching a throwaway echo server on loopback, so the answer is the browser's behaviour and not a property of our middleware. Extension **service worker** → `none`; extension **page** → `none`; **same-origin** page fetch → `same-origin`; a page on a **different site** (`localhost` → `127.0.0.1`, which Chrome treats as cross-site) → **`cross-site`, with an `Origin` header**. So the header is sent (the check is not vacuous), no legitimate context ever reports `cross-site` (enforcement cannot 403 capture), and the attack case does (the check does real work). See the finding below — this row was verified *after* the code that depends on it shipped. |
 | 7 | **rmcp pin** | [ARCH-05](05-mcp-architecture.md) OQ-1 | ⚠️ **Finding — needs an owner decision** | See below. |
 | 8 | **NMH cold-start on Windows** (Defender's first-run scan) keeps the popup dot sub-second | [ARCH-04](04-extension-architecture.md) OQ-4 | ⬜ Not started | Blocks P5. The binary is built and is 180 KB, which is the right order of magnitude; the latency itself is unmeasured. |
-| 9 | **Unpacked-extension `key`/id**: same id unpacked as packed | [ARCH-04](04-extension-architecture.md) OQ-2 | ⚠️ Partial | The id **derivation** is verified: `curio-server`'s `the_pinned_origin_is_the_one_chrome_derives_from_the_manifest_key` re-derives `oehjmjhhelijpkojhpichkfcgbdejhfa` from the manifest key and asserts it against the server's allowlist, so the two files cannot drift. Whether Chrome assigns that id to an **unpacked** load is untested. |
+| 9 | **Unpacked-extension `key`/id**: same id unpacked as packed | [ARCH-04](04-extension-architecture.md) OQ-2 | ✅ Pass (Chromium, Windows) | The id **derivation** was already verified by test: `curio-server`'s `the_pinned_origin_is_the_one_chrome_derives_from_the_manifest_key` re-derives `oehjmjhhelijpkojhpichkfcgbdejhfa` from the manifest key and asserts it against the server's allowlist, so the two files cannot drift. The remaining half — whether Chrome assigns that id to an **unpacked** load — was answered incidentally on 2026-08-01 while verifying row 6: `--load-extension=web/extension/dist` produced exactly `chrome-extension://oehjmjhhelijpkojhpichkfcgbdejhfa`. Unpacked and packed agree, so the pinned origin allowlist works for a development install. |
 | 10 | **`opt-level "z"` vs `"s"`**: size and hot-path speed | [ARCH-07](07-delivery-open-source.md) OQ-1 | ✅ Pass (Windows) — **pinned to `"z"`** | Measured 2026-08-01, x86_64-pc-windows-msvc, `curio.exe` with no SPA assets embedded: **`"z"` 3,207,168 bytes vs `"s"` 3,462,656** — `"z"` is 7.4 % (250 KB) smaller. Hot-path speed did not turn out to be the tiebreak OQ-1 expected: the process is idle almost all of the time, and the one genuinely hot path — SQLite — is bundled C that `opt-level` does not touch. `Cargo.toml` now pins `"z"` with the measurement recorded beside it. ARCH-07 OQ-1 is closed. |
 | 11 | **MSI vs MSIX**: the NM registry write and Run-key autostart under MSIX sandboxing | [ARCH-07](07-delivery-open-source.md) OQ-2 | ⬜ Not started | Blocks P6. MSI is the safe default. |
 | 12 | **MCPB tooling**: `mcpb pack` CLI shape and binary-server manifest fields | [ARCH-07](07-delivery-open-source.md) OQ-3, [ARCH-05](05-mcp-architecture.md) OQ-3 | ⬜ Not started | Blocks P6. |
@@ -88,6 +93,42 @@ Three things need deciding together before P4:
 
 Whatever is chosen, **R-MCP-14 must be amended in the same PR** (R-DEL-18). The `deny.toml`
 ban on `rmcp < 1.4.0` is already in place and holds regardless of the major version.
+
+### Process — R-DEL-20's merge gate was crossed, and this is the record of it
+
+**E1–E6 were built and merged to main while six index rows had no recorded result at
+all** (5, 6, 8, 11, 12, 13). R-DEL-20 does not permit that. Its wording is blanket and
+unambiguous: *"No Phase-1 work merges to main until every checklist item below has a
+recorded result (pass, or fallback chosen)."* Not "every item that phase depends on" —
+every item. The PRD agrees from the product side ("E0 … blocks all").
+
+Two things are worth separating, because they carry very different weight.
+
+**The one that mattered.** Row 6 blocks P1, and [ARCH-06](06-security-architecture.md)
+OQ-1 is explicit about *why*: verify "**before P1 enforces R-SEC-12 as
+reject-on-cross-site**". P1 shipped enforcing exactly that, unverified. It has since
+passed — but that is luck, not diligence. Had Chrome labelled extension→loopback fetches
+`cross-site`, the `identity` middleware would have 403'd **every capture**, and because
+the extension is P5 the symptom would have surfaced phases away from its cause, against a
+middleware that looked obviously correct. That is precisely the failure mode release-0
+exists to prevent, and it is the argument for the blanket rule over a
+"gate only what this phase touches" reading.
+
+**The ones that did not.** Rows 8, 11, 12 and 13 block P5 and P6, which this pass did not
+build, so [ARCH-00](00-architecture-overview.md) R-OV-4's narrower test — verified "before
+code depends on it" — was never breached for them. Row 5 (EcoQoS) blocks P1 and is
+unimplemented, so nothing depends on it either; the documented fallback ("ship at default
+QoS") is in effect **by omission rather than by decision**, which is D17's "consciously
+revised, never silently missed" failing in miniature. It needs an owner's ratification,
+not a maintainer's assumption, and is left open here rather than quietly closed.
+
+The gap between the two readings — R-DEL-20's blanket merge gate and R-OV-4's per-item
+dependency test — is real, and the documents do not reconcile it. R-OV-2 says one fact has
+one home; here two rules govern the same question with different strictness. Resolving
+that is an owner decision and belongs in the [ARCH-00](00-architecture-overview.md)
+register, not in this report. Until it is resolved, **R-DEL-20 is the operative rule**: it
+is the stricter of the two, it lives in the document whose `governs` domain is delivery,
+and the row-6 near-miss is evidence that the stricter reading earns its cost.
 
 ### Row 3 — TipTap under Solid cost three small workarounds, none architectural
 
