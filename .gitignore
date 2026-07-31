@@ -1,5 +1,6 @@
 docs/_plan
 docs/_ref
+docs/_convo
 
 # Secrets — R-DEL-17. Nothing resembling a credential enters this repo.
 .env

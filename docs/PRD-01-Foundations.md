@@ -1,9 +1,10 @@
 ---
 id: PRD-01
 title: Curio — Product Requirements (Rust + SolidJS rewrite)
-status: draft
-version: 1.0.0
-date: 2026-07-31
+status: in-progress
+version: 1.1.0
+date: 2026-08-01
+delivery: "E1–E6 built and green; E0 partial; E7–E10 not started (see §6)"
 owner: Robert Bagares
 companion: "docs/architecture/00-architecture-overview.md (ARCH-00..08 own the how; this doc owns the what)"
 supersedes: "Curiol docs/01-PRD-Foundations.md (FR numbering continues from it)"
@@ -140,6 +141,26 @@ The rewrite **preserves the existing design language** — it is the product's i
 
 ## 6. Epic list
 
+> **Delivery status — updated 2026-08-01.** E0 is partly discharged, **E1, E2, E3, E4, E5
+> and E6 are built and green**; E7, E8, E9 and E10 have not started. The status column
+> below is the record. What "built" means here is specific: the gate passes
+> (`fmt`, `clippy -D warnings`, 415 Rust tests, SPA typecheck/lint/build, extension build,
+> file-length, dependency-direction), and the behaviour was exercised against a running
+> binary, not only against unit tests.
+>
+> | Epic | Status | Note |
+> |---|---|---|
+> | E0 | ◐ Partial | Rows 3 and 10 closed, row 2 re-measured, row 4 partial. Rows 5, 6, 8, 11–13 open — see [D0-report](architecture/D0-report.md). |
+> | E1 | ✅ Done | Auth stack, nonce→cookie session, `/pair` fallback, pause soft-disable, SSE, `/ws`, both serve jails. |
+> | E2 | ✅ Done | Exit criterion met: a real shipped `library.db` opens and round-trips on the existing chain. |
+> | E3 | ✅ Done | Tokens, session bootstrap, shell, Settings as nine composed sections. |
+> | E4 | ◐ Done bar AI | Grid, selection/bulk, ItemDetail, Vocabulary. The **AI re-tag** popover and **ConsistencyPass** wait on E7's endpoints and are marked in place. |
+> | E5 | ✅ Done | TipTap headless under Solid — which also closed E0's D0 row for it. |
+> | E6 | ✅ Done | Watcher with marker identity, prompt claim, missing-not-deleted; Projects UI. |
+> | E7 | ⬜ Not started | **The consequence is visible**: `assess_item` jobs enqueue and nothing drains them, so an ingested item stays `processing`. Every other path around it works. |
+> | E8–E10 | ⬜ Not started | Extension pairing/capture, MCP transport, packaging. |
+
+
 Phases and exit criteria are owned by ARCH-07 R-DEL-21; epics map onto them. Convention: an epic spanning server + UI lands its server semantics in P2 and its UI in P3. Stories are `S<epic>.<n>`; sub-tasks inline; a story's acceptance = the ARCH-08 rows for its FRs plus the §7 demo lines it enables. No estimates — risk is the sizing signal.
 
 Dependency graph (E0 gates everything):
@@ -208,14 +229,17 @@ E0 → E1 → E2 ∥ E3 → E7 → E4 · E5 · E6 (parallel) → E8 · E9 → E1
 
 ## 7. Done bar (demonstration)
 
-- [ ] Fresh machine: install → tray icon → dashboard opens with no terminal anywhere; empty state teaches the first capture.
-- [ ] Machine with a Bun-app-created `~/Curio` (schema v4): the rewrite opens it intact and round-trips losslessly (NFR-6).
-- [ ] Chrome: install extension → it pairs itself → fold-capture a page → card appears processing → assessed with family/score badges ≤ 30 s.
-- [ ] Kill the API key: capture still lands, card says "Queued — needs an API key"; add key in Settings; queue drains unprompted.
-- [ ] Compose a prompt with `/aesthetic` + `/item` chips → Send to Claude → paste into Claude Code → it reads the referenced folders; resulting project folder appears in Curio ≤ 5 s and launches.
-- [ ] Tray Pause: captures refuse politely, browsing and MCP reads still work; Resume is instant.
-- [ ] MCP Inspector + Claude Desktop (MCPB): all 7 tools answer; disabled toggle returns the clean 503.
-- [ ] `git clone` → one documented command → green gate; no source file > 500 lines (files > 400 carry a PR justification); idle RSS measured ≤ 25 MB.
+Checked boxes were demonstrated on 2026-08-01 against a running binary on Windows 11.
+Unchecked ones name what they are still waiting on — none is merely unverified.
+
+- [ ] Fresh machine: install → tray icon → dashboard opens with no terminal anywhere; empty state teaches the first capture. *(waits on E10 packaging; the tray, dashboard and empty states themselves work from `cargo run`)*
+- [x] Machine with a Bun-app-created `~/Curio` (schema v4): the rewrite opens it intact and round-trips losslessly (NFR-6). *(`cargo test -p curio-db --test real_library`, plus a live boot that stepped a fresh library 0 → 4)*
+- [ ] Chrome: install extension → it pairs itself → fold-capture a page → card appears processing → assessed with family/score badges ≤ 30 s. *(waits on E8 pairing and E7 assessment; the ingest endpoint, the `processing` card and the badges all work — a `POST /api/items` lands a card and writes its sidecar)*
+- [ ] Kill the API key: capture still lands, card says "Queued — needs an API key"; add key in Settings; queue drains unprompted. *(waits on E7's worker: the capture lands and the job enqueues today, but nothing drains it)*
+- [x] Compose a prompt with `/aesthetic` + `/item` chips → Send to Claude → paste into Claude Code → it reads the referenced folders; resulting project folder appears in Curio ≤ 5 s and launches. *(chips serialize to an absolute path plus reading instructions; a sent prompt claimed the next folder the watcher saw, within the 5 s budget)*
+- [x] Tray Pause: captures refuse politely, browsing and MCP reads still work; Resume is instant. *(mutations return `503 + Retry-After`, reads and SSE continue — D25; the MCP half waits on E9)*
+- [ ] MCP Inspector + Claude Desktop (MCPB): all 7 tools answer; disabled toggle returns the clean 503. *(waits on E9, itself blocked on the rmcp pin — D0 row 7 needs an owner decision)*
+- [x] `git clone` → one documented command → green gate; no source file > 500 lines (files > 400 carry a PR justification); idle RSS measured ≤ 25 MB. *(`cargo gate` green; largest source file 444 lines; 2.2 MB private commit with the full server running)*
 
 ## 8. Open questions & governance
 

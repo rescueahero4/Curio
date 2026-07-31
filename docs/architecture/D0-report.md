@@ -25,9 +25,16 @@ governs: [verification]
 
 | | Count |
 |---|---|
-| Verified | 3 |
-| Outstanding | 10 |
+| Verified | 5 |
+| Partial (a real result, with a named gap) | 3 |
+| Outstanding | 6 |
 | Post-v1 sub-group (verified at the vector-activation release) | 2 |
+
+Last updated 2026-08-01, at the end of the E1–E6 build. That pass closed rows 3 and 10
+outright, re-measured row 2 against the finished server rather than an empty shell, and
+turned row 4 from "not started" into a partial with the remaining gap named. Rows 5, 6, 8,
+11, 12 and 13 are untouched; rows 8, 11, 12 and 13 all block phases (P5, P6) that this
+pass did not reach.
 
 Platform coverage so far: **Windows 11 only.** Every row below is a macOS gap until someone
 runs it on macOS, and the rows most likely to differ — the tray, the single-instance guard,
@@ -38,15 +45,15 @@ file permissions, keychain — are exactly the ones with no shared implementatio
 | # | Item | Owner / OQ | Status | Result |
 |---|---|---|---|---|
 | 1 | **Tray crates** (`tray-icon` + tao): icon, menu, glyph swap, main-thread rules | [ARCH-01](01-backend-architecture.md) OQ-4 | ⚠️ Partial | `tray-icon` 0.24.2 + `tao` 0.36.0 build and run on Windows 11; the five-item menu (D14) renders, the icon is generated in code, and the event loop sits in `ControlFlow::Wait`. **macOS untested** — and macOS is where the main-thread rule actually bites. |
-| 2 | **Empty-shell RSS ≤ 12 MB** | [ARCH-01](01-backend-architecture.md) OQ-4, R-BE-31 | ✅ Pass (Windows) | **2.0 MB private commit** (release build, tray + axum listener + SQLite open, empty library). Comfortably inside the 12 MB gate. **See the measurement note below — the method matters more than the number.** |
-| 3 | **TipTap core sans React**: chip node views and the slash menu under Solid's lifecycle | [ARCH-03](03-frontend-architecture.md) OQ-2 | ⬜ Not started | Blocks P3. Fallback: raw ProseMirror. |
-| 4 | **Keychain crates** (DPAPI + Security.framework; scrypt fallback parameters matching the previous implementation) | [ARCH-06](06-security-architecture.md) OQ-3 | ⬜ Not started | Blocks P1. The scrypt parameters must match, or an in-place upgrade cannot read the existing `.secrets.json`. |
+| 2 | **Empty-shell RSS ≤ 12 MB** | [ARCH-01](01-backend-architecture.md) OQ-4, R-BE-31 | ✅ Pass (Windows) | **2.0 MB private commit** at scaffold (tray + axum listener + SQLite open, empty library). **Re-measured 2026-08-01 with the full P1–P3 server** — every route, both push transports, the projects watcher, one item in the library: **2.2 MB**. The entire route surface, SSE, WebSocket and watcher cost ~0.2 MB against a 12 MB gate. **See the measurement note below — the method matters more than the number.** |
+| 3 | **TipTap core sans React**: chip node views and the slash menu under Solid's lifecycle | [ARCH-03](03-frontend-architecture.md) OQ-2 | ✅ Pass — **the ProseMirror fallback is not needed** | Verified 2026-08-01 by building the editor and shipping it. `@tiptap/core` + `@tiptap/pm` + `@tiptap/starter-kit`, all pinned **3.29.2**; `@tiptap/react` appears in neither `package.json` nor the lockfile, and no React arrives transitively. Eleven checks pass, three of which mount `EditorSurface` through `solid-js/web`'s `render()` and then `dispose()` — so `onMount → new Editor(el)` and `onCleanup → editor.destroy()` are exercised through Solid's own lifecycle rather than called directly. Chip node views render plain DOM, `itemRef` falls back to its stored label, the `section` attribute survives a round trip, ghost decoration lands on the empty paragraph, and the slash trigger fires after a space but **not** inside `http://`. See the finding below for what the spike actually cost. |
+| 4 | **Keychain crates** (DPAPI + Security.framework; scrypt fallback parameters matching the previous implementation) | [ARCH-06](06-security-architecture.md) OQ-3 | ⚠️ Partial — **DPAPI done, the scrypt half is still open** | `curio-server/src/secrets.rs` implements the keychain-first store: `ANTHROPIC_API_KEY` → DPAPI (`CryptProtectData`, via `windows-sys` directly — no wrapper crate) on Windows, the `security` CLI with the previous implementation's `curio-anthropic-api-key` service name on macOS. **The AES-256-GCM encrypted-file fallback is deliberately absent.** Its scrypt parameters are exactly what this row has not verified, and guessing them produces a file the old app wrote and this one silently cannot read. Until it is verified, a platform with no keychain backend **refuses to store a key** rather than writing one in plaintext — see the finding below. |
 | 5 | **EcoQoS** via `SetThreadInformation` on the service thread (the Windows 11 ControlMask/StateMask gotcha) | [ARCH-01](01-backend-architecture.md) OQ-5 | ⬜ Not started | Blocks P1. Fallback: ship at default QoS. |
 | 6 | **`Sec-Fetch-Site`** actually sent on loopback fetches from extension and SPA contexts | [ARCH-06](06-security-architecture.md) OQ-1 | ⬜ Not started | Blocks P1. If it is not sent, R-SEC-12 stays advisory and must not reject. |
 | 7 | **rmcp pin** | [ARCH-05](05-mcp-architecture.md) OQ-1 | ⚠️ **Finding — needs an owner decision** | See below. |
 | 8 | **NMH cold-start on Windows** (Defender's first-run scan) keeps the popup dot sub-second | [ARCH-04](04-extension-architecture.md) OQ-4 | ⬜ Not started | Blocks P5. The binary is built and is 180 KB, which is the right order of magnitude; the latency itself is unmeasured. |
 | 9 | **Unpacked-extension `key`/id**: same id unpacked as packed | [ARCH-04](04-extension-architecture.md) OQ-2 | ⚠️ Partial | The id **derivation** is verified: `curio-server`'s `the_pinned_origin_is_the_one_chrome_derives_from_the_manifest_key` re-derives `oehjmjhhelijpkojhpichkfcgbdejhfa` from the manifest key and asserts it against the server's allowlist, so the two files cannot drift. Whether Chrome assigns that id to an **unpacked** load is untested. |
-| 10 | **`opt-level "z"` vs `"s"`**: size and hot-path speed | [ARCH-07](07-delivery-open-source.md) OQ-1 | ⬜ Not started | Blocks P1. Currently pinned to the documented fallback `"s"`; `curio.exe` is **2.4 MB** with it (no SPA assets embedded at measurement time). `"z"` unmeasured. |
+| 10 | **`opt-level "z"` vs `"s"`**: size and hot-path speed | [ARCH-07](07-delivery-open-source.md) OQ-1 | ✅ Pass (Windows) — **pinned to `"z"`** | Measured 2026-08-01, x86_64-pc-windows-msvc, `curio.exe` with no SPA assets embedded: **`"z"` 3,207,168 bytes vs `"s"` 3,462,656** — `"z"` is 7.4 % (250 KB) smaller. Hot-path speed did not turn out to be the tiebreak OQ-1 expected: the process is idle almost all of the time, and the one genuinely hot path — SQLite — is bundled C that `opt-level` does not touch. `Cargo.toml` now pins `"z"` with the measurement recorded beside it. ARCH-07 OQ-1 is closed. |
 | 11 | **MSI vs MSIX**: the NM registry write and Run-key autostart under MSIX sandboxing | [ARCH-07](07-delivery-open-source.md) OQ-2 | ⬜ Not started | Blocks P6. MSI is the safe default. |
 | 12 | **MCPB tooling**: `mcpb pack` CLI shape and binary-server manifest fields | [ARCH-07](07-delivery-open-source.md) OQ-3, [ARCH-05](05-mcp-architecture.md) OQ-3 | ⬜ Not started | Blocks P6. |
 | 13 | **Chrome ~147 LNA gating** of loopback WebSockets | [ARCH-04](04-extension-architecture.md) OQ-1, [ARCH-06](06-security-architecture.md) OQ-5 | ⬜ Not started | Blocks P5. Secondary-sourced; verify against current Chrome. |
@@ -81,6 +88,51 @@ Three things need deciding together before P4:
 
 Whatever is chosen, **R-MCP-14 must be amended in the same PR** (R-DEL-18). The `deny.toml`
 ban on `rmcp < 1.4.0` is already in place and holds regardless of the major version.
+
+### Row 3 — TipTap under Solid cost three small workarounds, none architectural
+
+D16 and R-FE-16 bet that TipTap's React bindings are a separate optional package and that
+the core mounts anywhere. That held. The friction is worth recording because all of it is
+the kind a reader would otherwise rediscover:
+
+1. **`editor.isActive()` is not reactive.** It reads current ProseMirror state, so the
+   toolbar subscribes to `editor.on("transaction")` and bumps a signal. Three lines — the
+   React bindings do the same thing internally.
+2. **The editor must not be reactive to its `doc` prop.** Pushing the autosaved document
+   back into the view would move the caret mid-typing, so `EditorSurface` reads `props.doc`
+   once in `onMount` and says so in a comment.
+3. **Ghost text is a decoration, not a class on content.** Placeholder text must never be
+   part of the document, or the serializer would emit Curio's words inside the user's brief.
+
+One dependency was **rejected** on R-FE-3 grounds: `@tiptap/suggestion` pulls
+`@floating-ui/dom`, which matches neither `@tiptap` nor `prosemirror` in the build's
+`manualChunks` predicate and would therefore have leaked out of the editor chunk into every
+route. A ~60-line ProseMirror plugin replaces it and keeps the boundary exact.
+
+**Editor chunk: 371.91 kB raw / 118.88 kB gzip**, split and lazy, against a 140.94 kB app
+chunk that contains no ProseMirror at all (asserted by grep, not by inspection). That is
+ARCH-03 OQ-3 — "editor-chunk size after the Solid port" — answered at the same time.
+
+### Row 4 — a refusal was chosen over a guessed encrypted-file format
+
+R-SEC-10 specifies three secret backends in order: DPAPI, macOS Keychain, and an
+AES-256-GCM encrypted file whose scrypt key is derived from `curio:<hostname>:<username>`.
+The first two are implemented. The third is not, and that is deliberate rather than
+unfinished.
+
+The encrypted-file fallback exists so an in-place upgrade can read an existing
+`.secrets.json`. Its value therefore depends entirely on the scrypt parameters matching the
+previous implementation's byte for byte — which is precisely the thing this row has not
+verified. Implementing it against guessed parameters produces the worst outcome available:
+a file the old app wrote and the new one cannot read, discovered by a user whose API key
+has silently vanished.
+
+So on a platform with no keychain backend, `store_api_key` **fails loudly** with a message
+pointing at `ANTHROPIC_API_KEY`, which works everywhere. This is stricter than the old app,
+not looser — no key is ever written to disk in the clear. When the scrypt parameters are
+verified against a real `.secrets.json`, the fallback lands and this row closes.
+
+Windows and macOS are unaffected: both have a real backend today.
 
 ### Row 2 — the measurement method changes the answer by three orders of magnitude
 

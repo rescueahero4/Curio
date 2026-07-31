@@ -3,7 +3,7 @@
 - Orient understanding of the project, objectives and wotk items from PRD 
 `docs\PRD-01-Foundations.md`
 
-- Always refer to Solutions Architecture to ensure development current and future development always align with the original Solutions Architecture plan
+- Always refer to Solutions Architecture to ensure current and future development always align with the original Solutions Architecture plan
 `docs\architecture\00-architecture-overview.md`
 
 
