@@ -39,6 +39,8 @@ rust-embed = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
+reqwest = { version = "0.13.4", default-features = false, features = ["json", "native-tls", "charset"] }
+image = { version = "0.25.10", default-features = false, features = ["png", "jpeg", "webp"] }
 
 # DPAPI for the API key (R-SEC-10). Two functions, called directly rather than through a
 # wrapper crate, because the idle-footprint budget counts dependencies.
@@ -49,3 +51,5 @@ windows-sys = { workspace = true, features = ["Win32_Security_Cryptography"] }
 tempfile = "3.27.0"
 tokio = { workspace = true, features = ["rt", "macros"] }
 http-body-util = { workspace = true }
+image = { version = "0.25.10", default-features = false, features = ["png"] }
+reqwest = { version = "0.13.4", default-features = false, features = ["json"] }
