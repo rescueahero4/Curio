@@ -67,7 +67,7 @@ npm --prefix web/extension install
 
 ## 2. Build the dashboard
 
-**Do this before the first `cargo run`.** The dashboard is served from inside the binary
+**Do this before the first run.** The dashboard is served from inside the binary
 and there is no Vite dev proxy yet, so an unbuilt dashboard means the app boots and serves
 nothing.
 
@@ -82,14 +82,18 @@ npm --prefix web/spa run build
 ## 3. Run the app
 
 ```sh
-cargo run
+cargo run --bin curio
 ```
+
+`--bin curio` is not optional: the workspace builds two binaries — the app itself and the
+native-messaging helper — so a bare `cargo run` cannot tell which one you meant and stops
+with `could not determine which binary to run`.
 
 This starts the tray icon, binds an ephemeral loopback port, migrates the database, and
 opens your browser at the dashboard. To skip the browser-open:
 
 ```sh
-cargo run -- --no-open
+cargo run --bin curio -- --no-open
 ```
 
 **Where things land:**

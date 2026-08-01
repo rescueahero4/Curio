@@ -8,10 +8,13 @@ just tells you how to build, check, and land a change.
 
 ```sh
 npm --prefix web/spa install
-cargo run
+npm --prefix web/spa run build
+cargo run --bin curio
 ```
 
-`cargo run` starts the tray and the server. Run the SPA beside it:
+`--bin curio` is required: the workspace builds two binaries (`curio` and `curio-nmh`), so a
+bare `cargo run` cannot tell which you meant. The SPA build is required too — see the note
+below. Run the Vite dev server beside it for visual work:
 
 ```sh
 npm --prefix web/spa run dev
@@ -23,7 +26,7 @@ npm --prefix web/spa run dev
 > whatever `web/spa/dist` held when it was compiled, and the Vite dev server runs on its own
 > port (5173) with no session cookie — so it is useful for visual work and not for anything
 > that talks to the API. The proxy lands with P3, when there is a dashboard whose iteration
-> speed it would actually protect. Until then: `npm --prefix web/spa run build && cargo run`.
+> speed it would actually protect. Until then: `npm --prefix web/spa run build && cargo run --bin curio`.
 
 For the extension, build it and load `web/extension/dist` unpacked in Chrome:
 

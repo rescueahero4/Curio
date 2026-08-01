@@ -93,8 +93,12 @@ npm --prefix web/spa run build
 ### 1.4 Start Curio
 
 ```sh
-cargo run
+cargo run --bin curio
 ```
+
+> ⚠️ The `--bin curio` part matters. Leaving it off gives you
+> `error: cargo run could not determine which binary to run` — the project contains two
+> programs and that tells it which one you want. It is not a sign anything is broken.
 
 The first time, this takes **several minutes** — it is compiling the whole application.
 Later runs take seconds. You'll see a lot of scrolling text; that's the compiler talking.
@@ -381,7 +385,7 @@ Click **Send to Claude**.
 ### 8.1 Restart while the extension is connected
 
 1. With Chrome open and the extension installed, quit Curio from the **tray icon → Quit**.
-2. Start it again: in your first terminal, run `cargo run` and wait for the dashboard.
+2. Start it again: in your first terminal, run `cargo run --bin curio` and wait for the dashboard.
 3. Without touching the extension's settings, go to a website and capture it.
 
 > ✅ **Check 41** — capture works. You should **not** have to reinstall the extension,
