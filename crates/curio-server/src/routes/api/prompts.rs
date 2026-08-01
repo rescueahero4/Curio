@@ -215,7 +215,10 @@ mod tests {
         // again as the ghost text to show over any section the user later empties.
         let content = template.doc_json["content"].as_array().expect("content");
         assert_eq!(
-            content.iter().filter(|node| node["type"] == "heading").count(),
+            content
+                .iter()
+                .filter(|node| node["type"] == "heading")
+                .count(),
             template.sections.len()
         );
         assert_eq!(content[1]["content"][0]["text"], template.sections[0].body);

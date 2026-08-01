@@ -355,7 +355,13 @@ mod tests {
                           "content": [{ "type": "text", "text": "Checkout flow" }] }],
         });
         update(db.conn(), &prompt.id, Some(&doc)).expect("update");
-        save_serialized(db.conn(), Some(dir.path()), &prompt.id, "## Brief\n\nA page.").expect("save");
+        save_serialized(
+            db.conn(),
+            Some(dir.path()),
+            &prompt.id,
+            "## Brief\n\nA page.",
+        )
+        .expect("save");
 
         let snapshot = dir.path().join("prompts").join(format!("{}.md", prompt.id));
         let body = std::fs::read_to_string(snapshot).expect("read");

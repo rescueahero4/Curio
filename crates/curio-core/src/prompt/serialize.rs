@@ -395,7 +395,10 @@ mod tests {
                 section.id
             );
         }
-        assert!(text.contains("Build a product landing page for \"ACME\""), "{text}");
+        assert!(
+            text.contains("Build a product landing page for \"ACME\""),
+            "{text}"
+        );
         // Each direction on its own line, not run together by a stray `\n` in a text node.
         assert!(text.contains("Direction 1 - "), "{text}");
         assert!(text.contains("Direction 2 - "), "{text}");

@@ -346,8 +346,10 @@ mod tests {
         // `port`, which is the *preference* in config.json. A user with `4321` pinned there
         // saw "Port 4321" whatever socket the process actually held — a number that looks
         // like an address, reads like an address, and is not one.
-        let mut config = Config::default();
-        config.port = Some(4321);
+        let config = Config {
+            port: Some(4321),
+            ..Config::default()
+        };
 
         let pinned = AppState::new(
             RuntimeToken::mint(),

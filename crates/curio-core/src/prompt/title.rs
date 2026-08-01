@@ -128,7 +128,10 @@ mod tests {
     fn a_fresh_template_is_untitled() {
         // Every new prompt is exactly this: eight empty, section-attributed paragraphs. If
         // this returned anything else, a list of new prompts would be a list of blanks.
-        assert_eq!(title_from(&super::super::starter_document()), super::super::UNTITLED);
+        assert_eq!(
+            title_from(&super::super::starter_document()),
+            super::super::UNTITLED
+        );
     }
 
     #[test]
@@ -296,6 +299,9 @@ mod tests {
 
     #[test]
     fn a_document_with_no_content_at_all_is_untitled() {
-        assert_eq!(title_from(&json!({ "type": "doc" })), super::super::UNTITLED);
+        assert_eq!(
+            title_from(&json!({ "type": "doc" })),
+            super::super::UNTITLED
+        );
     }
 }

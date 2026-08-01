@@ -345,7 +345,15 @@ mod tests {
         let ids: Vec<&str> = SECTIONS.iter().map(|s| s.id).collect();
         assert_eq!(
             ids,
-            ["brief", "intent", "always", "never", "direction", "important", "output"]
+            [
+                "brief",
+                "intent",
+                "always",
+                "never",
+                "direction",
+                "important",
+                "output"
+            ]
         );
 
         // The two guardrail sections carry the grouping in their own names, which is what

@@ -118,9 +118,11 @@ pub fn count_matching(conn: &Connection, query: &ItemQuery) -> Result<i64> {
     let where_clause = build_where(&whole, &mut params);
     let sql = format!("SELECT COUNT(*) FROM items i {where_clause}");
 
-    Ok(conn.query_row(&sql, rusqlite::params_from_iter(params.iter()), |row| {
-        row.get(0)
-    })?)
+    Ok(
+        conn.query_row(&sql, rusqlite::params_from_iter(params.iter()), |row| {
+            row.get(0)
+        })?,
+    )
 }
 
 /// Build the `WHERE` clause and push its bound values onto `params`.
