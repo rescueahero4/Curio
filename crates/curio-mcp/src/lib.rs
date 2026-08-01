@@ -1,8 +1,8 @@
 //! The MCP surface: how agents talk to the library.
 //!
-//! **P4.** Nothing here is wired up yet. What exists is the tool inventory and the error
-//! shapes, both fixed by contract, so that the work is scoped and the decisions that
-//! constrain it are recorded where the implementer will meet them.
+//! The inventory and the refusal shapes live here; [`server`] implements the handler and
+//! [`library`] is the trait through which it reaches the library. This crate contains no
+//! SQL and opens no database (R-MCP-13, D24).
 //!
 //! ## Seven tools, and why the number matters
 //!
@@ -33,6 +33,13 @@
 //! with the same validation, threshold logic, event emission and sidecar write-back — and
 //! this crate contains no SQL and bypasses no invariant (R-MCP-13). Read tools keep
 //! working while the app is paused; write tools refuse cleanly (R-MCP-10).
+
+pub mod library;
+pub mod proxy;
+pub mod server;
+
+pub use library::Library;
+pub use server::Curio;
 
 use serde::Serialize;
 

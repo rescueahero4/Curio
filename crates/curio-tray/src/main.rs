@@ -78,14 +78,22 @@ fn main() -> anyhow::Result<()> {
 /// The MCP stdio proxy.
 ///
 /// A thin forwarder to the live instance's `/mcp`, which is what preserves the
-/// single-writer invariant and the event fan-out by construction (D24). **P4** — for now
-/// it reports the one thing it can already establish honestly, which is whether there is
-/// an instance to forward to at all.
+/// single-writer invariant and the event fan-out by construction (D24).
+///
+/// Its own tiny runtime, not the service's: this mode starts no service. One
+/// `current_thread` runtime for one forwarding loop is the whole of it.
 fn run_mcp_stdio() -> anyhow::Result<()> {
     let path = curio_core::paths::runtime_file()?;
     match RuntimeFile::discover(&path) {
+        // A live instance is not required to *start* — Curio may be launched after the
+        // client. The proxy re-reads the file per frame, so it recovers on its own; this
+        // branch only skips the "there is nothing here at all" message below.
         Discovery::Live(_) => {
-            anyhow::bail!("the MCP stdio proxy is not implemented yet (P4)");
+            let runtime = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()?;
+            runtime.block_on(curio_mcp::proxy::run(&path))?;
+            Ok(())
         }
         // Never a hang, and never a direct database open (R-MCP-5).
         Discovery::Stale | Discovery::Absent => {

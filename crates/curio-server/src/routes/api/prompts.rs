@@ -165,7 +165,10 @@ pub async fn clear_sent(
 /// Loaded whole rather than looked up per chip: a prompt cites a handful of entities out of
 /// a library of thousands, but the whole vocabulary is three small queries while per-chip
 /// lookups are N round trips through a mutex the worker also wants.
-fn chip_context(db: &curio_db::Db, root: &std::path::Path) -> Result<ChipContext, curio_db::Error> {
+pub(crate) fn chip_context(
+    db: &curio_db::Db,
+    root: &std::path::Path,
+) -> Result<ChipContext, curio_db::Error> {
     let mut context = ChipContext::default();
 
     for family in vocabulary::list_families(db.conn())? {

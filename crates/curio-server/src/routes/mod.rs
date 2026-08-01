@@ -24,6 +24,7 @@ pub mod error;
 pub mod events;
 pub mod files;
 pub mod health;
+pub mod mcp;
 pub mod ws;
 
 use axum::Router;
@@ -59,8 +60,17 @@ pub fn build(state: AppState, port: u16) -> Router {
         .merge(open_routes(&state))
         .merge(read_routes(&state))
         .merge(mutating_routes(&state))
-        // Everything not claimed above is the dashboard. This must stay last, and `/mcp`
-        // is registered above it when the MCP surface mounts (P4).
+        // **Above the catch-all, and that ordering is the rule** (R-BE-8, Inventory §10.6).
+        // Registered below it, a `GET /mcp` from a disabled or misconfigured client would
+        // be answered with the dashboard's HTML — which an MCP client reports as a parse
+        // error with no trace of the real cause.
+        //
+        // The service carries no credential layer: rmcp validates `Host` itself and the
+        // surface is gated per request by `mcpEnabled` inside the handler (R-MCP-8), which
+        // is also why the paused middleware does not wrap it — only the dispatcher can
+        // tell an MCP read from an MCP write (R-MCP-10).
+        .nest_service("/mcp", mcp::service(state.clone()))
+        // Everything not claimed above is the dashboard. This must stay last.
         .fallback(spa_fallback)
         .with_state(state)
 }
