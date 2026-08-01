@@ -90,7 +90,7 @@ pub const SECTIONS: [Section; 7] = [
          * different from each other rather than two phrasings of one idea.
          */
         body: concat!(
-            "Direction 1 - /aesthetic-family specially /item-reference (attach library item)\n",
+            "Direction 1 - /aesthetic-family specially /item-reference (attach library item)\n\n",
             "Direction 2 -  /aesthetic-family specially with  /style-tag (add style tag) ",
             "/item-reference (attach library item)",
         ),
