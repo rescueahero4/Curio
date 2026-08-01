@@ -5,9 +5,11 @@
 //! purpose — the tray is a switch, not a navigation bar, and navigation belongs in the
 //! dashboard where it can show the user what they are navigating to.
 //!
-//! The icon is drawn in code rather than loaded from a file. A tray icon is 32×32; a PNG
-//! of it is a binary asset to keep in sync across two packaging pipelines, and drawing it
-//! is a dozen lines that cannot drift from the build.
+//! The icon is the brand mark, loaded from a committed 32×32 PNG next to this file. It was
+//! drawn in code while the artwork was unavailable; now that it is, a second hand-rolled
+//! copy of a 500-point path would only be a worse one that drifts from the dashboard's the
+//! first time either changes. Both rasters come from one source file
+//! (`assets/brand/rasterize.mjs`).
 
 use tray_icon::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
@@ -89,31 +91,24 @@ impl TrayMenu {
     }
 }
 
-/// A 32×32 icon, drawn rather than loaded.
+/// The magpie-and-gem mark, at the one size a tray actually uses.
+///
+/// Loaded from a committed PNG rather than drawn in code. The mark is a 500×500 path with
+/// enough curve detail that hand-rolling it as pixel arithmetic would be a second, worse
+/// copy of the artwork — and it would drift from the dashboard's copy the first time either
+/// changed. `assets/brand/rasterize.mjs` renders both from the same source file.
+///
+/// # Panics
+/// Only if the committed asset is not a decodable 32×32 PNG, which the test below prevents
+/// from reaching a build.
 fn icon() -> Icon {
-    const SIZE: u32 = 32;
-    let mut rgba = Vec::with_capacity((SIZE * SIZE * 4) as usize);
+    const MARK: &[u8] = include_bytes!("../assets/curio-mark-32.png");
 
-    for y in 0..SIZE {
-        for x in 0..SIZE {
-            // A rounded square with a lighter aperture in the middle — legible at 16 px,
-            // which is the size that actually matters in a menu bar.
-            let (dx, dy) = (x as f32 - 15.5, y as f32 - 15.5);
-            let outside = dx.abs().max(dy.abs()) > 13.0;
-            let corner = dx.abs() > 10.0 && dy.abs() > 10.0 && (dx * dx + dy * dy).sqrt() > 16.0;
-            let aperture = (dx * dx + dy * dy).sqrt() < 6.0;
+    let image = image::load_from_memory(MARK).expect("the bundled mark is a valid PNG");
+    let (width, height) = (image.width(), image.height());
 
-            if outside || corner {
-                rgba.extend_from_slice(&[0, 0, 0, 0]);
-            } else if aperture {
-                rgba.extend_from_slice(&[250, 250, 250, 255]);
-            } else {
-                rgba.extend_from_slice(&[32, 32, 36, 255]);
-            }
-        }
-    }
-
-    Icon::from_rgba(rgba, SIZE, SIZE).expect("a 32x32 RGBA buffer is a valid icon")
+    Icon::from_rgba(image.into_rgba8().into_raw(), width, height)
+        .expect("the bundled mark is a valid RGBA icon")
 }
 
 #[cfg(test)]
@@ -121,10 +116,33 @@ mod tests {
     use super::*;
 
     #[test]
-    fn the_icon_buffer_is_the_size_it_claims() {
-        // from_rgba validates this, so a mismatch panics at startup rather than failing a
-        // test — which is exactly why it is worth asserting here instead.
+    fn the_bundled_mark_decodes_at_the_size_the_tray_asks_for() {
+        // `Icon::from_rgba` validates the buffer length against the dimensions, so a wrong
+        // asset panics at startup rather than failing a test — which is exactly why this
+        // asserts here instead. It also pins the size: a 64×64 PNG dropped in by mistake
+        // would still decode, and would still be wrong.
+        const MARK: &[u8] = include_bytes!("../assets/curio-mark-32.png");
+        let image = image::load_from_memory(MARK).expect("a valid PNG");
+
+        assert_eq!((image.width(), image.height()), (32, 32));
         let _ = icon();
+    }
+
+    #[test]
+    fn the_mark_is_not_a_solid_block() {
+        // A transparent-background render that lost its alpha, or a rasteriser that wrote
+        // an empty canvas, both produce a "valid" icon that is invisible or a filled
+        // square. Neither is caught by decoding alone.
+        const MARK: &[u8] = include_bytes!("../assets/curio-mark-32.png");
+        let pixels = image::load_from_memory(MARK)
+            .expect("a valid PNG")
+            .into_rgba8();
+
+        let opaque = pixels.pixels().filter(|p| p.0[3] > 128).count();
+        let total = pixels.pixels().count();
+
+        assert!(opaque > total / 20, "the mark is nearly invisible");
+        assert!(opaque < total * 4 / 5, "the mark is a filled block");
     }
 
     #[test]

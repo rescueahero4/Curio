@@ -5,11 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Curio</title>
     <!--
-      No favicon request, no font CDN, no analytics snippet. This page is served from a
-      loopback origin inside the binary; every external request it made would be a network
-      call the user did not ask for, from an app that promises to make none (R-DEL-16).
+      No font CDN, no analytics snippet, and no favicon *request*: the mark is inlined as a
+      data URI so the tab icon costs no fetch at all. This page is served from a loopback
+      origin inside the binary; every external request it made would be a network call the
+      user did not ask for, from an app that promises to make none (R-DEL-16).
     -->
-    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAECUlEQVR4nMRXX2hbVRj/vnOTzDVNVmNu/ta56pworrD5MP9UfXP4UlRQRCso4tyD+Ad80RdBhogiOHyZTyIigsKGL/pS7SZSnTCn4IvC3Nbm303rTZs2adMk5/OX2MrSJvTeZGt/kNxzv3Pu7/ud7zvnnu8q2mYo2mZ0EmAkIpFHaCsFDADxeOTR1ds6K/HSFoCvvInFBvbkcnOXaAvRFJCIRkfrRN9ZllVq3JumGfMy3ymGeAzhu3VdxjMzMz/SNUBTQDIQuKHW1xeEgIuDkciwJgrAvFO0tg2P8RlG3UEiRQz/VEj/IKJ8imUfkZ5I5WbPUA/g9YZE1HyehKdY68vk4WHNckmReoGJj3TgWILg45ms9QZ1AaPp1DRHgn5/aKFczgV27VyCs93akFklRoU0+7iux1mp/ZC7p/VxOSXCs4rpmaC/f65YKp0ll2juAvbwEBzU14w1UefU4kqearWUUjIihnGXkJxr9U2nRegPNCbQ96ewHEskAmFyCW5nHDTNW8WjnkNzDANubDcGzr8hlhQoHsbtSYx7RUQ+SOfyr5MLGGuNeDh8cCDYf7S4WDpdLJftQLD0k9L9NpxcDyc3tZFwC8J/jIW+ZJJRYt4L4z27+v1+cEygrckB/o9AI3yZzMJsu0GRSORmn6JP4OSBFgkAbNMg2d1qp7NVLU/l8/m/yamAzZCMRX5n5mGn46GiCvoTeqX6fsa2p6kXAeFwOH6d18hQF2hECU5OYWu/l7KsDbvE44TE66UkdQlErTHJx4T1FK4bBDg6jrU2lpv5bgOY6+i5vCkJqSM47A6vt7pYA9FFzMXfrg/vgV+xGxKYbmxTIqEzslIdS9t2qimLHIJZvu7YR3wQic6CfQ5hKuP3T2ciepB9nl+S4fA+VwJS2fzTouXjzrx8ALMrQ8Qk8vIX0vI90qMhZsPWhv0j7a1V/nvOHQyk4guk4vHNBjZXP1MG/z5czXXdSzjiRzP5/LjbmrCezllPaLb8WuStVZsNbxfWO8DcvkJEPofz8ZpUhnCMf4i1cp7qMobrNBvcSCm7jUALkvHoO+ms9WaDKBmNHiIlbyMVIyt12Y+34AUnHL1VxSI7Vk9ASVvWz+ls/iFE5l04v+iUotey3MT5sdBCKJwZjIXvd/h89wIQ/lexhCfRrKzZotGoH3XB7aVK/TenPF0JaJTvLHoHQn5izRaL9ZteJSdFVY8XCoV5p1yOzoIGkqHQoHi9ByD5XiUSSOVmXmrYUbzsxVo+hHX4sq7po5mZwhS5gOMIiM/zJCrhZ1FmTKLSWGyKikde1AYdFoNew4hvUd7cRy7heBsmEtRHVfM2fB+cD4VCQdu2iw078j60vLw8Nz8/X6Au0NN74Gpg27+O/wUAAP//Nr7nCgAAAAZJREFUAwC+zqd79m9rFwAAAABJRU5ErkJggg==" />
+    <!--
+      Light only. The ground is the warm neutral PRD §5 pins as the product's identity, and
+      declaring `light dark` here would let the browser paint form controls and scrollbars
+      for a dark scheme the stylesheet no longer has.
+    -->
+    <meta name="color-scheme" content="light" />
   </head>
   <body>
     <div id="root"></div>

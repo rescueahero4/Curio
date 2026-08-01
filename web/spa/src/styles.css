@@ -84,36 +84,20 @@
 }
 
 /*
- * Light is canonical. Dark is a courtesy for a user whose OS asks for it, and it moves the
- * same tokens rather than introducing a second vocabulary: the tints stay the same three,
- * and cards stay border-defined.
+ * There is no dark theme, and that is a product decision rather than an omission.
+ *
+ * PRD §5 names the warm light ground as the product's identity — "Awwwards-style
+ * directory, warm light neutral ground, border-defined white cards" — and the whole point
+ * of a screenshot-first grid is that the surrounding chrome stays out of the way of the
+ * images. A dark ground changes how every captured design reads: light screenshots glare
+ * against it, and the neutral that lets a reader judge a colour palette stops being
+ * neutral.
+ *
+ * An earlier revision shipped a `prefers-color-scheme: dark` override that flipped these
+ * tokens. It meant a user whose OS was set to dark never saw the design language the
+ * product is built around, without ever having asked for a different one. It is removed.
+ * `index.html` declares `color-scheme: light` so form controls and scrollbars follow.
  */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-ground: #1c1917;
-    --color-card: #262322;
-    --color-desk: #201d1c;
-    --color-line: #3a3533;
-    --color-line-strong: #4b4542;
-
-    --color-ink: #f5f5f4;
-    --color-ink-muted: #b6afaa;
-    --color-ink-faint: #918a85;
-    --color-ink-invert: #1c1917;
-
-    --color-caution: #fcd34d;
-    --color-caution-surface: #2c2109;
-    --color-caution-line: #5c4410;
-
-    --color-confirm: #86efac;
-    --color-confirm-surface: #0d2417;
-    --color-confirm-line: #17512f;
-
-    --color-proposal: #c4b5fd;
-    --color-proposal-surface: #1e173a;
-    --color-proposal-line: #3a2f6b;
-  }
-}
 
 @layer base {
   body {

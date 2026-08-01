@@ -41,6 +41,10 @@ const context = await esbuild.context({
 await context.rebuild();
 await cp("manifest.json", "dist/manifest.json");
 await cp("src/popup/popup.html", "dist/popup/popup.html");
+// The mark, at the four sizes Chrome asks for. Generated from the one source SVG by
+// `assets/brand/rasterize.mjs`; copied rather than bundled because esbuild has no reason
+// to see them.
+await cp("icons", "dist/icons", { recursive: true });
 
 if (watch) {
   await context.watch();

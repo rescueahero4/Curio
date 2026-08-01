@@ -20,6 +20,8 @@ curio-server = { workspace = true }
 
 tokio = { workspace = true }
 tray-icon = { workspace = true }
+# Decodes the bundled brand mark. `png` only — the tray loads exactly one asset.
+image = { version = "0.25.10", default-features = false, features = ["png"] }
 tao = { workspace = true }
 
 anyhow = { workspace = true }

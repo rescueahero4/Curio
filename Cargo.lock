@@ -535,6 +535,7 @@ dependencies = [
  "curio-runtime",
  "curio-server",
  "getrandom 0.3.4",
+ "image",
  "libc",
  "serde_json",
  "tao",
