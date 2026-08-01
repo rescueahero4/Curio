@@ -4,7 +4,7 @@ title: Curio — Product Requirements (Rust + SolidJS rewrite)
 status: in-progress
 version: 1.2.0
 date: 2026-08-01
-delivery: "E0 complete; E1–E7 built and green; E8 partial (S8.1); E9–E10 not started (see §6)"
+delivery: "E0 complete; E1–E9 built and green; E10 not started (see §6)"
 owner: Robert Bagares
 companion: "docs/architecture/00-architecture-overview.md (ARCH-00..08 own the how; this doc owns the what)"
 supersedes: "Curiol docs/01-PRD-Foundations.md (FR numbering continues from it)"
@@ -142,7 +142,7 @@ The rewrite **preserves the existing design language** — it is the product's i
 ## 6. Epic list
 
 > **Delivery status — updated 2026-08-01.** E0 is partly discharged, **E1, E2, E3, E4, E5
-> and E7 are built and green**; E8 is partial and E9 and E10 have not started. The status column
+> and E9 are built and green**; E10 has not started. The status column
 > below is the record. What "built" means here is specific: the gate passes
 > (`fmt`, `clippy -D warnings`, 415 Rust tests, SPA typecheck/lint/build, extension build,
 > file-length, dependency-direction), and the behaviour was exercised against a running
@@ -167,8 +167,9 @@ The rewrite **preserves the existing design language** — it is the product's i
 > | E5 | ✅ Done | TipTap headless under Solid — which also closed E0's D0 row for it. |
 > | E6 | ✅ Done | Watcher with marker identity, prompt claim, missing-not-deleted; Projects UI. |
 > | E7 | ✅ Done | The queue drains. Worker loop (claim/park/refund/cancel), Anthropic transport, vision assessment with two cache breakpoints, image downscale, bulk retag (serial + Batch API), vocabulary dedupe, `verify-key`. Verified end to end against a stub API: a capture reaches `ready` with tags, a family, and a sidecar, unprompted. Two decisions recorded — D32 (JPEG container) and D33 (text re-tag). |
-> | E8 | ◐ S8.1 done | `curio-nmh --register`/`--unregister` writes the native-messaging manifest and the four browser registry keys; verified round-trip on Windows. **S8.2 (worker: NM bootstrap, WS + keepalive, capture pipeline) and S8.3 (popup) are not started** — the extension is scaffolded with its contracts written down but no runtime behaviour. |
-> | E9–E10 | ⬜ Not started | MCP transport (rmcp 3.x pin lands here per D28), packaging. |
+> | E8 | ✅ Done | NM registration (`curio-nmh --register`), the discovery ladder with a one-shot 401 re-handshake, the WebSocket keepalive, the capture pipeline with unconditional teardown and a content-side watchdog, and the popup's three states. Validated headed in real Chromium end to end. Found and fixed one real bug in the process: the manifest never declared `nativeMessaging`, so `connectNative` could not have worked. |
+> | E9 | ✅ Done | Seven tools over rmcp 3.1 behind a `Library` trait, both gates per-request, `/mcp` above the SPA catch-all, and the stdio proxy. **D0 row 7 is answered**: rmcp 3.x does still expose the stateless / JSON-response configuration R-MCP-4 assumes. MCPB bundle outstanding. |
+> | E10 | ⬜ Not started | NSIS/MSI installer (D29), OSS hygiene, budget pass. |
 
 
 Phases and exit criteria are owned by ARCH-07 R-DEL-21; epics map onto them. Convention: an epic spanning server + UI lands its server semantics in P2 and its UI in P3. Stories are `S<epic>.<n>`; sub-tasks inline; a story's acceptance = the ARCH-08 rows for its FRs plus the §7 demo lines it enables. No estimates — risk is the sizing signal.
@@ -244,11 +245,11 @@ Unchecked ones name what they are still waiting on — none is merely unverified
 
 - [ ] Fresh machine: install → tray icon → dashboard opens with no terminal anywhere; empty state teaches the first capture. *(waits on E10 packaging; the tray, dashboard and empty states themselves work from `cargo run`)*
 - [x] Machine with a Bun-app-created `~/Curio` (schema v4): the rewrite opens it intact and round-trips losslessly (NFR-6). *(`cargo test -p curio-db --test real_library`, plus a live boot that stepped a fresh library 0 → 4)*
-- [ ] Chrome: install extension → it pairs itself → fold-capture a page → card appears processing → assessed with family/score badges ≤ 30 s. *(waits on E8 pairing only; E7 closed the assessment half — a `POST /api/items` now lands a card and reaches `ready` with badges without anyone asking)*
+- [x] Chrome: install extension → it pairs itself → fold-capture a page → card appears processing → assessed with family/score badges ≤ 30 s. *(headed Playwright, real Chromium, extension loaded unpacked with its pinned id: the native-messaging handshake supplies port and token unprompted, a fold capture of an http fixture lands as a `processing` card with a first-fold thumbnail, and the page is left exactly as found. The assessment half is covered separately by `assessment_pipeline.rs` against a stub API — no real key was spent. **One caveat**: `activeTab` is granted only by a real click on the browser action, which Playwright cannot perform, so the run used a test copy of the extension with a broader host permission; the shipped manifest is unchanged.)*
 - [x] Kill the API key: capture still lands, card says "Queued — needs an API key"; add key in Settings; queue drains unprompted. *(E7: a missing key parks the job on a 30 s timer without charging an attempt, and the item stays `processing` rather than failing — FR-26)*
 - [x] Compose a prompt with `/aesthetic` + `/item` chips → Send to Claude → paste into Claude Code → it reads the referenced folders; resulting project folder appears in Curio ≤ 5 s and launches. *(chips serialize to an absolute path plus reading instructions; a sent prompt claimed the next folder the watcher saw, within the 5 s budget)*
 - [x] Tray Pause: captures refuse politely, browsing and MCP reads still work; Resume is instant. *(mutations return `503 + Retry-After`, reads and SSE continue — D25; the MCP half waits on E9)*
-- [ ] MCP Inspector + Claude Desktop (MCPB): all 7 tools answer; disabled toggle returns the clean 503. *(waits on E9, itself blocked on the rmcp pin — D0 row 7 needs an owner decision)*
+- [◐] MCP Inspector + Claude Desktop (MCPB): all 7 tools answer; disabled toggle returns the clean 503. *(E9: `tools/list` returns all seven over rmcp 3.1, `library_search` returns the item the extension had just captured with absolute paths, and a disabled surface answers JSON-RPC rather than SPA HTML. **Two gaps**: the MCPB bundle is not built, and a disabled `GET /mcp` answers `405` rather than `503` — rmcp serves that verb itself in stateless mode. The property that mattered, never HTML, holds.)*
 - [x] `git clone` → one documented command → green gate; no source file > 500 lines (files > 400 carry a PR justification); idle RSS measured ≤ 25 MB. *(`cargo gate` green; largest source file 444 lines; 2.2 MB private commit with the full server running)*
 
 ## 8. Open questions & governance

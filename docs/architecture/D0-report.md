@@ -270,3 +270,33 @@ Run the check, then edit the row: status, the number or observation, the method,
 date. If a claim fails, take the documented fallback and say so — a budget may be
 **consciously revised** (D17) but never silently missed. Add a row rather than overwrite one
 when re-verifying after a dependency or OS update.
+
+
+## Row 7 closed at P4 — rmcp 3.x exposes the configuration ARCH-05 assumes
+
+Recorded 2026-08-01, during E9.
+
+D28 pinned rmcp to major version 3 and moved this row out of release-0 to P4, on the
+grounds that the second half of its question — whether `StreamableHttpService` still exposes
+the stateless / JSON-response configuration R-MCP-4 rests on — could not be answered without
+writing the MCP surface. The surface is written, so here is the answer.
+
+**It does.** `rmcp 3.1.0`'s `StreamableHttpServerConfig` carries both knobs:
+
+| Field | Value used | What it buys |
+|---|---|---|
+| `legacy_session_mode` | `false` | Every request served statelessly. Sessions were removed from protocol version `2026-07-28` (SEP-2567) and this flag only affects older versions, so stateless is now the default posture rather than an opt-out. |
+| `json_response` | `true` | Simple request-response tool calls answer `application/json`; the transport still falls back to `text/event-stream` if a handler emits anything before its final response, so nothing is lost. |
+
+Both matter for the same reason: the stdio proxy (D24) forwards frames to `/mcp` and re-reads
+`runtime.json` per frame, because Curio can restart underneath a long-lived MCP client. A
+session-bound transport would give the proxy state it has no way to recover across that
+restart.
+
+One incidental finding, recorded because it contradicts a line in the parity inventory:
+Inventory §1 expects a disabled `GET /mcp` to answer `503`. rmcp serves `GET` itself in
+stateless mode and returns `405 Method Not Allowed`. The property the inventory line exists
+to protect — that `/mcp` never answers with the dashboard's SPA HTML, which an MCP client
+reports as a parse error with no trace of the cause — holds: `/mcp` is nested above the
+catch-all and `POST` returns a proper JSON-RPC refusal. The status code is rmcp's to choose
+and not worth fighting.
