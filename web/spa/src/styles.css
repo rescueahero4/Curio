@@ -722,6 +722,45 @@
   }
 
   /*
+   * The same mark at the other end, for a control that opens rather than accepts typing.
+   *
+   * The height matches `.chevron` rather than the glyph's own 16px box, because the control
+   * this is pretending to be is one gap away on the same row: `.chevron` squashes the box to
+   * 14px, and a chevron two pixels taller than the one beside it reads as a heavier stroke
+   * rather than as a bigger icon.
+   */
+  .field-mark-end {
+    height: 0.875rem;
+    inset-inline-end: 0.625rem;
+    inset-inline-start: auto;
+  }
+
+  /*
+   * A `<select>` that keeps the company it is in.
+   *
+   * Left to itself a native select draws its own arrow, and the browser picks the gap on
+   * both sides of it — wider than the 0.375rem every pill in this app puts between a label
+   * and its chevron, and set from the control's edge rather than from the text. Sitting one
+   * gap away from the Add button, which *is* a pill, the two read as two different kinds of
+   * control rather than as the same kind twice.
+   *
+   * So the native arrow goes and the app's own `ChevronDown` is placed over the box, the
+   * same way the search glyph is. The numbers below are the pill's, worked back from it:
+   * text, 0.375rem, a 16px chevron, then 0.625rem to the edge — which is what `.pill`'s
+   * 0.75rem padding comes to once `.chevron`'s -0.125rem margin has pulled the glyph in.
+   *
+   * It stays a real `<select>`. It is a choice from three fixed options, which is the one
+   * thing a native select is unambiguously better at than anything that could be built here
+   * — it gets the platform's own picker on a phone, and keyboard behaviour nobody has to
+   * write.
+   */
+  .field-select {
+    appearance: none;
+    cursor: pointer;
+    padding-inline-end: 2rem;
+  }
+
+  /*
    * One choice in a popover menu.
    *
    * The same row the option lists use — full width, rounded, ground on hover — pulled into a

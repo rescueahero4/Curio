@@ -120,16 +120,21 @@ export function VocabTable(props: {
             />
           </div>
 
-          <select
-            class="field w-auto"
-            aria-label="Named by"
-            value={origin()}
-            onChange={(event) => setOrigin(asOrigin(event.currentTarget.value))}
-          >
-            <option value="all">Anyone</option>
-            <option value="ai">Curio</option>
-            <option value="user">You</option>
-          </select>
+          <div class="field-wrap">
+            <select
+              class="field field-select w-auto"
+              aria-label="Named by"
+              value={origin()}
+              onChange={(event) => setOrigin(asOrigin(event.currentTarget.value))}
+            >
+              <option value="all">Anyone</option>
+              <option value="ai">Curio</option>
+              <option value="user">You</option>
+            </select>
+            {/* Drawn over the select rather than by it, so this is the same glyph at the
+                same distance from the same edge as the Add button's. */}
+            <ChevronDown class="field-mark field-mark-end" />
+          </div>
 
           {props.add}
         </div>

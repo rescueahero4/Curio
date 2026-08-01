@@ -7,14 +7,10 @@ import { refreshVocabulary } from "~/lib/stores";
 import type { VocabularyKind } from "~/lib/types";
 
 /** What the menu offers, in the order the tabs name them. */
-const KINDS: { kind: VocabularyKind; label: string; said: string }[] = [
-  {
-    kind: "families",
-    label: "Aesthetic Family",
-    said: "A group Curio sorts captures into, and judges new ones against.",
-  },
-  { kind: "types", label: "Design Type", said: "What a thing is — a landing page, a dashboard." },
-  { kind: "tags", label: "Tag", said: "Anything else worth being able to search by." },
+const KINDS: { kind: VocabularyKind; label: string }[] = [
+  { kind: "families", label: "Aesthetic Family" },
+  { kind: "types", label: "Design Type" },
+  { kind: "tags", label: "Tag" },
 ];
 
 /**
@@ -40,7 +36,7 @@ export function AddTerm(props: {
   onAdded: (kind: VocabularyKind) => void;
 }) {
   return (
-    <Popover label="Add" title="Add to the vocabulary" width="19rem" outlined>
+    <Popover label="Add" title="Add to the vocabulary" outlined>
       {(close) => <AddPanel close={close} onAdded={props.onAdded} />}
     </Popover>
   );
@@ -63,10 +59,7 @@ function AddPanel(props: { close: () => void; onAdded: (kind: VocabularyKind) =>
         <For each={KINDS}>
           {(entry) => (
             <button type="button" class="menu-item" onClick={() => setChosen(entry)}>
-              <span class="flex min-w-0 flex-1 flex-col">
-                <span>{entry.label}</span>
-                <span class="text-ink-faint text-xs">{entry.said}</span>
-              </span>
+              <span class="min-w-0 flex-1 truncate">{entry.label}</span>
               <ChevronRight class="chevron" />
             </button>
           )}
