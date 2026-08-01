@@ -22,10 +22,41 @@ interface Placement {
   left: number;
   /** How tall the scrolling list may be. */
   list: number;
+  /** How tall the panel itself may be, before it starts scrolling. */
+  max: number;
+  /** How wide it may be, so a panel wider than the window is narrowed rather than cut off. */
+  maxWidth: number;
 }
 
 /** The scroll height a list had before any of this existed, used until one is measured. */
 const RESTING_LIST = 256;
+
+/**
+ * The shortest a panel is allowed to be squeezed to.
+ *
+ * Below this it stops being a panel and becomes a slot, and scrolling a form through a
+ * 60px window is worse than letting it run a little past the fold.
+ */
+const MIN_PANEL_HEIGHT = 140;
+
+/**
+ * The window, without the scrollbar.
+ *
+ * `innerWidth`/`innerHeight` count the scrollbar as usable space, and the page under these
+ * popovers almost always has one. Clamping against them places a panel up to fifteen pixels
+ * too far right — hard against the edge with its last column of text under the scrollbar,
+ * which is exactly the "it fits, but part of it is obscured" case this whole function
+ * exists to prevent. `clientWidth`/`clientHeight` on the root element are the same numbers
+ * minus the scrollbars, which is what a panel actually has to fit inside. (`100vw` in CSS
+ * has the same fault, and is why the width bound below is measured here instead.)
+ */
+function viewport(): { width: number; height: number } {
+  const root = document.documentElement;
+  return {
+    width: root.clientWidth || window.innerWidth,
+    height: root.clientHeight || window.innerHeight,
+  };
+}
 
 /**
  * The one popover the library uses: filter pills, bulk panels, the move-to picker.
@@ -82,6 +113,8 @@ export function Popover(props: {
     side: props.placement === "top" ? "top" : "bottom",
     left: 0,
     list: RESTING_LIST,
+    max: viewport().height,
+    maxWidth: viewport().width - MARGIN * 2,
   });
 
   const [open, setOpen] = createSignal(false);
@@ -113,16 +146,24 @@ export function Popover(props: {
    * * **`--option-max`** — whatever vertical room is left after the panel's own chrome
    *   becomes the list's scroll height, so a long vocabulary scrolls *inside* the panel
    *   instead of extending it past the edge.
+   * * **`max-height`** — the same room, applied to the panel itself. `--option-max` only
+   *   reaches panels whose tall part is an `.option-scroll` list; one built out of a form
+   *   has no such element and would run straight off the bottom of a short window with the
+   *   overflowing part silently unreachable. Bounding the panel makes the *panel* scroll in
+   *   that case, which is the only thing that works for content this cannot know the shape
+   *   of.
    */
   const measure = () => {
     if (!trigger || !wrapper || !panel) return;
 
     const anchor = trigger.getBoundingClientRect();
     const frame = wrapper.getBoundingClientRect();
+    const view = viewport();
+
     // Keyed by side name, so a chosen side indexes straight into the room it has.
     const room = {
       top: anchor.top - MARGIN,
-      bottom: window.innerHeight - anchor.bottom - MARGIN,
+      bottom: view.height - anchor.bottom - MARGIN,
     };
 
     const wanted = props.placement === "top" ? "top" : "bottom";
@@ -130,15 +171,21 @@ export function Popover(props: {
     const side = room[wanted] < MIN_PANEL && room[other] > room[wanted] ? other : wanted;
 
     // `offsetWidth` rather than the `width` prop: the prop is a CSS length this code would
-    // otherwise have to parse, and the panel is already laid out by the time this runs.
+    // otherwise have to parse, and the panel is already laid out by the time this runs —
+    // including the `max-width` below, so this is the width it will actually occupy rather
+    // than the one it asked for.
     const width = panel.offsetWidth;
-    const left = Math.max(MARGIN, Math.min(anchor.left, window.innerWidth - MARGIN - width));
+    const left = Math.max(MARGIN, Math.min(anchor.left, view.width - MARGIN - width));
 
     setPlace({
       side,
       // Back into the wrapper's coordinates, since the panel is positioned against it.
       left: left - frame.left,
       list: Math.max(MIN_LIST, room[side] - CHROME),
+      max: Math.max(MIN_PANEL_HEIGHT, room[side]),
+      // No floor, unlike the height: a panel narrowed past comfort is still readable, where
+      // one squeezed past `MIN_PANEL_HEIGHT` is a slot. Width has no equivalent failure.
+      maxWidth: view.width - MARGIN * 2,
     });
   };
 
@@ -238,9 +285,19 @@ export function Popover(props: {
           role="dialog"
           aria-label={props.title}
           tabindex="-1"
-          class="panel float absolute z-40 flex flex-col gap-2 p-2 outline-none"
+          class="panel float absolute z-40 flex flex-col gap-2 overflow-y-auto p-2 outline-none"
           style={{
             width: props.width ?? "17rem",
+            /*
+             * The horizontal half of the same problem. The left clamp slides a panel along
+             * its trigger until it fits, but nothing slides a panel that is *wider than the
+             * window* into view — on a narrow viewport a 17rem panel is simply too big, and
+             * clamping only decides which of its edges gets cut off. This is what makes it
+             * stop being too big, and it comes before the clamp: `offsetWidth` is read after
+             * this applies, so the clamp is working with the width the panel really has.
+             */
+            "max-width": `${place().maxWidth}px`,
+            "max-height": `${place().max}px`,
             left: `${place().left}px`,
             top: place().side === "bottom" ? "100%" : "auto",
             bottom: place().side === "top" ? "100%" : "auto",
