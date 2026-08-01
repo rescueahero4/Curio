@@ -87,3 +87,203 @@ export function resolveMode(value: unknown): CaptureMode {
 export function frameBudget(mode: CaptureMode): number {
   return mode === "full" ? FULL_FRAME_BUDGET : FOLD_FRAME_BUDGET;
 }
+
+import { authedFetch, ensureConnection, PausedError } from "../worker/connection";
+import {
+  hideFixedElements,
+  measurePage,
+  type PageMetrics,
+  pingWatchdog,
+  primeLazyContent,
+  readTitle,
+  STATE_KEY,
+  scrollToOffset,
+  suppressPageChrome,
+  teardownPage,
+} from "./injected";
+
+/** How far each priming step scrolls, and how long it waits for images to start. */
+const PRIME_STEP_PX = 800;
+const PRIME_SETTLE_MS = 120;
+
+/** What a finished capture reports back to the popup. */
+export interface CaptureResult {
+  itemId: string;
+  frames: number;
+  truncated: boolean;
+}
+
+/** Progress the popup renders as its toast copy (R-EXT-18). */
+export type Progress = (message: string) => void;
+
+/** Run one function in the page and return its result. */
+async function inPage<Args extends unknown[], R>(
+  tabId: number,
+  func: (...args: Args) => R,
+  args: Args,
+): Promise<R> {
+  const [injected] = await chrome.scripting.executeScript({
+    target: { tabId },
+    func: func as (...a: unknown[]) => unknown,
+    args,
+  });
+  return injected?.result as R;
+}
+
+/**
+ * Capture the active tab.
+ *
+ * The ordering below is normative (R-EXT-13) and every step encodes a real failure from the
+ * shipped implementation. The one worth restating: **suppress before measuring**. Hiding
+ * the scrollbar reflows the page, so measuring first bakes a stale width into every frame
+ * offset and the stitch tears.
+ */
+export async function capture(
+  mode: CaptureMode,
+  progress: Progress = () => {},
+): Promise<CaptureResult> {
+  const connection = await ensureConnection();
+  if (!connection?.token) throw new Error("Can't reach Curio — open it and try again");
+  // Stop at the source rather than posting into a 503 (R-EXT-11).
+  if (connection.state === "paused") throw new PausedError();
+
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id || !tab.url || !/^https?:/i.test(tab.url)) {
+    throw new Error("This page can't be captured — open a website first.");
+  }
+  const tabId = tab.id;
+
+  progress(
+    mode === "full" ? "Stitching the full page… don't switch tabs." : "Capturing the visible area…",
+  );
+
+  // Armed before anything else and released in `finally`, so a throw anywhere below still
+  // leaves the page as it was found (R-EXT-15).
+  await inPage(tabId, suppressPageChrome, [STATE_KEY, WATCHDOG_MS]);
+
+  try {
+    const metrics = await inPage(tabId, measurePage, []);
+    const title = await inPage(tabId, readTitle, []);
+
+    if (mode === "full") {
+      await inPage(tabId, primeLazyContent, [PRIME_STEP_PX, PRIME_SETTLE_MS]);
+      await inPage(tabId, pingWatchdog, [STATE_KEY, WATCHDOG_MS]);
+    }
+
+    const { frames, height, truncated } = await captureFrames(tabId, mode, metrics);
+    const png = await stitch(frames, metrics, height);
+
+    progress("Adding…");
+    const itemId = await upload(png, {
+      url: tab.url,
+      title,
+      viewportWidth: metrics.viewportWidth,
+      viewportHeight: metrics.viewportHeight,
+    });
+
+    return { itemId, frames: frames.length, truncated };
+  } finally {
+    // Unconditional. A capture error that skips this strands the user partway down a page
+    // with the scrollbar gone and no explanation.
+    await inPage(tabId, teardownPage, [STATE_KEY]).catch(() => {});
+  }
+}
+
+/** One frame: where it sits in the page, and what it looks like. */
+interface Frame {
+  offset: number;
+  dataUrl: string;
+}
+
+/** Scroll, wait out the rate limit, capture. Repeat within budget. */
+async function captureFrames(
+  tabId: number,
+  mode: CaptureMode,
+  metrics: PageMetrics,
+): Promise<{ frames: Frame[]; height: number; truncated: boolean }> {
+  const budget = frameBudget(mode);
+  // Fold is one viewport, from the top, so the same URL always yields the same image
+  // (FR-21). Full is the page, capped in device pixels to pair with the server's 64 MB
+  // body limit (R-EXT-16, Inventory §10.31).
+  const cap = MAX_PAGE_HEIGHT_PX / metrics.devicePixelRatio;
+  const wanted = mode === "full" ? metrics.height : metrics.viewportHeight;
+  const height = Math.min(wanted, cap);
+  const truncated = wanted > cap;
+
+  const frames: Frame[] = [];
+  let offset = 0;
+
+  while (frames.length < budget && offset < height) {
+    const landed = await inPage(tabId, scrollToOffset, [offset]);
+
+    // The 550 ms is `captureVisibleTab`'s rate limit, not politeness. Faster and frames
+    // come back empty or duplicated (R-EXT-14).
+    await new Promise((resolve) => setTimeout(resolve, FRAME_INTERVAL_MS));
+
+    const dataUrl = await chrome.tabs.captureVisibleTab({ format: "png" });
+    frames.push({ offset: landed, dataUrl });
+    await inPage(tabId, pingWatchdog, [STATE_KEY, WATCHDOG_MS]);
+
+    // Only after frame 1, only in full mode: hiding on the first frame would delete the
+    // page header from the fold shot (R-EXT-14).
+    if (mode === "full" && frames.length === 1) {
+      await inPage(tabId, hideFixedElements, [STATE_KEY, metrics.viewportHeight]);
+    }
+
+    const next = landed + metrics.viewportHeight;
+    // The page stopped moving: we are at the bottom, and another frame would duplicate
+    // this one.
+    if (next <= offset) break;
+    offset = next;
+  }
+
+  return { frames, height, truncated };
+}
+
+/** Draw every frame into one PNG at device resolution (R-EXT-16). */
+async function stitch(frames: Frame[], metrics: PageMetrics, height: number): Promise<Blob> {
+  const ratio = metrics.devicePixelRatio;
+  const canvas = new OffscreenCanvas(
+    Math.round(metrics.viewportWidth * ratio),
+    Math.round(height * ratio),
+  );
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("This page couldn't be turned into an image.");
+
+  for (const frame of frames) {
+    const response = await fetch(frame.dataUrl);
+    const bitmap = await createImageBitmap(await response.blob());
+    context.drawImage(bitmap, 0, Math.round(frame.offset * ratio));
+    bitmap.close();
+  }
+
+  return canvas.convertToBlob({ type: "image/png" });
+}
+
+/** POST the capture. A 401 here re-handshakes once, inside `authedFetch` (R-EXT-18a). */
+async function upload(
+  png: Blob,
+  meta: { url: string; title: string; viewportWidth: number; viewportHeight: number },
+): Promise<string> {
+  const form = new FormData();
+  form.append("screenshot", png, "screenshot.png");
+  form.append("source_url", meta.url);
+  if (meta.title) form.append("title", meta.title);
+  form.append("captured_at", new Date().toISOString());
+  // What makes "the first fold" a measurement rather than a guess, server-side (R-BE-26).
+  form.append("viewport_width", String(meta.viewportWidth));
+  form.append("viewport_height", String(meta.viewportHeight));
+
+  // `/api/items`, not the `/api/ingest` R-EXT-16 names: the two routes were consolidated
+  // when the pairing token was replaced by the runtime token, and this is the one the
+  // server serves (Inventory §1).
+  const response = await authedFetch("/api/items", { method: "POST", body: form });
+
+  if (response.status === 503) throw new PausedError();
+  if (!response.ok) {
+    throw new Error(`Curio couldn't save that (${response.status}).`);
+  }
+
+  const created = (await response.json()) as { item_id?: string };
+  return created.item_id ?? "";
+}

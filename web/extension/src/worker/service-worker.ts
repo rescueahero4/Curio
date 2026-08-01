@@ -1,66 +1,192 @@
 /**
- * The MV3 service worker.
+ * The MV3 service worker: the extension's only long-lived actor, which is also killed
+ * roughly every thirty seconds.
  *
- * **P5.** The bootstrap ladder, the WebSocket, and the capture pipeline land there. What
- * follows is the contract each part owes, recorded where whoever builds it will read it.
+ * That contradiction shapes everything here. **Assume the worker dies at any moment**
+ * (R-EXT-9): no module-level variable survives an event, so anything that must outlive one
+ * lives in `chrome.storage.local`. The WebSocket is what keeps it warm — active traffic
+ * resets the idle timer on Chrome 116+, which is why the manifest declares that floor
+ * (R-EXT-10).
  *
- * ## Bootstrap: native messaging first
+ * ## What lives where
  *
- * `runtime.connectNative` → `curio-nmh` reads `runtime.json` → one reply
- * `{port, token, state}` → the host exits (R-EXT-4). One connect, one reply, no long-lived
- * channel. This closes the last manual setup step: the token rides the same reply, so a
- * fresh install captures with zero configuration.
+ * * [`connection`](./connection) — finding Curio and staying authenticated to it: the
+ *   native-messaging handshake, the fallback ladder, and the one-shot 401 re-handshake.
+ * * [`socket`](./socket) — the WebSocket, the 20 s keepalive, and the paused/running state.
+ * * [`capture`](../capture/pipeline) — the capture pipeline, whose ordering is normative.
  *
- * The fallback ladder runs **only** when `connectNative` fails — an unpacked install, or a
- * declined installer step (R-EXT-8): stored port → the legacy probe of 4321–4331 with an
- * 800 ms timeout → the `/pair` handoff or a manual token paste. The probe survives because
- * it costs three small code paths and saves a support thread, but note what it can and
- * cannot do: an ephemeral port is undiscoverable by design, so the probe only ever finds a
- * **pinned** port (D10, D11).
- *
- * ## The socket
- *
- * `ws://127.0.0.1:<port>/ws`, authenticated by sending the token as the **first message**
- * within 5 seconds (D23). Not a header — browser `WebSocket` cannot set one — and not a
- * query string, because those land in logs.
- *
- * Then an application-level ping every 20 seconds. This is the canonical MV3 keepalive:
- * active WebSocket traffic resets the worker's idle timer on Chrome 116+, which is the
- * whole reason for the version floor.
- *
- * **Pausing does not close the socket.** The state is announced, not disconnected
- * (R-EXT-11), and a paused app stops capture at the source — the buttons disable with an
- * explanation rather than posting into a 503.
+ * This file is the wiring: which events exist, and what each one does.
  *
  * ## 401 means the app restarted
  *
- * Not a pairing failure (R-EXT-18a, D21). Re-run the NM handshake **once**, retry with the
- * fresh token, and show "Curio restarted — reconnecting…" meanwhile. Only if that also
- * fails does the extension surface "Can't reach Curio". The old "Pairing token rejected"
- * copy retired along with the pairing token itself.
+ * Not a pairing failure (R-EXT-18a, D21). The token is per-run, so a stale one is expected
+ * every time the user quits and reopens Curio. `authedFetch` re-handshakes once and retries
+ * before anything reaches the user, and only a second failure surfaces "Can't reach Curio".
  */
 
-import { type Connection, clearConnection, readConnection } from "../shared/storage";
+import { type CaptureMode, capture, resolveMode } from "../capture/pipeline";
+import {
+  type Connection,
+  clearConnection,
+  readConnection,
+  writeConnection,
+} from "../shared/storage";
+import {
+  authedFetch,
+  bootstrap,
+  ensureConnection,
+  NotRunningError,
+  PausedError,
+} from "./connection";
+import { connect } from "./socket";
 
-/** How often to ping. The canonical MV3 keepalive interval (R-EXT-10). */
-export const KEEPALIVE_MS = 20_000;
+export { NM_HOST } from "./connection";
+export { KEEPALIVE_MS } from "./socket";
 
-/** The native-messaging host's registered name. */
-export const NM_HOST = "com.curio.nmh";
+/** Re-run the ladder from scratch and bring the socket up. */
+function coldStart(): void {
+  void clearConnection()
+    .then(() => bootstrap())
+    .then(() => connect());
+}
 
 chrome.runtime.onInstalled.addListener(() => {
   // A fresh install holds nothing, and a stale record from a previous version would send
   // the first capture at a port nobody is listening on.
-  void clearConnection();
+  coldStart();
 });
 
-chrome.runtime.onMessage.addListener((message, _sender, respond) => {
-  if (message?.type === "status") {
-    void readConnection().then((connection: Connection | null) => {
-      respond({ connection });
-    });
-    // Keep the channel open for the async reply.
-    return true;
+// Chrome restarted. The port and the token from the last session are both dead — the token
+// by design (D21), the port because it is ephemeral (D10).
+chrome.runtime.onStartup.addListener(coldStart);
+
+/** What the popup and the pairing content script send. */
+type Request =
+  | { type: "status" }
+  | { type: "refresh" }
+  | { type: "capture"; mode?: unknown }
+  | { type: "open"; target: "projects" | "new-project" }
+  | { type: "pairing-token"; token: string };
+
+chrome.runtime.onMessage.addListener((message: Request, _sender, respond) => {
+  switch (message?.type) {
+    case "status":
+      void status().then(respond);
+      return true;
+
+    case "refresh":
+      void refresh().then(respond);
+      return true;
+
+    case "capture":
+      // Anything that is not exactly "full" resolves to fold. A popup restored from a
+      // previous session may hold a stale value, and the safe failure is a smaller capture
+      // rather than a 60-frame scroll nobody asked for (R-EXT-12).
+      void runCapture(resolveMode(message.mode)).then(respond);
+      return true;
+
+    case "open":
+      void openAuthenticated(message.target).then(respond);
+      return true;
+
+    case "pairing-token":
+      void acceptPairingToken(message.token).then(respond);
+      return true;
+
+    default:
+      return false;
   }
-  return false;
 });
+
+/** The popup's first question. Cheap: reads storage, does not probe. */
+async function status(): Promise<{ connection: Connection | null }> {
+  const connection = await readConnection();
+  // Opening the popup is a good moment to make sure the socket is up: the worker may have
+  // been killed at any point since the last one.
+  if (connection?.token) void connect();
+  return { connection };
+}
+
+/** Re-run the ladder because the user asked. */
+async function refresh(): Promise<{ connection: Connection | null }> {
+  await clearConnection();
+  const connection = await bootstrap();
+  if (connection?.token) void connect();
+  return { connection };
+}
+
+/** Run a capture, turning every failure into copy a person can act on. */
+async function runCapture(
+  mode: CaptureMode,
+): Promise<{ ok: boolean; itemId?: string; truncated?: boolean; error?: string }> {
+  try {
+    const result = await capture(mode, (message) => {
+      // Best effort: the popup may already be closed, which is not an error.
+      chrome.runtime.sendMessage({ type: "progress", message }).catch(() => {});
+    });
+    return { ok: true, itemId: result.itemId, truncated: result.truncated };
+  } catch (error) {
+    if (error instanceof PausedError) {
+      return { ok: false, error: "Curio is paused — resume it from the tray icon." };
+    }
+    if (error instanceof NotRunningError) {
+      return { ok: false, error: "Can't reach Curio — open it and try again" };
+    }
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "That didn't work.",
+    };
+  }
+}
+
+/**
+ * Open a Curio page in a tab that is already signed in.
+ *
+ * A plain `chrome.tabs.create` lands on the no-session screen: the SPA's session is a
+ * cookie the extension does not hold. So the worker spends its token on a **one-time
+ * nonce** and puts that in the URL, which the SPA trades for the cookie on load
+ * (R-EXT-19, R-FE-6a, R-SEC-5).
+ */
+async function openAuthenticated(
+  target: "projects" | "new-project",
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const connection = await ensureConnection();
+    if (!connection?.token) throw new NotRunningError();
+
+    const response = await authedFetch("/api/auth/nonce", { method: "POST" });
+    if (!response.ok) throw new NotRunningError();
+
+    const { nonce } = (await response.json()) as { nonce?: string };
+    if (!nonce) throw new NotRunningError();
+
+    const path = target === "new-project" ? "/projects?new=1" : "/projects";
+    const separator = path.includes("?") ? "&" : "?";
+    await chrome.tabs.create({
+      url: `http://127.0.0.1:${connection.port}${path}${separator}t=${encodeURIComponent(nonce)}`,
+    });
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Couldn't open Curio.",
+    };
+  }
+}
+
+/**
+ * Accept a token from the `/pair` handoff.
+ *
+ * The fallback path only (R-EXT-8) — a normally installed extension gets its token from the
+ * native-messaging host and this never runs. The content script has already applied its
+ * gates, so what arrives here is *shaped* like a token; whether it is one, only the server
+ * can say, and the first authenticated call is where that is answered.
+ */
+async function acceptPairingToken(token: string): Promise<{ ok: boolean }> {
+  const existing = (await readConnection()) ?? (await bootstrap());
+  if (!existing) return { ok: false };
+
+  await writeConnection({ ...existing, token });
+  void connect();
+  return { ok: true };
+}
