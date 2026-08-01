@@ -73,7 +73,7 @@ pub fn latest(conn: &Connection) -> Result<Option<Prompt>> {
 pub fn create(conn: &Connection, title: Option<&str>) -> Result<Prompt> {
     let id = curio_core::ids::generate();
     let now = curio_core::time::now_iso();
-    let doc = serde_json::to_string(&curio_core::prompt::empty_document())?;
+    let doc = serde_json::to_string(&curio_core::prompt::starter_document())?;
 
     conn.execute(
         "INSERT INTO prompts (id, title, doc_json, serialized_text, created_at, updated_at)
@@ -83,37 +83,33 @@ pub fn create(conn: &Connection, title: Option<&str>) -> Result<Prompt> {
     require(conn, &id)
 }
 
-/// Save a prompt's title and/or document.
+/// Save a prompt's document, and the name that follows from it.
+///
+/// **The title is derived, never supplied.** There is no title field in the editor: a prompt
+/// is named by its own first line, and [`curio_core::prompt::title_from`] is the one place
+/// that decides what that means. Accepting a title here as well would give the same value
+/// two sources and let them disagree — the list showing one name and the snapshot another —
+/// which is the whole failure R-FE-18 exists to prevent.
 ///
 /// The snapshot is **not** rewritten here. It carries the serialized text, and serialization
 /// needs chips resolved against the library — so the caller serializes first and calls
 /// [`save_serialized`]. Autosave fires every few keystrokes; re-resolving every chip against
-/// the database on each one would make typing cost a join.
+/// the database on each one would make typing cost a join. Deriving the title is safe on the
+/// same path because it reads only the document it was handed.
 ///
 /// # Errors
 /// Returns [`Error::NotFound`] for an unknown prompt, or a storage failure.
-pub fn update(
-    conn: &Connection,
-    id: &str,
-    title: Option<&str>,
-    doc_json: Option<&serde_json::Value>,
-) -> Result<Prompt> {
+pub fn update(conn: &Connection, id: &str, doc_json: Option<&serde_json::Value>) -> Result<Prompt> {
     require(conn, id)?;
     let now = curio_core::time::now_iso();
 
-    if let Some(title) = title {
-        conn.execute(
-            "UPDATE prompts SET title = ?2 WHERE id = ?1",
-            rusqlite::params![id, title],
-        )?;
-    }
     if let Some(doc) = doc_json {
         // Taking a `Value` rather than a string is the validation: a document that is not
         // valid JSON cannot reach this function, so a working prompt can never be replaced
         // by something the editor is then unable to load.
         conn.execute(
-            "UPDATE prompts SET doc_json = ?2 WHERE id = ?1",
-            rusqlite::params![id, doc.to_string()],
+            "UPDATE prompts SET doc_json = ?2, title = ?3 WHERE id = ?1",
+            rusqlite::params![id, doc.to_string(), curio_core::prompt::title_from(doc)],
         )?;
     }
     conn.execute(
@@ -253,12 +249,19 @@ mod tests {
         let prompt = create(db.conn(), None).expect("create");
 
         assert_eq!(prompt.title, curio_core::prompt::UNTITLED);
-        assert_eq!(
-            prompt.doc_json["content"]
-                .as_array()
-                .expect("content")
-                .len(),
-            8
+
+        // A heading per section, and a paragraph per line of its body — so not simply twice
+        // the section count, because Design Direction is three lines.
+        let content = prompt.doc_json["content"].as_array().expect("content");
+        let headings = content.iter().filter(|n| n["type"] == "heading").count();
+        assert_eq!(headings, curio_core::prompt::SECTIONS.len());
+
+        // The template arrives written in, not as ghost text over blank lines.
+        assert!(
+            content
+                .iter()
+                .any(|node| node["content"][0]["text"] == curio_core::prompt::SECTIONS[0].body),
+            "the Brief's example should be in the document"
         );
         assert!(prompt.sent_at.is_none());
     }
@@ -284,11 +287,79 @@ mod tests {
             "content": [{ "type": "paragraph", "attrs": { "section": "brief" } }],
         });
 
-        update(db.conn(), &prompt.id, None, Some(&doc)).expect("update");
+        update(db.conn(), &prompt.id, Some(&doc)).expect("update");
 
         let stored = require(db.conn(), &prompt.id).expect("read").doc_json;
         assert!(stored.is_object(), "an object, never a string: {stored}");
         assert_eq!(stored, doc);
+    }
+
+    #[test]
+    fn saving_a_document_renames_the_prompt_after_its_first_line() {
+        // The editor has no title field, so this is the only way a prompt is ever named.
+        let db = Db::open_in_memory().expect("open");
+        let prompt = create(db.conn(), None).expect("create");
+        assert_eq!(prompt.title, curio_core::prompt::UNTITLED);
+
+        let doc = serde_json::json!({
+            "type": "doc",
+            "content": [
+                { "type": "paragraph", "attrs": { "section": "brief" },
+                  "content": [{ "type": "text", "text": "A pricing page" }] },
+            ],
+        });
+
+        let saved = update(db.conn(), &prompt.id, Some(&doc)).expect("update");
+        assert_eq!(saved.title, "A pricing page");
+    }
+
+    #[test]
+    fn emptying_a_document_returns_the_prompt_to_untitled() {
+        // The rename has to run in both directions. A prompt whose opening line is deleted
+        // would otherwise keep a name nothing in it says any more.
+        let db = Db::open_in_memory().expect("open");
+        let prompt = create(db.conn(), None).expect("create");
+
+        let written = serde_json::json!({
+            "type": "doc",
+            "content": [{ "type": "paragraph",
+                          "content": [{ "type": "text", "text": "Named" }] }],
+        });
+        assert_eq!(
+            update(db.conn(), &prompt.id, Some(&written))
+                .expect("update")
+                .title,
+            "Named"
+        );
+
+        let cleared = curio_core::prompt::starter_document();
+        assert_eq!(
+            update(db.conn(), &prompt.id, Some(&cleared))
+                .expect("update")
+                .title,
+            curio_core::prompt::UNTITLED
+        );
+    }
+
+    #[test]
+    fn the_snapshot_carries_the_derived_title() {
+        // `save_serialized` reads the stored title, so the rename above is what keeps the
+        // on-disk `prompts/{id}.md` heading in step with the document.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let db = Db::open(&dir.path().join("library.db")).expect("open");
+        let prompt = create(db.conn(), None).expect("create");
+
+        let doc = serde_json::json!({
+            "type": "doc",
+            "content": [{ "type": "paragraph",
+                          "content": [{ "type": "text", "text": "Checkout flow" }] }],
+        });
+        update(db.conn(), &prompt.id, Some(&doc)).expect("update");
+        save_serialized(db.conn(), Some(dir.path()), &prompt.id, "## Brief\n\nA page.").expect("save");
+
+        let snapshot = dir.path().join("prompts").join(format!("{}.md", prompt.id));
+        let body = std::fs::read_to_string(snapshot).expect("read");
+        assert!(body.contains("# Checkout flow"), "{body}");
     }
 
     #[test]
@@ -369,7 +440,7 @@ mod tests {
         let sent = create(db.conn(), Some("Sent")).expect("a");
         mark_sent(db.conn(), &sent.id).expect("sent");
         let edited = create(db.conn(), Some("Edited")).expect("b");
-        update(db.conn(), &edited.id, Some("Edited again"), None).expect("update");
+        update(db.conn(), &edited.id, None).expect("update");
 
         assert_eq!(
             latest(db.conn()).expect("latest").map(|p| p.id),

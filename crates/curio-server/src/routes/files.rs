@@ -33,12 +33,15 @@ pub async fn item_file(
 
     match std::fs::read(&target) {
         Ok(bytes) => serve_bytes(&target, bytes),
-        Err(_) if file.contains("thumb") => {
-            // The parity quirk, kept deliberately (Inventory §10.20): a missing thumbnail
+        Err(_) if is_derivative(&file) => {
+            // The parity quirk, kept deliberately (Inventory §10.20): a missing derivative
             // falls back to the full screenshot, and **only** when the requested name says
-            // "thumb". Image processing is optional, so a library assessed without it has
-            // no thumbnails at all — and a grid of broken images would look like data loss
-            // rather than a missing optional dependency.
+            // which derivative it wanted. Image processing is optional, so a library
+            // assessed without it has no thumbnails at all — and a grid of broken images
+            // would look like data loss rather than a missing optional dependency.
+            //
+            // `detail` rides the same rule, which is what lets the item page ask for a
+            // derivative that no row records and that older items never had.
             match std::fs::read(jail.join("screenshot.png")) {
                 Ok(bytes) => serve_bytes(Path::new("screenshot.png"), bytes),
                 Err(_) => StatusCode::NOT_FOUND.into_response(),
@@ -86,6 +89,15 @@ pub async fn project_file(
         Ok(bytes) => serve_bytes(&target, bytes),
         Err(_) => StatusCode::NOT_FOUND.into_response(),
     }
+}
+
+/// Whether a requested name is a derived copy of the screenshot, and so may fall back to it.
+///
+/// Matched on the name rather than an exact filename because that is the contract the
+/// ingest writes against, and it keeps the two ends from having to agree on an extension.
+fn is_derivative(file: &str) -> bool {
+    let lowered = file.to_ascii_lowercase();
+    lowered.contains("thumb") || lowered.contains("detail")
 }
 
 /// Resolve `requested` inside `jail`, or `None` if it escapes.
@@ -288,6 +300,20 @@ mod tests {
         let resolved = resolve(&jail, "library.js").expect("inside");
 
         assert!(!is_refused(&jail, &resolved));
+    }
+
+    #[test]
+    fn only_derived_copies_fall_back_to_the_screenshot() {
+        // The fallback is what lets the item page request `detail.jpg` for an item captured
+        // before that derivative existed. It must stay narrow: an arbitrary missing file
+        // answering with the screenshot would hide real 404s.
+        assert!(is_derivative("thumb.jpg"));
+        assert!(is_derivative("detail.jpg"));
+        assert!(is_derivative("DETAIL.JPG"));
+
+        assert!(!is_derivative("screenshot.png"));
+        assert!(!is_derivative("item.md"));
+        assert!(!is_derivative("anything-else.png"));
     }
 
     #[test]

@@ -38,6 +38,7 @@ export function RubricSection(props: { settings: Settings }) {
 
   return (
     <Section
+      id="assessment-rubric"
       title="Assessment rubric"
       blurb="The instructions Curio sends with every screenshot. It is written once, on first run, and never overwritten — so anything you change here stays changed, through updates and restarts."
     >

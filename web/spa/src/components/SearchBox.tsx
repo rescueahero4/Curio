@@ -40,7 +40,7 @@ export function SearchBox() {
         <input
           ref={input}
           type="search"
-          class="field pr-16"
+          class="field pr-0 py-1"
           placeholder="Search the library"
           value={typeof searchParams.q === "string" ? searchParams.q : ""}
           onInput={(event) => commit(event.currentTarget.value)}

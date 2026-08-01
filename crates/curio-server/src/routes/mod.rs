@@ -107,6 +107,9 @@ fn read_routes(state: &AppState) -> Router<AppState> {
         .route("/api/auth/nonce", post(auth::mint))
         .route("/api/events", get(events::stream))
         .route("/api/items", get(api::items::list))
+        // Above `/api/items/{id}` for the same reason as `/api/prompts/template` below:
+        // the literal has to win, or "count" is read as an item id.
+        .route("/api/items/count", get(api::items::count))
         .route("/api/items/{id}", get(api::items::get))
         .route("/api/vocabulary", get(api::vocabulary::list))
         // Registered above `/api/prompts/{id}` so the literal wins: otherwise "template"

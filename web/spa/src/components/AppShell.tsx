@@ -1,3 +1,4 @@
+import { useMatch } from "@solidjs/router";
 import { createSignal, type ParentProps } from "solid-js";
 import { AddItemDialog } from "~/components/AddItemDialog";
 import { MissingKeyBanner } from "~/components/MissingKeyBanner";
@@ -18,16 +19,26 @@ import { TopBar } from "~/components/TopBar";
 export function AppShell(props: ParentProps) {
   const [addingItem, setAddingItem] = createSignal(false);
 
+  /**
+   * The Prompt Helper is a document, not a view of a collection, and it is the one route the
+   * container is dropped for. It paints its own desk edge to edge and hangs a rail off the
+   * top bar, and neither can happen inside a padded 100rem column — a desk with 24px of page
+   * ground either side of it is a rug.
+   */
+  const document = useMatch(() => "/prompts/:id");
+
   return (
     <div class="min-h-screen bg-ground text-ink">
       <TopBar onAddItem={() => setAddingItem(true)} />
 
-      <div class="mx-auto w-full max-w-7xl px-6">
+      <div class="mx-auto w-full max-w-page px-6">
         <PausedBanner />
         <MissingKeyBanner />
       </div>
 
-      <main class="mx-auto w-full max-w-7xl px-6 py-6">{props.children}</main>
+      <main classList={{ "mx-auto w-full max-w-page px-6 py-6": !document() }}>
+        {props.children}
+      </main>
 
       <AddItemDialog open={addingItem()} onClose={() => setAddingItem(false)} />
     </div>

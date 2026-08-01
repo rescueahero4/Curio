@@ -1,7 +1,7 @@
 /** The two model slots: one that looks at screenshots, one that does the cheap text work. */
 
 import { type Commit, PAUSED_REASON } from "~/components/settings/model";
-import { createSaver } from "~/components/settings/save";
+import { blurOrEnter, createSaver } from "~/components/settings/save";
 import { Field, Section } from "~/components/settings/section";
 import { paused } from "~/lib/http";
 import type { Models, Settings } from "~/lib/types";
@@ -10,8 +10,8 @@ export function ModelsSection(props: { settings: Settings; commit: Commit }) {
   const saver = createSaver(props.commit);
 
   function commitSlot(slot: keyof Models) {
-    return (event: FocusEvent & { currentTarget: HTMLInputElement }) => {
-      const next = event.currentTarget.value.trim();
+    return (input: HTMLInputElement) => {
+      const next = input.value.trim();
       const previous = props.settings.models;
       if (!next || next === previous[slot]) return;
       void saver.save({ models: { ...previous, [slot]: next } }, { models: previous });
@@ -20,6 +20,7 @@ export function ModelsSection(props: { settings: Settings; commit: Commit }) {
 
   return (
     <Section
+      id="models"
       title="Models"
       saver={saver}
       blurb="Model ids are sent to Anthropic as you type them here. Curio does not check that a name exists — a typo shows up as a failed assessment, not as a rejected save."
@@ -35,7 +36,7 @@ export function ModelsSection(props: { settings: Settings; commit: Commit }) {
               value={props.settings.models.vision}
               disabled={paused()}
               title={paused() ? PAUSED_REASON : undefined}
-              onBlur={commitSlot("vision")}
+              {...blurOrEnter(commitSlot("vision"))}
             />
           )}
         </Field>
@@ -50,7 +51,7 @@ export function ModelsSection(props: { settings: Settings; commit: Commit }) {
               value={props.settings.models.utility}
               disabled={paused()}
               title={paused() ? PAUSED_REASON : undefined}
-              onBlur={commitSlot("utility")}
+              {...blurOrEnter(commitSlot("utility"))}
             />
           )}
         </Field>

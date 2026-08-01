@@ -82,7 +82,9 @@ npm --prefix web/spa run build
 ## 3. Run the app
 
 ```sh
-cargo run --bin curio
+cargo run --bin curio                       # terminal 1 — leave it running
+npm --prefix web/spa run build -- --watch   # terminal 2 — rebuilds dist on save
+
 ```
 
 `--bin curio` is not optional: the workspace builds two binaries — the app itself and the
@@ -171,12 +173,32 @@ cargo run --bin curio-nmh -- --unregister
 
 ## 6. Enable the MCP server — optional, lets AI agents read your library
 
-Off by default. Turn it on in **Settings → MCP**, then point a client at it:
+Off by default. Turn it on in **Settings → MCP**, then point a client at it.
 
+For Claude Code, one line does the whole registration:
+
+```sh
+claude mcp add --scope user curio -- <path-to-curio> --mcp-stdio
+```
+
+**Copy the real line from Settings → MCP** rather than typing this one. Nothing installs
+`curio` onto your `PATH`, and Claude Code spawns the command without a shell, so a bare
+`curio` resolves for nobody — the registration is accepted and then every connection dies
+with "connection closed". Settings fills in the running executable's absolute path, which is
+what makes the command work. Re-copy it if you move or reinstall Curio.
+
+`--scope user` registers Curio for every project rather than the folder you ran it in, and
+everything after `--` is the command Claude Code spawns.
+
+The two transports underneath, for anything else:
+
+- **stdio** — `curio --mcp-stdio`. It forwards to the running app rather than opening the
+  database itself, so Curio must already be running. It re-reads `runtime.json` per frame,
+  which is why it keeps working across restarts on an ephemeral port. Claude Desktop uses
+  this one, as JSON in `claude_desktop_config.json`; Settings shows the snippet.
 - **HTTP** — `http://127.0.0.1:<port>/mcp`. The port is in `runtime.json`, and Settings
-  shows the snippet.
-- **stdio**, for Claude Desktop and similar — `curio --mcp-stdio`. It forwards to the
-  running app rather than opening the database itself, so Curio must already be running.
+  shows the command. Curio takes a new port each run unless you pin one in `config.json`,
+  so a registration made this way goes stale at the next restart.
 
 ---
 

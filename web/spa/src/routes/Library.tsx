@@ -1,7 +1,6 @@
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createMemo, createSignal, For, on, onCleanup, Show } from "solid-js";
 import { BulkBar } from "~/components/library/BulkBar";
-import { createDensity } from "~/components/library/density";
 import { FilterBar } from "~/components/library/FilterBar";
 import { createItemFeed, createSentinel } from "~/components/library/feed";
 import {
@@ -12,7 +11,9 @@ import {
   toFilter,
 } from "~/components/library/filters";
 import { ItemCard } from "~/components/library/ItemCard";
+import { ItemRow } from "~/components/library/ItemRow";
 import { createSelection } from "~/components/library/selection";
+import { createViewMode } from "~/components/library/view";
 import { ensureVocabulary } from "~/components/library/vocab";
 import { items } from "~/lib/stores";
 
@@ -33,7 +34,7 @@ const SEARCH_DEBOUNCE_MS = 200;
 export function Library() {
   const [searchParams] = useSearchParams();
   const [facets, setFacets] = createSignal<Facets>(NO_FACETS);
-  const [dense, setDense] = createDensity();
+  const [view, setView] = createViewMode();
 
   const typed = () => (typeof searchParams.q === "string" ? searchParams.q : "");
   const [search, setSearch] = createSignal(typed());
@@ -59,7 +60,7 @@ export function Library() {
 
   return (
     <section class="flex flex-col gap-4">
-      <FilterBar facets={facets()} onFacets={setFacets} dense={dense()} onDense={setDense} />
+      <FilterBar facets={facets()} onFacets={setFacets} view={view()} onView={setView} />
 
       <Show when={feed.problem()}>
         {(message) => (
@@ -76,22 +77,38 @@ export function Library() {
         when={items.list.length}
         fallback={<Empty ready={feed.ready()} narrowed={narrowed()} />}
       >
+        {/* One list, laid out two ways. The `<ul>` is the same element in both modes so a
+            screen reader hears "list of N items" either way — the view control changes how
+            much room each one gets, not what the page is. */}
         <ul
-          class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
           classList={{
-            "sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3": dense(),
-            "xl:grid-cols-4": !dense(),
+            "flex flex-col gap-2": view() === "list",
+            "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4":
+              view() === "comfortable",
+            "grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5":
+              view() === "dense",
           }}
         >
           <For each={items.list}>
             {(item) => (
               <li>
-                <ItemCard
-                  item={item}
-                  dense={dense()}
-                  selected={selection.isSelected(item.id)}
-                  onToggle={selection.toggle}
-                />
+                <Show
+                  when={view() !== "list"}
+                  fallback={
+                    <ItemRow
+                      item={item}
+                      selected={selection.isSelected(item.id)}
+                      onToggle={selection.toggle}
+                    />
+                  }
+                >
+                  <ItemCard
+                    item={item}
+                    dense={view() === "dense"}
+                    selected={selection.isSelected(item.id)}
+                    onToggle={selection.toggle}
+                  />
+                </Show>
               </li>
             )}
           </For>

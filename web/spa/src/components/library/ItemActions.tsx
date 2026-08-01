@@ -7,17 +7,20 @@ import { paused } from "~/lib/http";
 import type { Item } from "~/lib/types";
 
 /**
- * Everything you can do to an item that is not editing a field (R-FE-15b).
+ * The four things a user comes to this page to *do*, at the top of it.
  *
- * The agent-path block is the point of the panel: Curio's output is a directory an agent
- * can read, and this is where a user gets hold of it. Copying the path is the handoff —
- * there is no integration to configure.
+ * These were stacked in the right-hand column under three headings, which put the page's
+ * primary actions below the fold of a tall screenshot and gave them the same weight as the
+ * prose explaining them. A toolbar in the header is where a document's verbs belong: one
+ * row, one treatment, no hierarchy invented between copying a path and copying a brief.
+ *
+ * Outlined rather than filled, all four. Nothing here is *the* action — an item is read as
+ * often as it is re-assessed — and a filled button among outlined ones would claim it is.
  */
-export function ItemActions(props: {
+export function ItemToolbar(props: {
   item: Item;
   /** The item's absolute directory, once Settings has answered. */
   directory: string | null;
-  apiKeySet: boolean | null;
 }) {
   const navigate = useNavigate();
   const [asking, setAsking] = createSignal(false);
@@ -49,6 +52,79 @@ export function ItemActions(props: {
   }
 
   return (
+    <div class="flex flex-col items-end gap-2">
+      <div class="flex flex-wrap items-center justify-end gap-2">
+        <CopyButton
+          label="Copy folder path"
+          text={() => props.directory ?? ""}
+          blocked={props.directory ? undefined : "Asking Curio where this item lives…"}
+        />
+        <CopyButton label="Copy brief" text={() => briefText(props.item, props.directory)} />
+
+        <button
+          type="button"
+          class="pill pill-outline"
+          disabled={!!pausedReason() || busy() === "reassess"}
+          title={pausedReason() ?? "Re-assessment keeps any name you have edited yourself."}
+          onClick={() => void reassess()}
+        >
+          {busy() === "reassess" ? "Queueing…" : "Re-assess"}
+        </button>
+
+        {/* Delete asks in place rather than in a dialog. The question is one line and the
+            answer is one click, and a modal for that costs a user their place on the page. */}
+        <Show
+          when={asking()}
+          fallback={
+            <button
+              type="button"
+              class="pill pill-outline"
+              disabled={!!pausedReason()}
+              title={pausedReason()}
+              onClick={() => setAsking(true)}
+            >
+              Delete
+            </button>
+          }
+        >
+          <span class="text-xs text-ink-muted">
+            Delete this item and its folder? The screenshot goes with it.
+          </span>
+          <button
+            type="button"
+            class="pill tint-caution"
+            disabled={busy() === "delete"}
+            onClick={() => void remove()}
+          >
+            {busy() === "delete" ? "Deleting…" : "Yes, delete"}
+          </button>
+          <button type="button" class="pill pill-outline" onClick={() => setAsking(false)}>
+            Keep it
+          </button>
+        </Show>
+      </div>
+
+      <Show when={problem()}>
+        <output class="banner tint-caution">{problem()}</output>
+      </Show>
+    </div>
+  );
+}
+
+/**
+ * What is left in the column once the verbs have moved up: the agent handoff.
+ *
+ * The path block is the point of the panel — Curio's output is a directory an agent can
+ * read, and this is where a user sees where that is. Copying it is a toolbar action now,
+ * but *showing* it is not an action at all: it is the answer to "where did this go", and it
+ * belongs next to the item it describes.
+ */
+export function ItemActions(props: {
+  item: Item;
+  directory: string | null;
+  apiKeySet: boolean | null;
+}) {
+  return (
     <aside class="flex flex-col gap-3">
       <Show when={props.apiKeySet === false}>
         <section class="banner tint-caution flex-col items-start gap-1">
@@ -76,15 +152,13 @@ export function ItemActions(props: {
                 <code class="font-mono">item.md</code>. Paste the path into Claude Code and ask it
                 to read them.
               </p>
-              <CopyButton label="Copy folder path" text={directory} />
             </>
           )}
         </Show>
       </section>
 
       <section class="card flex flex-col gap-2 p-3">
-        <h2 class="text-sm font-medium">Copy</h2>
-        <CopyButton label="Copy brief" text={() => briefText(props.item, props.directory)} />
+        <h2 class="text-sm font-medium">Image prompt</h2>
         <CopyButton
           label="Copy image prompt"
           text={() => props.item.image_recipe ?? ""}
@@ -94,58 +168,6 @@ export function ItemActions(props: {
               : "Curio has not written an image prompt for this one yet."
           }
         />
-      </section>
-
-      <section class="card flex flex-col gap-2 p-3">
-        <h2 class="text-sm font-medium">Item</h2>
-        <button
-          type="button"
-          class="pill pill-outline"
-          disabled={!!pausedReason() || busy() === "reassess"}
-          title={pausedReason()}
-          onClick={() => void reassess()}
-        >
-          {busy() === "reassess" ? "Queueing…" : "Re-assess"}
-        </button>
-        <p class="text-xs text-ink-faint">Re-assessment keeps any name you have edited yourself.</p>
-
-        <Show
-          when={asking()}
-          fallback={
-            <button
-              type="button"
-              class="pill"
-              disabled={!!pausedReason()}
-              title={pausedReason()}
-              onClick={() => setAsking(true)}
-            >
-              Delete
-            </button>
-          }
-        >
-          <div class="flex flex-col gap-2">
-            <p class="text-xs text-ink-muted">
-              Delete this item and its folder? The screenshot goes with it.
-            </p>
-            <div class="flex gap-2">
-              <button
-                type="button"
-                class="pill tint-caution"
-                disabled={busy() === "delete"}
-                onClick={() => void remove()}
-              >
-                {busy() === "delete" ? "Deleting…" : "Yes, delete"}
-              </button>
-              <button type="button" class="pill" onClick={() => setAsking(false)}>
-                Keep it
-              </button>
-            </div>
-          </div>
-        </Show>
-
-        <Show when={problem()}>
-          <output class="banner tint-caution">{problem()}</output>
-        </Show>
       </section>
     </aside>
   );

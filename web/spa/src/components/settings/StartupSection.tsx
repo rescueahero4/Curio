@@ -27,6 +27,7 @@ export function StartupSection(props: { settings: Settings; commit: Commit }) {
 
   return (
     <Section
+      id="startup"
       title="Startup"
       saver={unsupported() ? undefined : saver}
       blurb="Curio can start with your machine so captures and the watcher are running before you go looking for them."

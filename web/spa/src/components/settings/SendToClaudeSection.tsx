@@ -46,6 +46,7 @@ export function SendToClaudeSection(props: { settings: Settings; commit: Commit 
 
   return (
     <Section
+      id="send-to-claude"
       title="Send to Claude"
       saver={saver}
       blurb="What the Prompt Helper's Send button does. Whichever you pick, the prompt lands on your clipboard first — so a launch that never happens still leaves you holding the text."

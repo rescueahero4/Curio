@@ -8,7 +8,7 @@
 
 import { createSignal, Show } from "solid-js";
 import { type Commit, PAUSED_REASON } from "~/components/settings/model";
-import { createSaver } from "~/components/settings/save";
+import { blurOrEnter, createSaver } from "~/components/settings/save";
 import { Field, Section } from "~/components/settings/section";
 import { clearApiKey } from "~/lib/api";
 import { ApiError, paused } from "~/lib/http";
@@ -23,8 +23,7 @@ export function ApiKeySection(props: {
   const [clearing, setClearing] = createSignal(false);
   const [note, setNote] = createSignal<string | null>(null);
 
-  function commitKey(event: FocusEvent & { currentTarget: HTMLInputElement }) {
-    const input = event.currentTarget;
+  function commitKey(input: HTMLInputElement) {
     const key = input.value.trim();
     if (!key) return;
     // Cleared before the request resolves: the box is the only place the secret exists in
@@ -54,6 +53,7 @@ export function ApiKeySection(props: {
 
   return (
     <Section
+      id="api-key"
       title="Anthropic API key"
       saver={saver}
       blurb="Curio needs a key to assess captures. Without one, captures still arrive and queue — they are never lost, they just wait."
@@ -67,7 +67,7 @@ export function ApiKeySection(props: {
 
       <Field
         label={props.settings.api_key_set ? "Replace the key" : "Set a key"}
-        hint="Saves when you click away from the box. Curio stores it in your OS keychain and never shows it again — replacing a key discards the old one for good, so there is nothing to undo."
+        hint="Saves when you press Enter or click away from the box. Curio stores it in your OS keychain and never shows it again — replacing a key discards the old one for good, so there is nothing to undo."
       >
         {(id) => (
           <input
@@ -79,7 +79,7 @@ export function ApiKeySection(props: {
             placeholder="sk-ant-…"
             disabled={paused()}
             title={paused() ? PAUSED_REASON : undefined}
-            onBlur={commitKey}
+            {...blurOrEnter(commitKey)}
           />
         )}
       </Field>

@@ -1,42 +1,94 @@
 /**
- * The two ways a prompt leaves Curio.
+ * The three things that happen to a whole document: copy it, send it, destroy it.
  *
- * Both are disabled together while either is running: they share a serialize step and a
- * clipboard, and two of them racing would leave the user unable to say which text they
+ * Copy and Send are disabled together while either is running: they share a serialize step
+ * and a clipboard, and two of them racing would leave the user unable to say which text they
  * are holding. The disabled state carries its reason, per PRD §5 — no dead clicks.
  *
- * Whatever the launch answers is shown **verbatim**. The server is the only party that
- * knows what it managed to ask for, and its phrasing is deliberate: "Asked Claude Code to
- * open — paste there", never "opened" (R-FE-15).
+ * Whatever the launch answers is shown **verbatim**, and by the route rather than here. The
+ * server is the only party that knows what it managed to ask for, and its phrasing is
+ * deliberate: "Asked Claude Code to open — paste there", never "opened" (R-FE-15). These
+ * buttons sit in a rail that has no room for a sentence, so the outcome is handed up to the
+ * page, which has.
+ *
+ * Delete is a two-step disarm rather than a `confirm()`, for the reason the prompt list
+ * records: a native dialog steals the whole window for a question about something it is
+ * covering up, and this is the one control here that destroys what the server cannot give
+ * back.
  */
 
-import { createSignal, Show } from "solid-js";
+import { useNavigate } from "@solidjs/router";
+import { createSignal, onCleanup, Show } from "solid-js";
 import type { ActionOutcome } from "~/components/editor/handoff";
 import { copyPrompt, sendPromptToClaude } from "~/components/editor/handoff";
+import { Trash } from "~/components/icons";
+import { deletePrompt } from "~/lib/api";
+import { createEscapeLayer } from "~/lib/keyboard";
 import type { Prompt } from "~/lib/types";
+
+/** How long a delete stays armed before it forgets it was asked. Matches the prompt list. */
+const DISARM_MS = 5_000;
 
 interface Props {
   id: string;
   /** Flushes any unsaved edit, so the server serializes what is on screen. */
   beforeSend: () => Promise<void>;
   onSent: (prompt: Prompt) => void;
+  onOutcome: (outcome: ActionOutcome | null) => void;
 }
 
 export function PromptActions(props: Props) {
+  const navigate = useNavigate();
+
   const [busy, setBusy] = createSignal(false);
-  const [outcome, setOutcome] = createSignal<ActionOutcome | null>(null);
+  const [armed, setArmed] = createSignal(false);
+
+  let disarmTimer: ReturnType<typeof setTimeout> | undefined;
+
+  const disarm = () => {
+    if (disarmTimer) clearTimeout(disarmTimer);
+    setArmed(false);
+  };
+
+  const arm = () => {
+    setArmed(true);
+    if (disarmTimer) clearTimeout(disarmTimer);
+    disarmTimer = setTimeout(disarm, DISARM_MS);
+  };
+
+  createEscapeLayer("overlay", () => {
+    if (!armed()) return false;
+    disarm();
+    return true;
+  });
+
+  onCleanup(() => {
+    if (disarmTimer) clearTimeout(disarmTimer);
+  });
 
   const run = async (action: (id: string) => Promise<ActionOutcome>) => {
     setBusy(true);
-    setOutcome(null);
+    props.onOutcome(null);
     try {
       await props.beforeSend();
       const result = await action(props.id);
-      setOutcome(result);
+      props.onOutcome(result);
       if (result.prompt) props.onSent(result.prompt);
     } catch (error) {
-      setOutcome({ message: message(error), tone: "caution", prompt: null });
+      props.onOutcome({ message: message(error), tone: "caution", prompt: null });
     } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = async () => {
+    disarm();
+    setBusy(true);
+    try {
+      await deletePrompt(props.id);
+      navigate("/prompts");
+    } catch (error) {
+      props.onOutcome({ message: message(error), tone: "caution", prompt: null });
       setBusy(false);
     }
   };
@@ -44,42 +96,54 @@ export function PromptActions(props: Props) {
   const reason = () => (busy() ? "Curio is working on the last request" : undefined);
 
   return (
-    <div class="flex flex-col items-end gap-2">
-      <div class="flex items-center gap-2">
-        <button
-          type="button"
-          class="pill pill-outline"
-          disabled={busy()}
-          title={reason() ?? "Serialize, copy, and start watching for a project folder"}
-          onClick={() => void run(copyPrompt)}
-        >
-          Copy Prompt
-        </button>
-        <button
-          type="button"
-          class="pill pill-ink"
-          disabled={busy()}
-          title={reason() ?? "Copy first, then ask the configured tool to open"}
-          onClick={() => void run(sendPromptToClaude)}
-        >
-          Send to Claude
-        </button>
-      </div>
+    <>
+      <button
+        type="button"
+        class="tool-btn px-2 text-sm"
+        disabled={busy()}
+        title={reason() ?? "Serialize, copy, and start watching for a project folder"}
+        onClick={() => void run(copyPrompt)}
+      >
+        Copy
+      </button>
+      <button
+        type="button"
+        class="pill pill-ink"
+        disabled={busy()}
+        title={reason() ?? "Copy first, then ask the configured tool to open"}
+        onClick={() => void run(sendPromptToClaude)}
+      >
+        Send to Claude
+      </button>
 
-      <Show when={outcome()}>
-        {(result) => (
-          <output
-            class="banner"
-            classList={{
-              "tint-confirm": result().tone === "confirm",
-              "tint-caution": result().tone === "caution",
-            }}
+      <Show
+        when={armed()}
+        fallback={
+          <button
+            type="button"
+            class="tool-btn"
+            disabled={busy()}
+            aria-label="Delete prompt"
+            title={reason() ?? "Delete this prompt"}
+            onClick={arm}
           >
-            {result().message}
-          </output>
-        )}
+            <Trash />
+          </button>
+        }
+      >
+        <button type="button" class="tool-btn px-2 text-sm" onClick={disarm}>
+          Keep
+        </button>
+        <button
+          type="button"
+          class="pill tint-caution"
+          disabled={busy()}
+          onClick={() => void remove()}
+        >
+          Delete for good
+        </button>
       </Show>
-    </div>
+    </>
   );
 }
 

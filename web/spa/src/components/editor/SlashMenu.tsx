@@ -126,7 +126,7 @@ export function SlashMenu(props: Props) {
 
   return (
     <div
-      class="card fixed z-50 max-h-80 w-80 overflow-y-auto py-1"
+      class="panel float fixed z-50 max-h-80 w-80 overflow-y-auto py-1"
       style={{ left: `${props.trigger.left}px`, top: `${props.trigger.bottom + 4}px` }}
       role="listbox"
       aria-label={chosen() ? `Pick a ${chosen()?.label}` : "Insert from your library"}

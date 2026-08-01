@@ -1,5 +1,7 @@
 import { A } from "@solidjs/router";
-import { createSignal, For, Show } from "solid-js";
+import { createSignal, Show } from "solid-js";
+import { hostOf, ItemFacets } from "~/components/library/ItemFacets";
+import { SelectToggle } from "~/components/library/SelectToggle";
 import { itemImageUrl, reassessItem } from "~/lib/api";
 import { paused } from "~/lib/http";
 import type { Item } from "~/lib/types";
@@ -24,6 +26,7 @@ export function ItemCard(props: {
 }) {
   const proposal = () => props.item.families.find((family) => family.ai_proposed);
   const grayZone = () => props.item.families.some((family) => family.gray_zone);
+  const host = () => hostOf(props.item.source_url);
 
   return (
     <article
@@ -46,30 +49,38 @@ export function ItemCard(props: {
           loading="lazy"
           decoding="async"
         />
-        <div class="flex flex-col gap-1 p-3" classList={{ "p-2": props.dense }}>
-          <h2 class="truncate font-medium text-ink">{props.item.name || "Untitled"}</h2>
-          <Show when={!props.dense}>
-            <p class="line-clamp-2 text-sm text-ink-muted">{props.item.short_description}</p>
+        {/* Name and source, and no description.
+
+            A short description is a sentence, and a sentence is the one thing a scanned
+            grid cannot read — it costs two lines on every tile to say something the
+            screenshot above it has already shown. The host earns that space instead: it is
+            the fact the picture cannot carry, and it is one line at any width. */}
+        <div class="flex flex-col gap-1 p-0" classList={{ "p-2": props.dense }}>
+          <h2 class="truncate font-medium text-ink p-0 m-0 pt-1">
+            {props.item.name || "Untitled"}
+          </h2>
+          <Show when={host()}>
+            {(where) => <span class="truncate text-xs text-ink-faint">{where()}</span>}
           </Show>
         </div>
       </A>
 
       <div
-        class="flex flex-wrap items-center gap-1 px-3 pb-3"
+        class="flex flex-wrap items-center gap-1 px-0 pb-3 pt-1"
         classList={{ "px-2 pb-2": props.dense }}
       >
         <Show when={props.item.status === "processing"}>
-          <span class="pill pill-outline text-2xs">Waiting for assessment</span>
+          <span class="badge badge-strong">Waiting for assessment</span>
         </Show>
         <Show when={props.item.status === "needs_review" || grayZone()}>
-          <span class="pill tint-caution text-2xs">Needs review</span>
+          <span class="badge tint-caution">Needs review</span>
         </Show>
         <Show when={proposal()}>
-          {(family) => <span class="pill tint-proposal text-2xs">Proposed: {family().name}</span>}
+          {(family) => <span class="badge tint-proposal">Proposed: {family().name}</span>}
         </Show>
-        <For each={props.item.families.filter((family) => !family.ai_proposed)}>
-          {(family) => <span class="pill pill-outline text-2xs">{family.name}</span>}
-        </For>
+        {/* Dense tiles are half the width, so they get half the vocabulary before the
+            overflow marker takes over. */}
+        <ItemFacets item={props.item} limit={props.dense ? 2 : 4} />
       </div>
 
       <Show when={props.item.status === "assessment_failed"}>
@@ -79,6 +90,7 @@ export function ItemCard(props: {
       <SelectToggle
         name={props.item.name}
         selected={props.selected}
+        class="absolute top-2 left-2 rounded bg-card/90 p-1"
         onToggle={(extend) => props.onToggle(props.item.id, extend)}
       />
     </article>
@@ -118,27 +130,5 @@ function FailedFooter(props: { id: string; error: string | null }) {
         {busy() ? "Queueing…" : "Re-assess"}
       </button>
     </div>
-  );
-}
-
-/** A real checkbox, positioned over the card: selection must be reachable by keyboard. */
-function SelectToggle(props: {
-  name: string;
-  selected: boolean;
-  onToggle: (extend: boolean) => void;
-}) {
-  return (
-    <label
-      class="absolute top-2 left-2 flex items-center rounded bg-card/90 p-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
-      classList={{ "opacity-100": props.selected }}
-      style={{ "transition-duration": "var(--duration-hover)" }}
-    >
-      <span class="sr-only">Select {props.name || "this item"}</span>
-      <input
-        type="checkbox"
-        checked={props.selected}
-        onClick={(event) => props.onToggle(event.shiftKey)}
-      />
-    </label>
   );
 }

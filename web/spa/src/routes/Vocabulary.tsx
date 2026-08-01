@@ -1,6 +1,6 @@
 import { createSignal, For, Show } from "solid-js";
 import { ensureVocabulary } from "~/components/library/vocab";
-import { NewTerm } from "~/components/vocabulary/NewTerm";
+import { AddTerm } from "~/components/vocabulary/AddTerm";
 import type { VocabEntry } from "~/components/vocabulary/VocabRow";
 import { VocabTable } from "~/components/vocabulary/VocabTable";
 import { refreshVocabulary, vocabulary } from "~/lib/stores";
@@ -69,23 +69,6 @@ export function Vocabulary() {
         </p>
       </header>
 
-      <nav aria-label="Vocabulary collections" class="flex items-center gap-1">
-        <For each={TABS}>
-          {(entry) => (
-            <button
-              type="button"
-              class="pill"
-              classList={{ "pill-current": tab() === entry.kind }}
-              aria-current={tab() === entry.kind ? "page" : undefined}
-              onClick={() => setTab(entry.kind)}
-            >
-              {entry.label}
-              <span class="numeric text-2xs">{count(entry.kind)}</span>
-            </button>
-          )}
-        </For>
-      </nav>
-
       {/* ConsistencyPass — "these three words look like one thing" — belongs here, above
           the list it suggests changes to. It waits on `POST /api/bulk/dedupe` and
           `GET /api/bulk/dedupe/latest`, which are E7's; neither route exists yet, so no
@@ -93,7 +76,6 @@ export function Vocabulary() {
           re-fetched from the server so it survives a reload, merges are applied
           client-side through the same merge endpoint this page already calls, per group
           Merge / Keep both, and nothing auto-applies. */}
-      <NewTerm kind={tab()} noun={SINGULAR[tab()]} />
 
       <Show
         when={vocabulary.loaded}
@@ -106,7 +88,35 @@ export function Vocabulary() {
           </p>
         }
       >
-        <VocabTable kind={tab()} entries={entries()} noun={PLURAL[tab()]} />
+        <VocabTable
+          kind={tab()}
+          entries={entries()}
+          noun={PLURAL[tab()]}
+          one={SINGULAR[tab()]}
+          tabs={
+            <nav aria-label="Vocabulary collections" class="flex items-center gap-1">
+              <For each={TABS}>
+                {(entry) => (
+                  <button
+                    type="button"
+                    class="pill"
+                    classList={{ "pill-current": tab() === entry.kind }}
+                    aria-current={tab() === entry.kind ? "page" : undefined}
+                    onClick={() => setTab(entry.kind)}
+                  >
+                    {entry.label}
+                    <span class="numeric text-2xs">{count(entry.kind)}</span>
+                  </button>
+                )}
+              </For>
+            </nav>
+          }
+          /* Adding is the one control here that is not about the tab you are on, so it
+             takes you to the one you added to. A design type minted from the families tab
+             would otherwise land somewhere the user cannot see, and the only feedback would
+             be a count going up on a pill they were not looking at. */
+          add={<AddTerm onAdded={setTab} />}
+        />
       </Show>
     </section>
   );

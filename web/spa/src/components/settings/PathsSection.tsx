@@ -1,7 +1,7 @@
 /** Where the library lives, and where Curio looks for the folders your tools write. */
 
 import { type Commit, PAUSED_REASON } from "~/components/settings/model";
-import { createSaver } from "~/components/settings/save";
+import { blurOrEnter, createSaver } from "~/components/settings/save";
 import { Field, Section } from "~/components/settings/section";
 import { paused } from "~/lib/http";
 import type { Settings } from "~/lib/types";
@@ -9,8 +9,8 @@ import type { Settings } from "~/lib/types";
 export function PathsSection(props: { settings: Settings; commit: Commit }) {
   const saver = createSaver(props.commit);
 
-  function commitRoot(event: FocusEvent & { currentTarget: HTMLInputElement }) {
-    const next = event.currentTarget.value.trim();
+  function commitRoot(input: HTMLInputElement) {
+    const next = input.value.trim();
     const previous = props.settings.projects_root;
     if (!next || next === previous) return;
     void saver.save({ projects_root: next }, { projects_root: previous });
@@ -18,9 +18,10 @@ export function PathsSection(props: { settings: Settings; commit: Commit }) {
 
   return (
     <Section
+      id="paths"
       title="Paths"
       saver={saver}
-      blurb="Curio watches the projects folder and adds any new top-level folder to Projects within about five seconds."
+      blurb="Where Curio keeps data, and where it watches for projects."
     >
       <Field
         label="Data root"
@@ -33,9 +34,13 @@ export function PathsSection(props: { settings: Settings; commit: Commit }) {
         )}
       </Field>
 
+      {/* "(watched)" is not decoration. Without it this reads as "where Curio puts your
+          projects", and it is not that: Curio never writes a project folder. An agent does,
+          and this is the one directory Curio checks for new ones. The Bun original carried
+          the same parenthetical for the same reason. */}
       <Field
-        label="Projects folder"
-        hint="Saves when you click away. It has to be a folder that already exists — Curio checks, and says so if it is not there."
+        label="Projects root (watched)"
+        hint="The folder Curio watches. Any new top-level folder inside it becomes a project within about five seconds — Curio never creates one itself. Saves when you press Enter or click away, and it has to be a folder that already exists. Takes effect on the next restart."
       >
         {(id) => (
           <input
@@ -46,7 +51,7 @@ export function PathsSection(props: { settings: Settings; commit: Commit }) {
             value={props.settings.projects_root}
             disabled={paused()}
             title={paused() ? PAUSED_REASON : undefined}
-            onBlur={commitRoot}
+            {...blurOrEnter(commitRoot)}
           />
         )}
       </Field>

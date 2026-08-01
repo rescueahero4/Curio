@@ -56,7 +56,11 @@ export function BulkBar(props: {
 
   return (
     <Show when={props.selection.any() || notice()}>
-      <div class="card sticky bottom-4 z-20 mx-auto flex w-full max-w-4xl flex-wrap items-center gap-2 px-3 py-2">
+      {/* Frosted and lifted, because this bar is the one surface in the library that is
+          genuinely floating: it is pinned over a grid the user is still scrolling and still
+          reading. The border that separates a resting card from the ground cannot say that
+          on its own — see the shadow token's note in `styles.css`. */}
+      <div class="card glass-card float sticky bottom-4 z-20 mx-auto flex w-full max-w-4xl flex-wrap items-center gap-2 px-3 py-2">
         <Show when={props.selection.any()}>
           <span class="text-sm text-ink-muted">
             <Show

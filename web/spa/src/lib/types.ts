@@ -231,8 +231,17 @@ export type SendToClaudeTarget = "claude-code" | "claude-desktop" | "clipboard";
 export interface Settings {
   data_root: string;
   projects_root: string;
-  /** Absent means the port is ephemeral, which is the default (D10). */
+  /**
+   * The port pinned in `config.json`, if any. A preference, **not an address**.
+   *
+   * Absent means the port is ephemeral, which is the default (D10). Never display this as
+   * the port Curio is on: with no pin it answers nothing, and with one it can still disagree
+   * with the socket — `CURIO_PORT` overrides it, and the file can be edited while the
+   * process runs. Use `bound_port`.
+   */
   port: number | null;
+  /** The port Curio is actually listening on, read from the bound socket. Always true. */
+  bound_port: number;
   thresholds: Thresholds;
   models: Models;
   mcp_enabled: boolean;
@@ -273,8 +282,14 @@ export type SettingsPatch = Partial<
 /** The gold-standard prompt scaffold, owned by the server so no client re-derives it. */
 export interface PromptTemplate {
   doc_json: unknown;
-  /** The eight sections, in order. `ghost` is placeholder text — never content. */
-  sections: { id: string; heading: string; ghost: string }[];
+  /**
+   * The seven sections, in order.
+   *
+   * `body` arrives twice over: once already written into `doc_json`, which is what the editor
+   * opens on, and again here so the editor can show the same text as ghost text over any
+   * section the user later empties. One string, both jobs.
+   */
+  sections: { id: string; heading: string; body: string }[];
 }
 
 /**

@@ -1,4 +1,7 @@
-import { Show } from "solid-js";
+import { A } from "@solidjs/router";
+import type { JSX } from "solid-js";
+import { For, Show } from "solid-js";
+import { ViewComfortable, ViewDense, ViewList } from "~/components/icons";
 import {
   type FacetKind,
   type Facets,
@@ -9,6 +12,8 @@ import {
 } from "~/components/library/filters";
 import { OptionList } from "~/components/library/OptionList";
 import { Popover } from "~/components/library/Popover";
+import { createReviewCount } from "~/components/library/reviewCount";
+import type { ViewMode } from "~/components/library/view";
 import { familyOptions, termOptions } from "~/components/library/vocab";
 import type { ItemStatus } from "~/lib/types";
 
@@ -19,21 +24,50 @@ const STATUSES: { id: ItemStatus; label: string }[] = [
   { id: "assessment_failed", label: "Assessment failed" },
 ];
 
+const VIEWS: { mode: ViewMode; label: string; hint: string; icon: () => JSX.Element }[] = [
+  {
+    mode: "comfortable",
+    label: "Comfortable grid",
+    hint: "Larger cards, with descriptions",
+    icon: () => <ViewComfortable />,
+  },
+  {
+    mode: "dense",
+    label: "Dense grid",
+    hint: "Fit more on screen",
+    icon: () => <ViewDense />,
+  },
+  {
+    mode: "list",
+    label: "List",
+    hint: "One row per item, with capture dates",
+    icon: () => <ViewList />,
+  },
+];
+
 /**
  * The filter row (FR-10).
  *
  * Facets AND across kinds and OR within one, which is why each kind gets its own pill and
  * each pill holds checkboxes: "tag: warm **or** muted" and "tag: warm **and** type: hero"
  * are different questions, and the shape of the control is what tells them apart.
+ *
+ * The row is read left to right as narrowing then presenting: everything that changes
+ * *which* items are shown is on the left, everything that changes *how* they are shown is
+ * on the right. Vocabulary sits on the boundary — it is the only thing here that leaves the
+ * page, which is why it is a link and not a pill (PRD §5: Vocabulary is reached from the
+ * Library, not from the top nav).
  */
 export function FilterBar(props: {
   facets: Facets;
   onFacets: (next: Facets) => void;
-  dense: boolean;
-  onDense: (dense: boolean) => void;
+  view: ViewMode;
+  onView: (next: ViewMode) => void;
 }) {
   const change = (kind: FacetKind, id: string) =>
     props.onFacets(toggleFacet(props.facets, kind, id));
+
+  const reviewCount = createReviewCount();
 
   return (
     <div class="flex flex-wrap items-center gap-2">
@@ -66,6 +100,7 @@ export function FilterBar(props: {
         title="Status"
         label={<Label text="Status" count={props.facets.status.length} />}
         active={props.facets.status.length > 0}
+        outlined
       >
         {() => (
           <OptionList
@@ -80,9 +115,15 @@ export function FilterBar(props: {
         )}
       </Popover>
 
+      {/*
+        A toggle, not a menu — so no chevron, and the number beside it is a different number
+        from the ones on its neighbours. Theirs count what the user has ticked; this one
+        counts what is waiting, which is the only reason to press it. It is deliberately not
+        derived from the loaded grid: see `reviewCount`.
+      */}
       <button
         type="button"
-        class="pill"
+        class="pill pill-outline"
         classList={{ "tint-caution": props.facets.needs_review }}
         aria-pressed={props.facets.needs_review}
         onClick={() =>
@@ -90,6 +131,9 @@ export function FilterBar(props: {
         }
       >
         Needs review
+        <Show when={reviewCount() !== null}>
+          <span class="numeric text-2xs">{reviewCount()}</span>
+        </Show>
       </button>
 
       <Show when={facetCount(props.facets) > 0}>
@@ -98,17 +142,33 @@ export function FilterBar(props: {
         </button>
       </Show>
 
-      <div class="ml-auto">
-        <button
-          type="button"
-          class="pill"
-          classList={{ "pill-current": props.dense }}
-          aria-pressed={props.dense}
-          title={props.dense ? "Show larger cards" : "Fit more on screen"}
-          onClick={() => props.onDense(!props.dense)}
-        >
-          {props.dense ? "Comfortable" : "Dense"}
-        </button>
+      <div class="ml-auto flex items-center gap-3">
+        <A href="/vocabulary" class="link-dotted">
+          Vocabulary
+        </A>
+
+        {/* A `<fieldset>` rather than a div with `role="group"`: three buttons that are one
+            choice, and the legend is what a screen reader announces before the first of
+            them. It is hidden visually because the icons and the row's position already
+            say it to anyone who can see them. */}
+        <fieldset class="segmented">
+          <legend class="sr-only">How the library is shown</legend>
+          <For each={VIEWS}>
+            {(entry) => (
+              <button
+                type="button"
+                class="pill pill-icon"
+                classList={{ "pill-current": props.view === entry.mode }}
+                aria-pressed={props.view === entry.mode}
+                aria-label={entry.label}
+                title={entry.hint}
+                onClick={() => props.onView(entry.mode)}
+              >
+                {entry.icon()}
+              </button>
+            )}
+          </For>
+        </fieldset>
       </div>
     </div>
   );
@@ -127,6 +187,7 @@ function FacetPill(props: {
       title={props.title}
       label={<Label text={props.title} count={props.selected.length} />}
       active={props.selected.length > 0}
+      outlined
     >
       {() => (
         <OptionList

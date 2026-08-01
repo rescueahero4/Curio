@@ -14,6 +14,7 @@ import type {
   GrayZoneDecision,
   Health,
   Item,
+  ItemFilter,
   ItemPatch,
   ItemQuery,
   Job,
@@ -40,6 +41,17 @@ export function getHealth(): Promise<Health> {
 
 export function listItems(query: ItemQuery = {}): Promise<Page<Item>> {
   return get<Page<Item>>(`/api/items${itemQuery(query)}`);
+}
+
+/**
+ * How many items a filter matches, without fetching them.
+ *
+ * `listItems` deliberately answers "is there another page" rather than a total, which is
+ * what a scrolling grid needs and what a badge cannot use. `limit` and `cursor` are not
+ * sent: paging has no meaning for a count.
+ */
+export function countItems(filter: ItemFilter = {}): Promise<{ count: number }> {
+  return get<{ count: number }>(`/api/items/count${itemQuery(filter)}`);
 }
 
 export function getItem(id: string): Promise<Item> {
@@ -131,10 +143,14 @@ export function getPrompt(id: string): Promise<Prompt> {
   return get<Prompt>(`/api/prompts/${encodeURIComponent(id)}`);
 }
 
-export function updatePrompt(
-  id: string,
-  changes: { title?: string; doc_json?: unknown },
-): Promise<Prompt> {
+/**
+ * Autosave. The document, and nothing else.
+ *
+ * A prompt's title is not sent because it is not the client's to set: the server names a
+ * prompt after its own first line on every save (`curio_core::prompt::title_from`), and the
+ * reply carries the name it chose. Sending one would be a write the next keystroke undid.
+ */
+export function updatePrompt(id: string, changes: { doc_json?: unknown }): Promise<Prompt> {
   return patch<Prompt>(`/api/prompts/${encodeURIComponent(id)}`, changes);
 }
 
@@ -249,6 +265,21 @@ export function itemImageUrl(item: {
   thumbnail_path: string | null;
 }): string {
   return fileUrl(item.id, basename(item.thumbnail_path ?? item.screenshot_path));
+}
+
+/**
+ * The image for the **item page**, where the capture is the subject.
+ *
+ * Deliberately not [`itemImageUrl`]. That one answers with the grid's thumbnail, which is
+ * 640 px wide and cropped to the first fold — correct on a card, and on this page it turned
+ * a 20,000-pixel full-page capture into a blurry crop of its masthead.
+ *
+ * `detail.jpg` is not recorded on the row: it is a derived file the server discovers by
+ * name, and the file route answers with the full screenshot when it is absent. So this URL
+ * is correct for an item captured today and for one captured before the derivative existed.
+ */
+export function itemDetailImageUrl(item: { id: string }): string {
+  return fileUrl(item.id, "detail.jpg");
 }
 
 function basename(path: string): string {

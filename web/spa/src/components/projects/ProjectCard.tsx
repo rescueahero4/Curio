@@ -1,9 +1,19 @@
-/** One project: what it is, where it is, and the two things you can do with it. */
+/**
+ * One project: what it is, where it is, and the one thing you mostly want to do with it.
+ *
+ * The tile *is* the launch button. A project has no screenshot, so the space a library item
+ * spends on its picture is free here — and giving it to the primary action means the card
+ * needs no primary button underneath, which is what let the rest of the controls drop to
+ * quiet text. The previous card offered five button-shaped things at equal weight (launch,
+ * open folder, a prompt select, open prompt, an origin badge that was not a control at all),
+ * and a grid of those reads as a form rather than a catalogue.
+ */
 
 import { createSignal, Show } from "solid-js";
 import { MISSING_EXPLANATION, NO_FRONT_DOOR, PAUSED_REASON } from "~/components/projects/copy";
 import { PromptLink } from "~/components/projects/PromptLink";
 import { openProject, revealPath } from "~/lib/api";
+import { absoluteTime, relativeTime } from "~/lib/format";
 import { ApiError, paused } from "~/lib/http";
 import type { Project, ProjectOrigin, Prompt } from "~/lib/types";
 
@@ -13,13 +23,18 @@ interface Outcome {
   message: string;
 }
 
-const ORIGIN_LABEL: Record<ProjectOrigin, string> = {
-  watcher: "Found by Curio",
-  mcp: "Registered by an agent",
-  manual: "Added by you",
+/**
+ * Only the unusual origins are named.
+ *
+ * "Found by Curio" is true of nearly every project and therefore tells the reader nothing —
+ * it was a badge on every card carrying no signal. The other two do earn their line: they
+ * behave differently (no marker file, so no rename-following, and the watcher's
+ * missing-reconciliation skips them), so when one is wrong the origin is the explanation.
+ */
+const ORIGIN_NOTE: Partial<Record<ProjectOrigin, string>> = {
+  mcp: "added by an agent",
+  manual: "added by you",
 };
-
-const WHEN = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
 
 export function ProjectCard(props: {
   project: Project;
@@ -35,7 +50,7 @@ export function ProjectCard(props: {
     if (paused()) return PAUSED_REASON;
     if (missing()) return "The folder is gone, so there is nothing to serve.";
     if (!frontDoor()) return NO_FRONT_DOOR;
-    return undefined;
+    return "Launch in a new tab";
   };
 
   async function launch() {
@@ -81,80 +96,86 @@ export function ProjectCard(props: {
   }
 
   return (
-    <article
-      class="card flex flex-col gap-3 p-4"
-      classList={{ "opacity-60": missing() }}
-      aria-label={props.project.name}
-    >
-      <header class="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 class="text-lg font-semibold">{props.project.name}</h2>
-        <span class="pill pill-outline text-2xs">{ORIGIN_LABEL[props.project.origin]}</span>
-      </header>
-
-      <p class="font-mono text-xs break-all text-ink-faint select-all">{props.project.path}</p>
-
-      <dl class="flex flex-wrap gap-x-6 gap-y-1 text-xs text-ink-muted">
-        <div class="flex gap-2">
-          <dt>Detected</dt>
-          <dd>
-            <time class="numeric" datetime={props.project.detected_at}>
-              {when(props.project.detected_at)}
-            </time>
-          </dd>
+    // No card chrome. The tile carries the only border on the card, and the text below sits
+    // on the page ground — a box around text that is already grouped by proximity is a
+    // second boundary doing the first one's job. It also keeps the prompt popover free to
+    // open past the card's edge, which an `overflow-hidden` card would have clipped.
+    <article class="flex flex-col gap-3" aria-label={props.project.name}>
+      <button
+        type="button"
+        class="group relative aspect-[4/3.2] overflow-hidden rounded-xl border border-line bg-card transition-colors disabled:cursor-not-allowed"
+        classList={{ "opacity-60": missing() }}
+        onClick={() => void launch()}
+        disabled={busy() || paused() || missing() || !frontDoor()}
+        title={launchReason()}
+      >
+        {/* A project has no preview to show, so the placeholder carries the affordance
+            instead of pretending to be one. */}
+        <div class="grid h-full place-items-center">
+          <span class="pill pill-outline transition-colors group-enabled:group-hover:border-ink group-enabled:group-hover:bg-ink group-enabled:group-hover:text-ground">
+            {launchLabel(busy(), missing(), frontDoor())}
+          </span>
         </div>
-        <div class="flex gap-2">
-          <dt>Last opened</dt>
-          <dd>
-            <Show when={props.project.last_opened_at} fallback={<span class="numeric">Never</span>}>
-              {(at) => (
-                <time class="numeric" datetime={at()}>
-                  {when(at())}
-                </time>
-              )}
-            </Show>
-          </dd>
+        <Show when={missing()}>
+          <span class="badge tint-caution absolute top-2.5 left-2.5">missing</span>
+        </Show>
+      </button>
+
+      <div class="flex min-w-0 flex-col gap-1">
+        <h2 class="truncate font-medium text-ink">{props.project.name}</h2>
+        <p class="truncate font-mono text-2xs text-ink-faint" title={props.project.path}>
+          {props.project.path}
+        </p>
+
+        {/* One line, three facts, no labels: "detected" and "opened" are the labels. */}
+        <p class="flex flex-wrap items-center gap-x-3 text-xs text-ink-faint">
+          <time
+            datetime={props.project.detected_at}
+            title={absoluteTime(props.project.detected_at)}
+          >
+            detected {relativeTime(props.project.detected_at)}
+          </time>
+          <Show when={props.project.last_opened_at}>
+            {(at) => (
+              <time datetime={at()} title={absoluteTime(at())}>
+                opened {relativeTime(at())}
+              </time>
+            )}
+          </Show>
+          <Show when={ORIGIN_NOTE[props.project.origin]}>{(what) => <span>{what()}</span>}</Show>
+        </p>
+
+        <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+          <button
+            type="button"
+            class="text-ink-muted underline decoration-line underline-offset-4 hover:text-ink disabled:no-underline disabled:hover:text-ink-muted"
+            onClick={() => void reveal()}
+            disabled={busy() || paused()}
+            title={paused() ? PAUSED_REASON : undefined}
+          >
+            Open folder
+          </button>
+          <PromptLink project={props.project} prompts={props.prompts} onChanged={props.onChanged} />
         </div>
-      </dl>
 
-      <Show when={missing()}>
-        <p class="banner tint-caution">{MISSING_EXPLANATION}</p>
-      </Show>
+        <Show when={missing()}>
+          <p class="banner tint-caution mt-1 text-xs">{MISSING_EXPLANATION}</p>
+        </Show>
 
-      <div class="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          class="pill pill-ink"
-          onClick={() => void launch()}
-          disabled={busy() || paused() || missing() || !frontDoor()}
-          title={launchReason()}
-        >
-          Launch
-        </button>
-        <button
-          type="button"
-          class="pill pill-outline"
-          onClick={() => void reveal()}
-          disabled={busy() || paused()}
-          title={paused() ? PAUSED_REASON : undefined}
-        >
-          Open folder
-        </button>
+        <Show when={note()}>
+          {(message) => (
+            <p role="status" class="mt-1 text-xs text-ink-muted">
+              {message()}
+            </p>
+          )}
+        </Show>
       </div>
-
-      <Show when={note()}>
-        {(message) => (
-          <p role="status" class="text-xs text-ink-muted">
-            {message()}
-          </p>
-        )}
-      </Show>
-
-      <PromptLink project={props.project} prompts={props.prompts} onChanged={props.onChanged} />
     </article>
   );
 }
 
-function when(iso: string): string {
-  const at = new Date(iso);
-  return Number.isNaN(at.getTime()) ? iso : WHEN.format(at);
+function launchLabel(busy: boolean, missing: boolean, frontDoor: boolean): string {
+  if (missing) return "Folder missing";
+  if (!frontDoor) return "No page to launch";
+  return busy ? "Opening…" : "Launch ↗";
 }

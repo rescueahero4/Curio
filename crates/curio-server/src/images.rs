@@ -40,6 +40,14 @@ pub const THUMBNAIL_QUALITY: u8 = 82;
 /// Vision payload quality. Higher, because this is the copy the model reads type from.
 pub const VISION_QUALITY: u8 = 88;
 
+/// The item page's copy: wide enough to be sharp at 1:1 on a retina display at the column
+/// width that page uses, and **uncropped**.
+pub const DETAIL_MAX_WIDTH: u32 = 1600;
+
+/// Detail quality. The highest of the three: this is the image a person studies, and the
+/// whole point of the library is that they can.
+pub const DETAIL_QUALITY: u8 = 90;
+
 /// A tall capture is cropped to this multiple of its width before scaling.
 ///
 /// Past roughly four screenfuls the extra height is footer and repeated sections; keeping
@@ -109,6 +117,40 @@ pub fn thumbnail(original: &[u8], viewport_aspect: Option<f64>) -> Encoded {
     };
 
     encode(&scaled, THUMBNAIL_QUALITY).unwrap_or_else(|| Encoded::passthrough(original.to_vec()))
+}
+
+/// Build the item page's copy: the **whole** capture, scaled to fit [`DETAIL_MAX_WIDTH`].
+///
+/// This is the derivative the thumbnail is not. The grid needs a fold crop — a card showing
+/// a 20,000-pixel stitch is a grey smear — but the item page has one image and that image is
+/// the subject, so nothing here is cropped. Serving the thumbnail there instead was the bug
+/// this exists to fix: a full-page capture arrived as a 640 px fold crop, which is both the
+/// wrong part of the page and too few pixels to study.
+///
+/// A capture already narrower than the cap is passed through untouched. Re-encoding a small
+/// PNG as JPEG would spend quality to make the file *bigger*, and the file route's fallback
+/// serves the original in its place.
+#[must_use]
+pub fn detail(original: &[u8]) -> Encoded {
+    let Some(image) = decode(original) else {
+        return Encoded::passthrough(original.to_vec());
+    };
+
+    if image.width() <= DETAIL_MAX_WIDTH {
+        return Encoded::passthrough(original.to_vec());
+    }
+
+    let height = scale_height(image.width(), image.height(), DETAIL_MAX_WIDTH);
+    // `CatmullRom`, not `Lanczos3` as the other two use. They work on small images — a
+    // cropped fold, a 1568 px payload — where the filter's cost is irrelevant. This one
+    // rescales the *whole* stitch, tens of megapixels, where the cheaper filter is worth
+    // having and buys away nothing visible at a downscale ratio under 2×.
+    //
+    // It is not the reason this runs in the background, though: decoding and re-encoding an
+    // image this size costs seconds on its own, whatever the filter. See the caller.
+    let scaled = image.resize_exact(DETAIL_MAX_WIDTH, height, FilterType::CatmullRom);
+
+    encode(&scaled, DETAIL_QUALITY).unwrap_or_else(|| Encoded::passthrough(original.to_vec()))
 }
 
 /// Build the copy the vision model sees: crop very tall captures, then fit within 1568 px.
@@ -238,6 +280,28 @@ mod tests {
         assert_eq!(width, THUMBNAIL_WIDTH);
         assert_eq!(height, THUMBNAIL_WIDTH / 2, "one viewport tall, scaled");
         assert!(thumb.processed);
+    }
+
+    #[test]
+    fn a_detail_copy_keeps_the_whole_capture() {
+        // The bug in one assertion: the item page must not receive a fold crop. A
+        // 1200×9000 stitch stays 7.5 screenfuls tall, scaled but never cut.
+        let full = detail(&png(2400, 18_000));
+        let (width, height) = dimensions(&full);
+
+        assert_eq!(width, DETAIL_MAX_WIDTH);
+        assert_eq!(height, 12_000, "aspect preserved, nothing cropped");
+        assert!(full.processed);
+    }
+
+    #[test]
+    fn a_capture_narrower_than_the_cap_is_passed_through() {
+        // Re-encoding it would spend quality to produce a larger file, and the file route
+        // serves the original screenshot in its place.
+        let small = detail(&png(1200, 800));
+
+        assert!(!small.processed);
+        assert_eq!(small.media_type, "image/png");
     }
 
     #[test]
