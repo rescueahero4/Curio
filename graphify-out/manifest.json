@@ -165,8 +165,8 @@
     "semantic_hash": ""
   },
   "crates/curio-core/src/lib.rs": {
-    "mtime": 1785551895.3112319,
-    "ast_hash": "8f2a6f6c58c765ff7ecc6a78b585a953",
+    "mtime": 1785600410.8404107,
+    "ast_hash": "12d258f79207555e398759a680f34a10",
     "semantic_hash": ""
   },
   "crates/curio-core/src/paths.rs": {
@@ -240,8 +240,8 @@
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/mod.rs": {
-    "mtime": 1785565599.2809026,
-    "ast_hash": "2f5ffaf4091379b5fb35869e9d369a59",
+    "mtime": 1785601377.5405076,
+    "ast_hash": "dd0b9551f23e7681a0e72cd69e0919a3",
     "semantic_hash": ""
   },
   "crates/curio-server/src/security/mod.rs": {
@@ -255,8 +255,8 @@
     "semantic_hash": ""
   },
   "crates/curio-server/src/spa.rs": {
-    "mtime": 1785515862.5873346,
-    "ast_hash": "8f9ff581efefd09daeb34e1d329627ef",
+    "mtime": 1785600674.9486015,
+    "ast_hash": "afdb19142dfd82b32fa0cd09adf2de44",
     "semantic_hash": ""
   },
   "crates/curio-server/src/state.rs": {
@@ -480,8 +480,8 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1785592800.3120687,
-    "ast_hash": "70ba5c2263a0b422e883060128107406",
+    "mtime": 1785596892.5454247,
+    "ast_hash": "cb69262520bed8e059c7176c1103a122",
     "semantic_hash": ""
   },
   "SECURITY.md": {
@@ -525,18 +525,18 @@
     "semantic_hash": ""
   },
   "crates/curio-core/src/prompt/mod.rs": {
-    "mtime": 1785590474.4712262,
-    "ast_hash": "9203e7c7b5bf9ba37ad706ab75154d9a",
+    "mtime": 1785598151.2614906,
+    "ast_hash": "d75a0cfc0267363949c45f525d11a181",
     "semantic_hash": ""
   },
   "crates/curio-core/src/prompt/serialize.rs": {
-    "mtime": 1785591493.6077926,
-    "ast_hash": "a44aa8c417750ed6213aca8cbc71a297",
+    "mtime": 1785600968.1483927,
+    "ast_hash": "aa867b4cf2173da9f187d97f504ac68a",
     "semantic_hash": ""
   },
   "crates/curio-core/src/prompt/template.rs": {
-    "mtime": 1785592529.1694622,
-    "ast_hash": "a97662ba92cb5012a2420d9f23679241",
+    "mtime": 1785601031.7652297,
+    "ast_hash": "eb24c5b55bfd106b35243468104a1fd5",
     "semantic_hash": ""
   },
   "crates/curio-core/src/query.rs": {
@@ -555,8 +555,8 @@
     "semantic_hash": ""
   },
   "crates/curio-db/src/items/list.rs": {
-    "mtime": 1785565575.5603154,
-    "ast_hash": "e727019126b4e4deedfea3c940396438",
+    "mtime": 1785600968.1742618,
+    "ast_hash": "6f20e0aaab91db264fbcf53cb57853ab",
     "semantic_hash": ""
   },
   "crates/curio-db/src/items/mod.rs": {
@@ -580,8 +580,8 @@
     "semantic_hash": ""
   },
   "crates/curio-db/src/prompts.rs": {
-    "mtime": 1785591646.2231383,
-    "ast_hash": "cf5542e21764964a3c8119b818dd495e",
+    "mtime": 1785600968.1847515,
+    "ast_hash": "0b2f69272453b48e0287ecd52652dfa8",
     "semantic_hash": ""
   },
   "crates/curio-db/src/sidecars.rs": {
@@ -650,8 +650,8 @@
     "semantic_hash": ""
   },
   "web/spa/src/lib/types.ts": {
-    "mtime": 1785594381.7381387,
-    "ast_hash": "b5735fb0d2916cb0ff26aabebefcfbbb",
+    "mtime": 1785598437.5915432,
+    "ast_hash": "c3c7596d99e73501e4142b18b6e014dd",
     "semantic_hash": ""
   },
   "crates/curio-db/src/items/bulk.rs": {
@@ -680,18 +680,18 @@
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/api/projects.rs": {
-    "mtime": 1785535931.3358483,
-    "ast_hash": "5707a8546652c5429282c06636c07322",
+    "mtime": 1785600968.2301264,
+    "ast_hash": "8489f33578315c6693e433adce2a1354",
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/api/prompts.rs": {
-    "mtime": 1785592754.848801,
-    "ast_hash": "634f97fd763aedb9ab8454089286ce17",
+    "mtime": 1785600968.2321289,
+    "ast_hash": "29df29b65484858673dd9fa30062ce47",
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/api/settings.rs": {
-    "mtime": 1785594355.979535,
-    "ast_hash": "82349968244a06084a28106d1878841c",
+    "mtime": 1785601156.5646012,
+    "ast_hash": "8477127761b3af3621782d627e7021f2",
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/api/system.rs": {
@@ -720,8 +720,8 @@
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/files.rs": {
-    "mtime": 1785582283.150531,
-    "ast_hash": "c3f78758d94676022f15428d26099334",
+    "mtime": 1785601359.8121593,
+    "ast_hash": "406348b24123c86151cf6a43bf502fa1",
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/ws.rs": {
@@ -795,8 +795,8 @@
     "semantic_hash": ""
   },
   "web/spa/src/components/editor/sections.ts": {
-    "mtime": 1785591768.3676472,
-    "ast_hash": "c40d201eeff61de565684a29705c7d21",
+    "mtime": 1785598447.6017084,
+    "ast_hash": "b07929ce0d1a4f7efd0e04261832cb0f",
     "semantic_hash": ""
   },
   "web/spa/src/components/editor/slashTrigger.ts": {
@@ -860,8 +860,8 @@
     "semantic_hash": ""
   },
   "web/spa/src/components/library/Popover.tsx": {
-    "mtime": 1785594168.6963198,
-    "ast_hash": "c9456f0330408a755fd636a220b2bd38",
+    "mtime": 1785601420.5381582,
+    "ast_hash": "75e282a54d8185f66dd9766ebe7ed2cf",
     "semantic_hash": ""
   },
   "web/spa/src/components/library/autosave.ts": {
@@ -935,8 +935,8 @@
     "semantic_hash": ""
   },
   "web/spa/src/components/settings/McpSection.tsx": {
-    "mtime": 1785594904.9410253,
-    "ast_hash": "aec6b9bd26d5a404365d382b785acad5",
+    "mtime": 1785596884.301999,
+    "ast_hash": "9e5af94617c948005791be92c0ea83ac",
     "semantic_hash": ""
   },
   "web/spa/src/components/settings/ModelsSection.tsx": {
@@ -994,19 +994,14 @@
     "ast_hash": "23d7477ae861d2dd6eed863fbc988679",
     "semantic_hash": ""
   },
-  "web/spa/src/components/vocabulary/NewTerm.tsx": {
-    "mtime": 1785535932.2458296,
-    "ast_hash": "e7572c701c8c7ddef9363a98e1febf51",
-    "semantic_hash": ""
-  },
   "web/spa/src/components/vocabulary/VocabRow.tsx": {
     "mtime": 1785596104.0748048,
     "ast_hash": "fee934071bbaa70d2ee2e1b2f70a41ec",
     "semantic_hash": ""
   },
   "web/spa/src/components/vocabulary/VocabTable.tsx": {
-    "mtime": 1785596240.3230238,
-    "ast_hash": "8328d94f31814807693ddb911a5b2b15",
+    "mtime": 1785602072.622555,
+    "ast_hash": "e04eb7d55241a2f0a60ef9767a65d4dd",
     "semantic_hash": ""
   },
   "web/spa/src/routes/ItemDetail.tsx": {
@@ -1030,8 +1025,8 @@
     "semantic_hash": ""
   },
   "web/spa/src/routes/Vocabulary.tsx": {
-    "mtime": 1785596244.3100784,
-    "ast_hash": "22fd6186da08070894d5e5a7b2924e57",
+    "mtime": 1785599630.812843,
+    "ast_hash": "ad517dc36e36b9b489035dab09a684a4",
     "semantic_hash": ""
   },
   "crates/curio-tray/src/qos.rs": {
@@ -1090,8 +1085,8 @@
     "semantic_hash": ""
   },
   "crates/curio-mcp/src/server.rs": {
-    "mtime": 1785551895.3768203,
-    "ast_hash": "9b72482eba22dfe45be89db0e5ae81e3",
+    "mtime": 1785600852.355022,
+    "ast_hash": "44578251fd0b86482ae5d08dced66777",
     "semantic_hash": ""
   },
   "crates/curio-nmh/src/register.rs": {
@@ -1115,8 +1110,8 @@
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/mcp.rs": {
-    "mtime": 1785551895.5103357,
-    "ast_hash": "827e2883fd61b579b04a05a1913615a4",
+    "mtime": 1785600899.233026,
+    "ast_hash": "4b709418a4ee60fe3d89c7845399303f",
     "semantic_hash": ""
   },
   "crates/curio-server/src/worker/assess.rs": {
@@ -1230,8 +1225,8 @@
     "semantic_hash": ""
   },
   "web/spa/src/components/icons.tsx": {
-    "mtime": 1785594871.1532052,
-    "ast_hash": "e4cb03a8b33248dfd6614b8f0c571948",
+    "mtime": 1785599527.4361112,
+    "ast_hash": "bb82fa64899e2c5aa0632c2dbdf4d2b4",
     "semantic_hash": ""
   },
   "web/spa/src/components/library/ItemRow.tsx": {
@@ -1270,8 +1265,8 @@
     "semantic_hash": ""
   },
   "crates/curio-core/src/prompt/title.rs": {
-    "mtime": 1785591437.0504763,
-    "ast_hash": "d4c3a1458c679a27c830b4c3bae5f0a4",
+    "mtime": 1785600968.1523805,
+    "ast_hash": "69a9757290371373f6bdd2455f2f8223",
     "semantic_hash": ""
   },
   "web/spa/src/components/SavedBadge.tsx": {
@@ -1290,8 +1285,33 @@
     "semantic_hash": ""
   },
   "docs/prompt-template.md": {
-    "mtime": 1785596111.466277,
-    "ast_hash": "b05ec2eddfab022dcbe641de2b00d455",
+    "mtime": 1785600828.6501255,
+    "ast_hash": "2d24036b0c9626929ae8219cf00c85d8",
+    "semantic_hash": ""
+  },
+  "web/spa/src/components/vocabulary/AddTerm.tsx": {
+    "mtime": 1785601264.4977615,
+    "ast_hash": "acca35cc0521fcbd30cc550006925a99",
+    "semantic_hash": ""
+  },
+  "crates/curio-core/src/variants.rs": {
+    "mtime": 1785600968.15738,
+    "ast_hash": "331e14524e96b6576ab341f2e4544961",
+    "semantic_hash": ""
+  },
+  "crates/curio-server/assets/variant-switcher.js": {
+    "mtime": 1785600731.4314797,
+    "ast_hash": "fe498d3ad6c0e7c36c26314b9ff162a4",
+    "semantic_hash": ""
+  },
+  "crates/curio-server/src/routes/switcher.rs": {
+    "mtime": 1785601387.8249004,
+    "ast_hash": "e0fb83e5e0a7c789c50421446df9cf9e",
+    "semantic_hash": ""
+  },
+  "crates/curio-server/tests/variant_switcher.rs": {
+    "mtime": 1785601657.7475185,
+    "ast_hash": "b1c9b9723a56f585a983f01488273af5",
     "semantic_hash": ""
   }
 }
