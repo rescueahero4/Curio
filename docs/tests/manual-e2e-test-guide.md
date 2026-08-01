@@ -116,6 +116,14 @@ When it's ready, your web browser should open automatically at Curio's dashboard
 **Leave this terminal window alone from now on.** Curio is running inside it. Closing it, or
 pressing `Ctrl+C` in it, stops Curio.
 
+> 💡 **The terminal window staying open, printing lines like `listening on 127.0.0.1`, is
+> correct — please don't report it.** You are running a developer build, and that window is
+> where it writes its log. The version a user would install shows no terminal at all.
+>
+> If one of those lines says **`reclaiming a stale runtime.json from a previous run`**, that
+> only means the previous Curio was killed rather than quit from the tray. It fixes itself;
+> carry on.
+
 ### 1.5 Open a second terminal
 
 You'll need one for the remaining commands. Open a new terminal window and `cd` into the

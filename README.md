@@ -110,6 +110,32 @@ app is not running.
 **To quit:** use the tray icon's Quit item, which runs the full shutdown sequence — worker,
 then listener, then WAL checkpoint, then the token is destroyed.
 
+### The console window is a debug-build feature, not a bug
+
+A debug build opens a terminal window alongside the tray icon, printing lines like:
+
+```
+INFO curio_server: library opened schema=4
+INFO curio_server: listening on 127.0.0.1 port=51693
+```
+
+That window **is** the log output, which is the point of a debug build. A release build sets
+the Windows GUI subsystem and shows no console at all (R-DEL-9) — so if you want the
+experience a user would get:
+
+```sh
+cargo build --release --bin curio
+```
+
+Then run `target/release/curio.exe` (macOS: `target/release/curio`) directly. It is also
+about six times smaller, because the release profile optimises for size and strips symbols.
+
+One log line is worth recognising: **`reclaiming a stale runtime.json from a previous run`**
+means the last instance did not shut down cleanly — usually because it was killed rather
+than quit from the tray. It is self-healing and safe to ignore; Curio holds the
+single-instance lock, so any `runtime.json` it finds must belong to a dead process. Seeing
+it after every clean Quit would be a real problem.
+
 ## 4. Add an Anthropic API key — optional, enables assessment
 
 Without a key, captures still land and stay browsable. They sit at "Queued — needs an API
