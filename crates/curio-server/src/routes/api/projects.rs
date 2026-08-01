@@ -67,6 +67,29 @@ pub struct RegisterBody {
     pub path: String,
     pub name: Option<String>,
     pub prompt_id: Option<String>,
+    /// Optional descriptions of the version folders inside `path`, written to
+    /// `curio-variants.json`. Present so REST reaches exactly what MCP reaches and no less
+    /// (R-MCP-13) — the MCP tool is a mapping onto this surface, not a wider one.
+    #[serde(default)]
+    pub variants: Option<Vec<curio_core::variants::ManifestEntry>>,
+}
+
+/// Write the variant manifest and say what happened, in a shape both callers report verbatim.
+///
+/// Never fails the registration it is part of. The project record is the thing the user asked
+/// for; a manifest that could not be written is worth reporting and not worth undoing a
+/// registration over.
+pub fn write_variants(
+    root: &std::path::Path,
+    entries: Vec<curio_core::variants::ManifestEntry>,
+) -> serde_json::Value {
+    match curio_core::variants::write_manifest(root, entries) {
+        Ok(report) => serde_json::json!({
+            "written": report.written,
+            "skipped": report.skipped,
+        }),
+        Err(err) => serde_json::json!({ "written": 0, "error": err.to_string() }),
+    }
 }
 
 /// `POST /api/projects` — register a folder by hand (FR-17's manual path).
@@ -101,6 +124,13 @@ pub async fn register(
             body.prompt_id.as_deref(),
         )
     })?;
+
+    // Only when asked. A bare registration writes nothing into the folder, which is what
+    // keeps identity-on-adoption honest (Inventory §10.17) — this file is content the caller
+    // authored, not a marker Curio minted.
+    if let Some(entries) = body.variants {
+        let _ = write_variants(path, entries);
+    }
 
     publish(
         &state,
@@ -156,7 +186,7 @@ pub async fn open(
         )));
     }
 
-    let entry = resolve_entry(std::path::Path::new(&project.path));
+    let entry = curio_core::variants::front_door(std::path::Path::new(&project.path));
     state.with_db(|db| projects::mark_opened(db.conn(), &project.id))?;
 
     Ok(Json(Opened {
@@ -166,40 +196,128 @@ pub async fn open(
     }))
 }
 
-/// Where a project's front door is (R-BE-22).
+/// One version of a project, as the switcher needs it.
+#[derive(Debug, Serialize)]
+pub struct VariantView {
+    /// The folder name; empty for a project whose `index.html` is at the root.
+    pub slug: String,
+    pub entry: String,
+    /// Where to send the browser. Through the jail, for the reason [`Opened::url`] gives.
+    pub url: String,
+    /// The manifest's name for this direction, or the folder name when nobody said.
+    pub name: String,
+    /// Whether that name came from the manifest or is just the folder repeated back. The
+    /// switcher uses this to decide whether it is showing labels or filenames.
+    pub described: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub summary: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub family: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub design_type: Option<String>,
+    pub tags: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct Variants {
+    pub variants: Vec<VariantView>,
+    /// `ok`, `absent`, or `malformed` — the user has to be able to tell a missing manifest
+    /// from one with a typo in it, because only the second is theirs to fix.
+    pub manifest_status: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub manifest_error: Option<String>,
+    /// Folders the manifest describes that are not on disk. Reported rather than dropped: a
+    /// silently ignored entry looks like Curio lost the label.
+    pub unknown_folders: Vec<String>,
+}
+
+/// `GET /api/projects/:id/variants` — every version of a project, oldest first.
 ///
-/// Root `index.html`, else the **newest numeric subfolder** containing one, else a listing.
-/// The numeric rule exists because AI tools commonly write `v1/`, `v2/`, `v3/` and the user
-/// means the latest — opening `v1` because it sorts first would show them their oldest
-/// attempt every time.
-fn resolve_entry(root: &std::path::Path) -> String {
-    if root.join("index.html").is_file() {
-        return "index.html".to_owned();
+/// The order is the opposite end from [`open`], which takes the newest. Both are deliberate
+/// and both are asserted in `curio_core::variants`, where the two rules sit together.
+///
+/// The manifest may only ever *enrich* what is on disk. A folder that exists is listed even
+/// when nothing describes it, and a manifest entry naming a folder that does not exist cannot
+/// conjure one — otherwise a stale file would offer the user a link to a 404.
+pub async fn variants(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+) -> ApiResult<Json<Variants>> {
+    let project = state.with_db(|db| projects::require(db.conn(), &id))?;
+    let root = std::path::Path::new(&project.path);
+
+    // The same answer `open` gives, for the same reason. Two routes that disagree about
+    // whether a project is on disk is a bug the user would experience as a phantom.
+    if !root.is_dir() {
+        state.with_db(|db| projects::mark_missing(db.conn(), &project.id))?;
+        return Err(ApiError(curio_core::Error::invalid(
+            "that folder is no longer on disk",
+        )));
     }
 
-    let mut versions: Vec<(u64, String)> = std::fs::read_dir(root)
+    let found = curio_core::variants::scan(root);
+    let (manifest, manifest_status, manifest_error) =
+        match curio_core::variants::read_manifest(root) {
+            curio_core::variants::ManifestOutcome::Ok(manifest) => (Some(manifest), "ok", None),
+            curio_core::variants::ManifestOutcome::Absent => (None, "absent", None),
+            // Still answer with every folder. A switcher that disappeared over a trailing comma
+            // would be a worse bug than the trailing comma.
+            curio_core::variants::ManifestOutcome::Malformed(reason) => {
+                (None, "malformed", Some(reason))
+            }
+        };
+
+    let described = manifest
+        .map(|manifest| manifest.variants)
+        .unwrap_or_default();
+    let unknown_folders = described
+        .iter()
+        .filter(|entry| !found.iter().any(|variant| variant.slug == entry.folder))
+        .map(|entry| entry.folder.clone())
+        .collect();
+
+    let variants = found
         .into_iter()
-        .flatten()
-        .flatten()
-        .filter(|entry| entry.path().is_dir())
-        .filter(|entry| entry.path().join("index.html").is_file())
-        .filter_map(|entry| {
-            let name = entry.file_name().to_string_lossy().into_owned();
-            // `v3` and `3` both count; anything else is a folder that happens to hold an
-            // index.html, which is not the same as a version of the project.
-            let digits: String = name.chars().filter(char::is_ascii_digit).collect();
-            let looks_numeric = !digits.is_empty()
-                && name
-                    .chars()
-                    .all(|c| c.is_ascii_digit() || c.eq_ignore_ascii_case(&'v'));
-            looks_numeric.then(|| digits.parse().ok().map(|number| (number, name)))?
+        .map(|variant| {
+            let entry = described
+                .iter()
+                .find(|candidate| candidate.folder == variant.slug);
+            let name = entry
+                .and_then(|entry| entry.name.clone())
+                .filter(|name| !name.trim().is_empty());
+
+            VariantView {
+                url: format!("/p/{}/{}", project.id, variant.entry),
+                name: name
+                    .clone()
+                    .unwrap_or_else(|| fallback_name(&variant.slug, &project.name)),
+                described: name.is_some(),
+                summary: entry.and_then(|entry| entry.summary.clone()),
+                family: entry.and_then(|entry| entry.family.clone()),
+                design_type: entry.and_then(|entry| entry.design_type.clone()),
+                tags: entry.map(|entry| entry.tags.clone()).unwrap_or_default(),
+                slug: variant.slug,
+                entry: variant.entry,
+            }
         })
         .collect();
 
-    versions.sort_unstable();
-    versions
-        .pop()
-        .map_or_else(String::new, |(_, name)| format!("{name}/index.html"))
+    Ok(Json(Variants {
+        variants,
+        manifest_status,
+        manifest_error,
+        unknown_folders,
+    }))
+}
+
+/// What to call a version nobody named: the folder, or the project itself when the folder is
+/// the project — a root `index.html` has no slug to show, and "" is not a label.
+fn fallback_name(slug: &str, project_name: &str) -> String {
+    if slug.is_empty() {
+        project_name.to_owned()
+    } else {
+        slug.to_owned()
+    }
 }
 
 fn known_status(project: &Project) -> ProjectStatus {
@@ -217,51 +335,49 @@ fn publish(state: &AppState, name: EventName, project: &Project) {
 mod tests {
     use super::*;
 
-    fn tree(folders: &[&str], files: &[&str]) -> tempfile::TempDir {
+    // The front-door rules moved to `curio_core::variants` with their tests, so that one
+    // module owns both orderings. What is left here is the naming this route adds on top.
+
+    #[test]
+    fn an_unnamed_version_falls_back_to_its_folder() {
+        assert_eq!(fallback_name("v2", "curio-test-flow"), "v2");
+    }
+
+    #[test]
+    fn a_root_index_borrows_the_project_name_because_it_has_no_folder() {
+        // Its slug is "", and an empty string is not a label a user can click.
+        assert_eq!(fallback_name("", "curio-test-flow"), "curio-test-flow");
+    }
+
+    #[test]
+    fn a_registration_only_writes_the_manifest_when_it_was_asked_to() {
+        // The assertion that protects "Curio does not write into a folder it did not adopt".
+        // Both callers guard on `variants` being present; this is the shape they report when
+        // it is, and the proof that the folder is otherwise left alone.
         let dir = tempfile::tempdir().expect("tempdir");
-        for folder in folders {
-            std::fs::create_dir_all(dir.path().join(folder)).expect("mkdir");
-        }
-        for file in files {
-            std::fs::write(dir.path().join(file), "<h1>hi</h1>").expect("write");
-        }
-        dir
-    }
+        std::fs::create_dir_all(dir.path().join("v1")).expect("mkdir");
+        std::fs::write(dir.path().join("v1").join("index.html"), "<h1>hi</h1>").expect("write");
 
-    #[test]
-    fn a_root_index_is_the_front_door() {
-        let dir = tree(&[], &["index.html"]);
-        assert_eq!(resolve_entry(dir.path()), "index.html");
-    }
+        let manifest = dir.path().join(curio_core::variants::MANIFEST_FILE_NAME);
+        assert!(!manifest.exists(), "nothing has asked for a manifest yet");
 
-    #[test]
-    fn the_newest_numeric_folder_wins() {
-        // AI tools write v1, v2, v3 and the user means the latest. Sorting as text would
-        // put v10 before v2 and show them the wrong one as soon as they got to double
-        // digits.
-        let dir = tree(
-            &["v1", "v2", "v10"],
-            &["v1/index.html", "v2/index.html", "v10/index.html"],
+        let report = write_variants(
+            dir.path(),
+            vec![
+                curio_core::variants::ManifestEntry {
+                    folder: "v1".to_owned(),
+                    name: Some("Print-tech".to_owned()),
+                    ..curio_core::variants::ManifestEntry::default()
+                },
+                curio_core::variants::ManifestEntry {
+                    folder: "v9".to_owned(),
+                    ..curio_core::variants::ManifestEntry::default()
+                },
+            ],
         );
-        assert_eq!(resolve_entry(dir.path()), "v10/index.html");
-    }
 
-    #[test]
-    fn a_root_index_beats_a_versioned_one() {
-        let dir = tree(&["v2"], &["index.html", "v2/index.html"]);
-        assert_eq!(resolve_entry(dir.path()), "index.html");
-    }
-
-    #[test]
-    fn a_non_numeric_folder_is_not_a_version() {
-        // `docs/index.html` is documentation, not a version of the project.
-        let dir = tree(&["docs"], &["docs/index.html"]);
-        assert_eq!(resolve_entry(dir.path()), "");
-    }
-
-    #[test]
-    fn a_project_with_nothing_to_open_says_so_rather_than_guessing() {
-        let dir = tree(&["src"], &["src/main.rs"]);
-        assert_eq!(resolve_entry(dir.path()), "");
+        assert!(manifest.exists());
+        assert_eq!(report["written"], 1);
+        assert_eq!(report["skipped"][0], "v9");
     }
 }

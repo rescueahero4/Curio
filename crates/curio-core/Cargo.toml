@@ -18,3 +18,9 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 time = { workspace = true }
 ulid = { workspace = true }
+
+# Only the variants module's tests, which need real folders on disk: the version-picking
+# rules are about what `read_dir` actually returns, and a mocked filesystem would assert the
+# mock rather than the rule.
+[dev-dependencies]
+tempfile = "3.27.0"

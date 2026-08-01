@@ -350,8 +350,29 @@ impl curio_mcp::Library for ServerLibrary {
             self.state
                 .publish(Event::new(EventName::ProjectUpdated, payload));
         }
-        Ok(serde_json::to_value(&project)?)
+
+        let mut answer = serde_json::to_value(&project)?;
+        // Absent `variants` writes nothing. That is what keeps "Curio does not write into a
+        // folder it did not adopt" true: the file appears only when the agent that made the
+        // folder explicitly asks for it, and it carries no identity — just the names it
+        // chose for its own directions.
+        if let Some(entries) = manifest_entries(arguments) {
+            let report = crate::routes::api::projects::write_variants(&path, entries);
+            if let Ok(object) = answer.as_object_mut().ok_or(()) {
+                object.insert("variants".to_owned(), report);
+            }
+        }
+        Ok(answer)
     }
+}
+
+/// The `variants` argument, if the agent sent one.
+///
+/// A malformed array is dropped rather than refused: the registration is the point, and
+/// failing it over a mistyped label would cost the agent the project as well as the names.
+fn manifest_entries(arguments: &Value) -> Option<Vec<curio_core::variants::ManifestEntry>> {
+    let raw = arguments.get("variants")?;
+    serde_json::from_value(raw.clone()).ok()
 }
 
 /// Names to ids, dropping what the library does not have.

@@ -35,7 +35,9 @@ use rust_embed::Embed;
 struct Assets;
 
 /// Path prefixes the SPA fallback must never answer for.
-const NEVER_FALL_BACK: &[&str] = &["/api", "/files", "/p", "/mcp", "/ws", "/health", "/assets"];
+const NEVER_FALL_BACK: &[&str] = &[
+    "/api", "/files", "/p", "/mcp", "/ws", "/health", "/assets", "/__curio",
+];
 
 /// Whether `path` should 404 rather than receive the SPA shell.
 ///
@@ -124,6 +126,10 @@ mod tests {
             "/files/items/01A/screenshot.png",
             "/p/01B/index.html",
             "/health",
+            // The switcher script. Handing the shell to a `<script src>` inside someone's
+            // prototype puts a syntax error in *their* console, about a file they never
+            // asked for.
+            "/__curio/variant-switcher.js",
         ] {
             assert!(is_reserved(path), "{path}");
         }

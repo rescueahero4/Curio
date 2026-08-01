@@ -79,14 +79,19 @@ pub async fn project_file(
     }
 
     if target.is_dir() {
+        let entry = if rest.is_empty() {
+            "index.html".to_owned()
+        } else {
+            format!("{}/index.html", rest.trim_end_matches('/'))
+        };
         return match std::fs::read(target.join("index.html")) {
-            Ok(bytes) => serve_bytes(Path::new("index.html"), bytes),
+            Ok(bytes) => serve_project_bytes(Path::new("index.html"), bytes, &id, &entry),
             Err(_) => (StatusCode::NOT_FOUND, "no index.html in that folder").into_response(),
         };
     }
 
     match std::fs::read(&target) {
-        Ok(bytes) => serve_bytes(&target, bytes),
+        Ok(bytes) => serve_project_bytes(&target, bytes, &id, requested),
         Err(_) => StatusCode::NOT_FOUND.into_response(),
     }
 }
@@ -157,6 +162,15 @@ fn is_refused(jail: &Path, target: &Path) -> bool {
             _ => None,
         })
         .any(curio_core::paths::is_refused_project_file)
+}
+
+/// A project file, with the variant switcher appended if it is a page.
+///
+/// Separate from [`serve_bytes`] so that item media — a screenshot, a sidecar — can never be
+/// rewritten by a rule written for project pages. What gets appended, and when, is
+/// [`super::switcher::inject`].
+fn serve_project_bytes(path: &Path, bytes: Vec<u8>, id: &str, entry: &str) -> Response {
+    serve_bytes(path, super::switcher::inject(path, bytes, id, entry))
 }
 
 fn serve_bytes(path: &Path, bytes: Vec<u8>) -> Response {

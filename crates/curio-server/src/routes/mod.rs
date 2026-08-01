@@ -25,6 +25,7 @@ pub mod events;
 pub mod files;
 pub mod health;
 pub mod mcp;
+pub mod switcher;
 pub mod ws;
 
 use axum::Router;
@@ -118,11 +119,16 @@ fn read_routes(state: &AppState) -> Router<AppState> {
         .route("/api/prompts", get(api::prompts::list))
         .route("/api/prompts/{id}", get(api::prompts::get))
         .route("/api/projects", get(api::projects::list))
+        .route("/api/projects/{id}/variants", get(api::projects::variants))
         .route("/api/bulk/dedupe/latest", get(api::bulk::dedupe_latest))
         .route("/api/jobs", get(api::system::list_jobs))
         .route("/api/jobs/{id}", get(api::system::get_job))
         .route("/api/settings", get(api::settings::get))
         .route("/files/items/{id}/{file}", get(files::item_file))
+        // Outside `/p/` on purpose. Served from inside the jail, a project folder that
+        // happened to hold a file of the same name would shadow it — and the one thing this
+        // script must be is the same script on every project.
+        .route("/__curio/variant-switcher.js", get(switcher::script))
         .route("/p/{id}", get(project_root))
         .route("/p/{id}/{*rest}", get(files::project_file))
         .layer(from_fn_with_state(state.clone(), guard::authenticate))
@@ -249,6 +255,31 @@ mod tests {
     async fn the_library_needs_one() {
         assert_eq!(get("/api/items", None).await, StatusCode::UNAUTHORIZED);
         assert_eq!(get("/api/items", Some("yes")).await, StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn the_variant_switcher_is_served_and_is_not_public() {
+        // It is a sub-resource of a page that already carried a credential, so it sits with
+        // the reads rather than beside `/health` — a script that anyone can fetch is a
+        // wider surface than it needs to be for no gain.
+        assert_eq!(
+            get("/__curio/variant-switcher.js", Some("yes")).await,
+            StatusCode::OK
+        );
+        assert_eq!(
+            get("/__curio/variant-switcher.js", None).await,
+            StatusCode::UNAUTHORIZED
+        );
+    }
+
+    #[tokio::test]
+    async fn a_typo_under_the_curio_prefix_is_a_404_not_the_dashboard() {
+        // The shell arriving where JavaScript was asked for puts a syntax error in the
+        // console of the *user's* prototype, three layers from the cause.
+        assert_eq!(
+            get("/__curio/nothing-here.js", Some("yes")).await,
+            StatusCode::NOT_FOUND
+        );
     }
 
     #[tokio::test]

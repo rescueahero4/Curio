@@ -88,6 +88,51 @@ Do NOT generate or source any imagery, for each section where you need to put an
 ### Output
 
 ```text
-Create 3 versions of this page, each in its own folder (v1/ … v3/), one per direction in Design Direction. Same intent and guardrails for all three. Do NOT blend directions — each version commits fully to its own aesthetic.
+Create 3 versions of this page, each in its own folder (v1/ … v3/), one per direction in Design Direction. Same intent and guardrails for all three. Do NOT blend directions — each version commits fully to its own aesthetic. Name each direction, and record those names with their aesthetic family, design type and tags in curio-variants.json at the project root, so the versions can be told apart by something other than a folder number.
 ```
+
+## The variant manifest
+
+`v1/`, `v2/` and `v3/` tell a user nothing about what is inside them. When Curio serves a
+project it overlays a bar for moving between the versions, and this file is where that bar
+gets its labels — the same thing an agent usually writes into a README table, in a shape
+Curio can read.
+
+It is `curio-variants.json` at the **project root**, beside the version folders. Not a
+dotfile: the names in it are authored content a user reads on screen and corrects when a
+model gets one wrong, and a file that is hidden in Explorer is a file nobody can fix.
+
+```json
+{
+  "version": 1,
+  "variants": [
+    {
+      "folder": "v1",
+      "name": "Print-tech",
+      "summary": "Pale sage ground, muted coral accent, Archivo + IBM Plex Mono.",
+      "family": "Editorial Print",
+      "design_type": "Landing page",
+      "tags": ["risograph", "monospace"]
+    }
+  ]
+}
+```
+
+Only `folder` is required, and it must match the directory name exactly. `family`,
+`design_type` and `tags` read best when they name terms the library already has — an agent
+with an MCP connection should call `library_list_vocabulary` first; one without can take them
+from the prompt's own chips.
+
+Rules Curio applies when reading it, all of which favour showing something over showing
+nothing:
+
+- The manifest may only ever **enrich** what is on disk. A folder that exists is listed even
+  when nothing describes it, and an entry naming a folder that does not exist cannot conjure
+  one — a stale file must not offer a link to a 404.
+- Unknown keys are ignored rather than rejected, so a helpful extra field costs nothing.
+- A file that will not parse is reported in the bar and the versions are still listed. Losing
+  navigation to a trailing comma would be worse than the trailing comma.
+
+**Curio never writes this file itself.** An agent writes it directly, or asks Curio to by
+passing `variants` to the `project_register` MCP tool — which writes exactly this shape.
 

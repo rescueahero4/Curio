@@ -109,7 +109,10 @@ pub const SECTIONS: [Section; 7] = [
         heading: "Output",
         body: "Create 3 versions of this page, each in its own folder (v1/ … v3/), one per \
                direction in Design Direction. Same intent and guardrails for all three. Do NOT \
-               blend directions — each version commits fully to its own aesthetic.",
+               blend directions — each version commits fully to its own aesthetic. Name each \
+               direction, and record those names with their aesthetic family, design type and \
+               tags in curio-variants.json at the project root, so the versions can be told \
+               apart by something other than a folder number.",
     },
 ];
 

@@ -34,6 +34,7 @@ pub mod prompt;
 pub mod query;
 pub mod sidecar;
 pub mod time;
+pub mod variants;
 
 pub use error::{Error, Result};
 

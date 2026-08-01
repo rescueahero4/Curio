@@ -76,7 +76,9 @@ fn describe(name: &str) -> &'static str {
         }
         "project_register" => {
             "Register a directory as a Curio project so it appears in the Projects list and \
-             can be served and linked to a prompt."
+             can be served and linked to a prompt. Pass `variants` when the directory holds \
+             several versions of one design; it writes curio-variants.json so Curio can offer \
+             a switcher between them."
         }
         _ => "",
     }
@@ -137,7 +139,24 @@ fn schema_for(name: &str) -> serde_json::Map<String, serde_json::Value> {
             "type": "object",
             "properties": {
                 "path": { "type": "string", "description": "Absolute path to an existing directory." },
-                "name": { "type": "string" }
+                "name": { "type": "string" },
+                "variants": {
+                    "type": "array",
+                    "description": "Optional. One entry per version folder, e.g. the v1/ v2/ v3/ a multi-direction brief asks for. Writes curio-variants.json at the project root; omit it and no file is written.",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "folder": { "type": "string", "description": "The subfolder name, exactly as on disk, e.g. \"v1\"." },
+                            "name": { "type": "string", "description": "A short name for the direction, e.g. \"Print-tech\"." },
+                            "summary": { "type": "string", "description": "One line on what makes this direction different." },
+                            "family": { "type": "string", "description": "Aesthetic family. Use a name from library_list_vocabulary where one fits." },
+                            "design_type": { "type": "string" },
+                            "tags": { "type": "array", "items": { "type": "string" } }
+                        },
+                        "required": ["folder"],
+                        "additionalProperties": false
+                    }
+                }
             },
             "required": ["path"],
             "additionalProperties": false
