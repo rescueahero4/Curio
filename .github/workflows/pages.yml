@@ -1,22 +1,18 @@
-# The project site — https://rescueahero4.github.io/Curio/
+# The landing page — https://rescueahero4.github.io/Curio/
 #
 # Deliberately separate from ci.yml. R-DEL-6 makes one gate script the sole definition of
-# "green" and forbids CI restating its steps; a documentation deploy is not a gate, and
-# folding it into `cargo gate` would mean every Rust PR waits on an Astro build while a
-# broken site could block a merge that has nothing to do with it.
-#
-# The site is built from `docs/` by web/site/scripts/sync-docs.mjs, so a PR that changes a
-# contract document republishes it on merge with no second edit anywhere.
+# "green" and forbids CI restating its steps; publishing a marketing page is not a gate,
+# and folding it into `cargo gate` would mean every Rust PR waits on an Astro build while
+# a broken page could block a merge that has nothing to do with it.
 
 name: Pages
 
 on:
   push:
     branches: [master]
-    # A Rust-only change cannot alter the site, and Pages deploys are serialised.
+    # Only the site's own sources can change it — it no longer republishes `docs/`.
     paths:
       - "web/site/**"
-      - "docs/**"
       - ".github/workflows/pages.yml"
   # So the site can be republished without an empty commit.
   workflow_dispatch:
