@@ -1,0 +1,221 @@
+---
+/**
+ * The shell for the site's prose pages — Privacy and Terms.
+ *
+ * These are not part of the Figma frame: the design covers the landing page only. They
+ * reuse its tokens, wordmark and hairline frame so they read as the same site, but set
+ * their own measure, because a legal document is read top to bottom and a 1116px line
+ * length is not readable prose.
+ */
+import "@fontsource/inria-serif/400.css";
+import "@fontsource/ibm-plex-sans/400.css";
+import "@fontsource/ibm-plex-sans/700.css";
+import "../styles/base.css";
+
+import birdIcon from "../assets/icons/bird.svg?raw";
+
+interface Props {
+	title: string;
+	description: string;
+	/** ISO date. Rendered for humans and carried in <time datetime> for machines. */
+	updated: string;
+}
+
+const { title, description, updated } = Astro.props;
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+const REPO = "https://github.com/rescueahero4/Curio";
+
+const updatedLabel = new Date(`${updated}T00:00:00Z`).toLocaleDateString("en-GB", {
+	day: "numeric",
+	month: "long",
+	year: "numeric",
+	timeZone: "UTC",
+});
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{`${title} — Curio`}</title>
+		<meta name="description" content={description} />
+		<link rel="icon" href={`${BASE}/favicon.svg`} type="image/svg+xml" />
+		<meta property="og:title" content={`${title} — Curio`} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+	</head>
+
+	<body>
+		<div class="frame">
+			<header class="masthead">
+				<a class="lockup" href={`${BASE}/`}>
+					<span class="lockup__bird" set:html={birdIcon} />
+					<span class="lockup__word">Curio</span>
+				</a>
+			</header>
+
+			<main class="prose">
+				<h1>{title}</h1>
+				<p class="updated">Last updated <time datetime={updated}>{updatedLabel}</time></p>
+				<slot />
+			</main>
+
+			<footer class="footer">
+				<a href={`${BASE}/`}>Home</a>
+				<a href={`${BASE}/privacy/`}>Privacy</a>
+				<a href={`${BASE}/terms/`}>Terms of Use</a>
+				<a href={REPO}>GitHub</a>
+			</footer>
+		</div>
+	</body>
+</html>
+
+<style is:global>
+	/* The mark is injected with set:html, so it never receives Astro's scope hash and a
+	   scoped rule would not reach it. See the same note in index.astro. */
+	.lockup__bird > svg {
+		width: 34px;
+		height: 31px;
+		/* The export stores the path unrotated; without this the crow is upside down. */
+		transform: rotate(180deg);
+	}
+</style>
+
+<style>
+	.frame {
+		max-width: var(--frame);
+		margin-inline: auto;
+		padding-inline: var(--pad-inline);
+		padding-bottom: 96px;
+	}
+
+	.masthead {
+		padding-top: 48px;
+	}
+
+	.lockup {
+		position: relative;
+		display: inline-block;
+		padding-top: 16px;
+		margin-left: -6px;
+		text-decoration: none;
+	}
+
+	.lockup__bird {
+		position: absolute;
+		top: 0;
+		left: 0;
+		display: block;
+	}
+
+	.lockup__word {
+		display: block;
+		font-family: "Inria Serif", Georgia, serif;
+		font-size: 48px;
+		line-height: 1;
+	}
+
+	/*
+	 * A measure, not the design's full content width. Legal text is read in long runs, and
+	 * 70-ish characters is where that stays comfortable.
+	 */
+	.prose {
+		max-width: 68ch;
+		margin-top: 40px;
+		font-size: var(--type-body);
+		line-height: 1.6;
+	}
+
+	.prose :global(h1) {
+		font-size: var(--type-h1);
+		font-weight: 400;
+		line-height: 1.25;
+		margin: 0;
+	}
+
+	.updated {
+		margin: 8px 0 0;
+		color: var(--muted);
+		font-size: 14px;
+	}
+
+	.prose :global(h2) {
+		font-size: 18px;
+		font-weight: 700;
+		line-height: 1.3;
+		margin: 40px 0 0;
+	}
+
+	.prose :global(h3) {
+		font-size: 16px;
+		font-weight: 700;
+		margin: 24px 0 0;
+	}
+
+	.prose :global(p),
+	.prose :global(ul),
+	.prose :global(ol) {
+		margin: 12px 0 0;
+	}
+
+	.prose :global(ul),
+	.prose :global(ol) {
+		padding-left: 22px;
+	}
+
+	.prose :global(li) {
+		margin-top: 6px;
+	}
+
+	.prose :global(a) {
+		text-decoration: underline;
+		text-underline-position: from-font;
+	}
+
+	.prose :global(code) {
+		font-family: "IBM Plex Mono", ui-monospace, monospace;
+		font-size: 0.92em;
+		background: var(--field);
+		border-radius: 4px;
+		padding: 1px 5px;
+	}
+
+	/* Used for the one-paragraph summary at the top of each document. */
+	.prose :global(.lede) {
+		font-size: var(--type-lede);
+		line-height: 1.5;
+		margin-top: 24px;
+	}
+
+	.prose :global(table) {
+		width: 100%;
+		border-collapse: collapse;
+		margin-top: 16px;
+		display: block;
+		overflow-x: auto;
+	}
+
+	.prose :global(th),
+	.prose :global(td) {
+		border: 1px solid var(--ink);
+		padding: 8px 10px;
+		text-align: left;
+		vertical-align: top;
+	}
+
+	.prose :global(th) {
+		font-weight: 700;
+	}
+
+	.footer {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 20px;
+		margin-top: 64px;
+		padding-top: 20px;
+		border-top: 1px solid var(--ink);
+		font-size: 14px;
+	}
+</style>

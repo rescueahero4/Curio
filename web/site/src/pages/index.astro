@@ -14,6 +14,7 @@ import "@fontsource/inria-serif/400.css";
 import "@fontsource/ibm-plex-sans/400.css";
 import "@fontsource/ibm-plex-sans/700.css";
 import "@fontsource/ibm-plex-mono/500.css";
+import "../styles/base.css";
 
 import Showcase from "../components/Showcase.astro";
 
@@ -155,62 +156,24 @@ const description =
 
 				<Showcase />
 			</main>
+
+			{/*
+				Not in the Figma frame, which has no footer. Added because a privacy policy that
+				nothing links to is only findable by whoever already has the URL — and the Chrome
+				Web Store listing points at it, so reviewers and users both arrive looking.
+			*/}
+			<footer class="footer">
+				<a href={`${BASE}/privacy/`}>Privacy</a>
+				<a href={`${BASE}/terms/`}>Terms of Use</a>
+				<a href={REPO}>GitHub</a>
+			</footer>
 		</div>
 	</body>
 </html>
 
 <style is:global>
-	:root {
-		/* Straight from the design: white paper, black rule, one grey for solid buttons,
-		   one for the clone field. */
-		--paper: #fff;
-		--ink: #000;
-		--solid: #3f3f3f;
-		--fork-ink: #282828;
-		--field: #ebebeb;
-
-		/* The frame is 1512 wide with a 197px content inset — 13.03% — held as a
-		   percentage so the proportion survives below the design width, and capped so it
-		   stops growing once the frame is centred. */
-		--frame: 1512px;
-		--pad-inline: clamp(20px, 13.03vw, 197px);
-
-		/* The design's sizes as their share of 1512, floored at a legible mobile size.
-		   28/1512 = 1.85vw, 18/1512 = 1.19vw. The 16px sizes do not scale: below that
-		   body copy stops being comfortable, and they are already at the floor. */
-		--type-word: clamp(52px, 4.76vw, 72px);
-		--type-h1: clamp(21px, 1.85vw, 28px);
-		--type-lede: clamp(16px, 1.19vw, 18px);
-		--type-feature: clamp(16px, 1.19vw, 18px);
-		--type-section: 16px;
-		--type-body: 16px;
-
-		/* Section label to its content: 768→778 under "See it in action". */
-		--gap-section: 10px;
-	}
-
-	* {
-		box-sizing: border-box;
-	}
-
-	html {
-		-webkit-text-size-adjust: 100%;
-	}
-
-	body {
-		margin: 0;
-		background: var(--paper);
-		color: var(--ink);
-		font-family: "IBM Plex Sans", system-ui, sans-serif;
-		font-weight: 400;
-		/* The design's only border treatment — a hairline black rule around the frame. */
-		border: 1px solid var(--ink);
-		min-height: 100vh;
-	}
-
-	a {
-		color: inherit;
-	}
+	/* Tokens, reset and body live in src/styles/base.css, imported above and shared with
+	   every other page. What stays here is what only this page draws. */
 
 	/* Every rule that targets an inlined <svg> lives in this global block, and must.
 	   Astro's scoped styles compile a child selector to `svg:where(.astro-hash)`, and markup
@@ -502,6 +465,18 @@ const description =
 
 	:global(.showcase) {
 		margin-top: 48px;
+	}
+
+	/* ---- footer ---- */
+
+	.footer {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 20px;
+		margin-top: 64px;
+		padding-top: 20px;
+		border-top: 1px solid var(--ink);
+		font-size: 14px;
 	}
 
 	@media (max-width: 560px) {

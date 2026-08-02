@@ -1,0 +1,178 @@
+---
+/**
+ * The privacy policy. This URL is what the Chrome Web Store listing points at, so it has to
+ * stay reachable at /privacy/ — changing the path breaks a published store listing.
+ *
+ * Every factual claim here is checked against the code rather than the marketing copy:
+ *   - what the extension captures    web/extension/src/capture/pipeline.ts
+ *   - what it stores                 web/extension/src/shared/storage.ts
+ *   - where it may talk              web/extension/manifest.json (host_permissions)
+ *   - what reaches Anthropic         crates/curio-server/src/worker/assess.rs
+ *   - where the key lives            crates/curio-server/src/secrets.rs
+ * If one of those changes, this page changes in the same PR.
+ */
+import Prose from "../layouts/Prose.astro";
+---
+
+<Prose
+	title="Privacy Policy"
+	description="What Curio and the Curio Capture browser extension collect, where it is stored, and the single case in which anything leaves your machine."
+	updated="2026-08-02"
+>
+	<p class="lede">
+		Curio is a local-first application. It has no accounts, no servers we operate, and no
+		analytics. Everything you capture is stored on your own computer. The one case in which
+		data leaves your machine is described in <a href="#ai">Assessment by Anthropic</a>, and it
+		happens only if you choose to supply your own API key.
+	</p>
+
+	<h2>Who this covers</h2>
+	<p>
+		This policy covers the <strong>Curio</strong> desktop application and the{" "}
+		<strong>Curio Capture</strong> browser extension. They are one product: the extension
+		captures pages and hands them to the application running on the same computer.
+	</p>
+
+	<h2>What the extension collects</h2>
+	<p>
+		Only when you actively capture a page — by clicking the extension's button. Nothing is
+		collected in the background, and the extension does not read pages you have not asked it
+		to capture.
+	</p>
+	<table>
+		<thead>
+			<tr><th>Data</th><th>Why</th></tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>A screenshot of the page (PNG)</td>
+				<td>It is the design reference you are saving.</td>
+			</tr>
+			<tr>
+				<td>The page address</td>
+				<td>So you can return to the original later, and so duplicates are recognised.</td>
+			</tr>
+			<tr>
+				<td>The page title</td>
+				<td>Used as the capture's default name, which you can change.</td>
+			</tr>
+			<tr>
+				<td>The viewport width and height</td>
+				<td>Needed to stitch a full-page capture from several frames.</td>
+			</tr>
+		</tbody>
+	</table>
+	<p>
+		The extension does not collect browsing history, form contents, passwords, cookies, or
+		any personal identifiers, and it has no access to pages other than the one being captured.
+	</p>
+
+	<h2>What the extension stores</h2>
+	<p>
+		Three values, in the browser's local extension storage: the <code>port</code> the local
+		application is listening on, the per-run <code>token</code> used to authenticate to it, and
+		whether it is currently accepting captures. Nothing else persists, and none of it describes
+		you or your browsing.
+	</p>
+	<p>Removing the extension deletes that storage.</p>
+
+	<h2>Where captures go</h2>
+	<p>
+		To the Curio application on the same computer, over the loopback interface. The extension
+		is only permitted to contact <code>127.0.0.1</code> and <code>localhost</code> — that
+		restriction is declared in its manifest and enforced by the browser, so it is not able to
+		send a capture to any other destination. It also uses the browser's native-messaging
+		channel to ask a small local helper which port the application is on.
+	</p>
+	<p>Captures are written to your own disk:</p>
+	<ul>
+		<li>Windows — <code>%USERPROFILE%\Curio</code></li>
+		<li>macOS — <code>~/Curio</code></li>
+	</ul>
+	<p>
+		That folder holds the SQLite database, the screenshots and the prompts. It is yours: no
+		copy of it is made anywhere else.
+	</p>
+
+	<h2 id="ai">Assessment by Anthropic</h2>
+	<p>
+		This is the only case in which anything leaves your computer, and it is off unless you turn
+		it on.
+	</p>
+	<p>
+		If you supply an Anthropic API key, Curio asks Anthropic's vision model to describe each
+		capture so it can be searched and organised. For each capture it sends, to{" "}
+		<code>api.anthropic.com</code>:
+	</p>
+	<ul>
+		<li>the screenshot, resized;</li>
+		<li>the address the capture came from;</li>
+		<li>your own vocabulary terms and rubric, so descriptions use your words.</li>
+	</ul>
+	<p>
+		The request is made from your computer, with your key, against your own Anthropic account.
+		Anthropic's handling of it is governed by{" "}
+		<a href="https://www.anthropic.com/legal/privacy" rel="noreferrer">Anthropic's privacy policy</a>{" "}
+		and the terms of your account with them, not by this policy.
+	</p>
+	<p>
+		<strong>Without a key, nothing is sent.</strong> Captures still work and stay browsable;
+		they simply wait, and are described only if you add a key later.
+	</p>
+
+	<h2>Your API key</h2>
+	<p>
+		Stored in your operating system's credential store — DPAPI on Windows, Keychain on macOS.
+		It is never written to the database, the configuration file, or the logs, and it is never
+		transmitted anywhere except to Anthropic as part of a request you triggered.
+	</p>
+
+	<h2>No telemetry</h2>
+	<p>
+		Curio makes no network calls except the model calls described above. There is no analytics,
+		no crash reporting, no update check, and no usage measurement of any kind. We do not
+		operate a server that your copy of Curio talks to, so there is nothing for us to collect
+		even in principle.
+	</p>
+	<p>
+		This is a fixed property of the product rather than a current setting: introducing any
+		phone-home would require a major version change and a recorded decision in the project's
+		public architecture register.
+	</p>
+
+	<h2>We do not sell or share your data</h2>
+	<p>
+		We do not sell your data, share it with third parties, transfer it for advertising, or use
+		it to build profiles. We never receive it in the first place.
+	</p>
+
+	<h2>Deleting your data</h2>
+	<p>
+		Delete individual captures inside the application, or delete the data folder above to
+		remove everything at once. Uninstalling Curio removes the application, its browser
+		integration and its run-state file, and <strong>deliberately leaves your library in
+		place</strong> — deleting a library is your decision, never a side effect of removing
+		software. Remove the folder yourself if that is what you want.
+	</p>
+
+	<h2>Children</h2>
+	<p>
+		Curio is a tool for design work and is not directed at children. It collects nothing from
+		anyone, of any age, beyond what is described above.
+	</p>
+
+	<h2>Changes to this policy</h2>
+	<p>
+		Any change is published on this page with a new date above. Because the site is part of the
+		public repository, every past version of this document remains readable in its history.
+	</p>
+
+	<h2>Contact</h2>
+	<p>
+		Questions about this policy: <a href="mailto:rescueahero@gmail.com">rescueahero@gmail.com</a>.
+		Security issues should go through{" "}
+		<a href="https://github.com/rescueahero4/Curio/security/advisories/new" rel="noreferrer"
+			>private vulnerability reporting</a
+		> rather than a public issue.
+	</p>
+</Prose>
