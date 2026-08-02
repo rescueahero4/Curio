@@ -1,0 +1,25 @@
+{
+  "name": "curio-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Curio project site. Astro + Starlight, deployed to GitHub Pages. Never shipped in the binary.",
+  "scripts": {
+    "sync": "node scripts/sync-docs.mjs",
+    "dev": "npm run sync && astro dev",
+    "build": "npm run sync && astro build",
+    "preview": "astro preview",
+    "typecheck": "npm run sync && astro check",
+    "gate": "npm run typecheck && astro build"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.41.6",
+    "astro": "^7.1.6",
+    "astro-mermaid": "^2.1.0",
+    "mermaid": "^11.13.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "typescript": "^5.9.0"
+  }
+}

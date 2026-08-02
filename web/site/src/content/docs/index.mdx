@@ -1,0 +1,53 @@
+---
+title: Curio
+description: A local-first personal design inspiration library for AI-assisted design work. Everything runs on your machine.
+template: splash
+hero:
+  tagline: A local-first design inspiration library for AI-assisted work. Capture references, let a vision model describe them in your own vocabulary, and compose prompts from it — on your machine, with no telemetry.
+  image:
+    file: ../../assets/curio-mark.svg
+  actions:
+    - text: What Curio is
+      link: guides/what-curio-is/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/rescueahero4/Curio
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components";
+
+:::note[Status: pre-release]
+E0–E9 are complete — the app runs, captures, assesses, and answers MCP. E10 (packaging)
+has not started, so there is no installer yet and Curio is run from source. Epic-by-epic
+status lives in [the PRD](product/prd-01-foundations/).
+:::
+
+<CardGrid stagger>
+	<Card title="One process" icon="laptop">
+		A tray app, a loopback HTTP server, and SQLite in a single binary. The tray owns the
+		main thread; everything real runs on one service thread.
+	</Card>
+	<Card title="One database file" icon="document">
+		`library.db` in your data root is the whole backup story. No services to install,
+		no container to run — SQLite is compiled in.
+	</Card>
+	<Card title="One origin" icon="approve-check">
+		The app serves its own UI at `http://127.0.0.1:<ephemeral port>`. No CORS, no
+		bundled webview, no second server to keep alive.
+	</Card>
+	<Card title="No telemetry" icon="warning">
+		No analytics, no crash reporting, no update ping. The only network calls are the AI
+		model calls you trigger with your own key.
+	</Card>
+</CardGrid>
+
+## Read the contracts
+
+The architecture documents are contract-level: they state interfaces, invariants and
+budgets, and code must conform to their numbered rules. Code review cites rule IDs, and
+changing a rule requires a PR that bumps the document's version.
+
+Start at [ARCH-00 Architecture Overview](architecture/00-architecture-overview/), which
+maps every domain to its owning document.

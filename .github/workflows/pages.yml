@@ -1,0 +1,72 @@
+# The project site — https://rescueahero4.github.io/Curio/
+#
+# Deliberately separate from ci.yml. R-DEL-6 makes one gate script the sole definition of
+# "green" and forbids CI restating its steps; a documentation deploy is not a gate, and
+# folding it into `cargo gate` would mean every Rust PR waits on an Astro build while a
+# broken site could block a merge that has nothing to do with it.
+#
+# The site is built from `docs/` by web/site/scripts/sync-docs.mjs, so a PR that changes a
+# contract document republishes it on merge with no second edit anywhere.
+
+name: Pages
+
+on:
+  push:
+    branches: [master]
+    # A Rust-only change cannot alter the site, and Pages deploys are serialised.
+    paths:
+      - "web/site/**"
+      - "docs/**"
+      - ".github/workflows/pages.yml"
+  # So the site can be republished without an empty commit.
+  workflow_dispatch:
+
+# GITHUB_TOKEN needs `pages: write` to publish and `id-token: write` for the OIDC token
+# deploy-pages exchanges with the Pages service. Read-only elsewhere.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time, and never cancel one mid-flight: an interrupted deploy can leave
+# the live site on a half-uploaded artifact.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/site/package-lock.json
+
+      - name: Install
+        run: npm --prefix web/site ci
+
+      # Injects the base path Pages serves from. Without this the build hardcodes
+      # whatever is in astro.config.mjs, which is right today and wrong the moment a
+      # custom domain is added.
+      - uses: actions/configure-pages@v5
+
+      - name: Build
+        run: npm --prefix web/site run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

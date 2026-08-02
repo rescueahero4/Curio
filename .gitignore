@@ -20,7 +20,15 @@ curio.lock
 node_modules/
 web/spa/dist/
 web/extension/dist/
+web/site/dist/
+web/site/.astro/
 *.tsbuildinfo
+
+# Site pages copied from docs/ by web/site/scripts/sync-docs.mjs on every build.
+# docs/ is the source of truth (R-DEL-18); committing the copies would let the two
+# drift, which is the failure that rule exists to prevent.
+web/site/src/content/docs/architecture/
+web/site/src/content/docs/product/
 
 # Local databases and captures — never test against a real library in-tree.
 *.db
@@ -32,6 +40,7 @@ web/extension/dist/
 Thumbs.db
 
 # graphify: regenerable AST extraction cache
+graphify-out
 graphify-out/cache/
 
 # standard 

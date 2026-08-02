@@ -294,11 +294,16 @@ step-by-step guide written to need no technical background.
 | `crates/xtask` | The gate script and measurement tooling. |
 | `web/spa` | SolidJS + Vite + Tailwind 4 dashboard. |
 | `web/extension` | MV3 capture extension, plain TypeScript. |
+| `web/site` | The public project site (Astro + Starlight). Deployed to GitHub Pages; never shipped in the binary. |
 | `packaging/` | macOS `.app`, Windows installer, MCPB bundle. |
 | `docs/architecture` | ARCH-00..08 — the contract these crates implement. |
 | `docs/tests` | Manual test guides. |
 
 ## Documentation
+
+Everything below is also published at **https://rescueahero4.github.io/Curio/**, built from
+this same `docs/` tree — the site holds no documentation of its own, so there is one copy
+to keep right.
 
 The architecture documents are **contract-level**: they state interfaces, invariants and
 budgets, and code must conform to their numbered rules. Start at
