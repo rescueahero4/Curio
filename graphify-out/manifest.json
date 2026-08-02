@@ -5,53 +5,53 @@
     "semantic_hash": ""
   },
   "docs/architecture/00-architecture-overview.md": {
-    "mtime": 1785551895.64262,
-    "ast_hash": "a9490d5efdeb4c87e94ce57712676d84",
+    "mtime": 1785643002.924188,
+    "ast_hash": "a6376f46357d8f27346cd275c76f1dd0",
     "semantic_hash": ""
   },
   "docs/architecture/01-backend-architecture.md": {
-    "mtime": 1785551895.651876,
-    "ast_hash": "40a1708dd8f96e03121d7f6d99c45bf7",
+    "mtime": 1785643002.924188,
+    "ast_hash": "777ef2b44e27f44ec9764a19f8c98259",
     "semantic_hash": ""
   },
   "docs/architecture/02-data-architecture.md": {
-    "mtime": 1785463149.2884927,
-    "ast_hash": "26df53aeaf2497e18d93b7c725ad6582",
+    "mtime": 1785643002.9274116,
+    "ast_hash": "44fd3763e41c32c3ebfa788e5774a05f",
     "semantic_hash": ""
   },
   "docs/architecture/03-frontend-architecture.md": {
-    "mtime": 1785566089.8622644,
-    "ast_hash": "5a06e850bdb4796caa92226413b177db",
+    "mtime": 1785643002.929672,
+    "ast_hash": "ecbd2cb1f90eb8abc5fbe17d77b875a1",
     "semantic_hash": ""
   },
   "docs/architecture/04-extension-architecture.md": {
-    "mtime": 1785432757.6310222,
-    "ast_hash": "9a83cc6389d1a08eea5d8263fcae4003",
+    "mtime": 1785643002.9309685,
+    "ast_hash": "6edc177b9bc40371693d48bb1c3c5fb6",
     "semantic_hash": ""
   },
   "docs/architecture/05-mcp-architecture.md": {
-    "mtime": 1785538516.708179,
-    "ast_hash": "9ff4a1830d564e554e19824e21bca1f1",
+    "mtime": 1785643002.9327729,
+    "ast_hash": "2ef1c8cfc04161a104d875969a521e35",
     "semantic_hash": ""
   },
   "docs/architecture/06-security-architecture.md": {
-    "mtime": 1785538516.7201793,
-    "ast_hash": "9e31328edf3f79040d4d6981bda638c5",
+    "mtime": 1785643002.9327729,
+    "ast_hash": "6c374af9a29d6147e91680b6944f995b",
     "semantic_hash": ""
   },
   "docs/architecture/07-delivery-open-source.md": {
-    "mtime": 1785538516.7326958,
-    "ast_hash": "031fc6f6939bda3315e9c9d5c070cfd1",
+    "mtime": 1785643002.9343305,
+    "ast_hash": "c1205fd27aad63b4fd3ebdd48bf6a198",
     "semantic_hash": ""
   },
   "docs/architecture/08-parity-matrix.md": {
-    "mtime": 1785463150.9683123,
-    "ast_hash": "305de9a04acf035d1584326c9a670928",
+    "mtime": 1785643006.584575,
+    "ast_hash": "f71bcbd1c2660b8d2e1e4282e2d36814",
     "semantic_hash": ""
   },
   "docs/architecture/TEMPLATE.md": {
-    "mtime": 1785432760.1259809,
-    "ast_hash": "2931b802110d13ab49b1074b5747f31e",
+    "mtime": 1785643002.9363432,
+    "ast_hash": "53183bfa6c326f516273fabb6398e6f8",
     "semantic_hash": ""
   },
   "docs/architecture/appendix-parity-inventory.md": {
@@ -135,8 +135,8 @@
     "semantic_hash": ""
   },
   "crates/curio-core/src/domain/mod.rs": {
-    "mtime": 1785535931.0297425,
-    "ast_hash": "def8b23a487b30bc9ada7db1a107267d",
+    "mtime": 1785642894.727039,
+    "ast_hash": "a1c395c38a438a48f83e6b39fc750c10",
     "semantic_hash": ""
   },
   "crates/curio-core/src/domain/project.rs": {
@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "crates/curio-core/src/paths.rs": {
-    "mtime": 1785515862.3679388,
-    "ast_hash": "05759fda04f06a26d3d368d07bb928c4",
+    "mtime": 1785642896.902459,
+    "ast_hash": "605b7006cfe11bfb45d2388fadff7d9e",
     "semantic_hash": ""
   },
   "crates/curio-core/src/ports.rs": {
@@ -540,8 +540,8 @@
     "semantic_hash": ""
   },
   "crates/curio-core/src/query.rs": {
-    "mtime": 1785535931.13124,
-    "ast_hash": "7f6cfda297665e00ed5935aceed3b595",
+    "mtime": 1785642899.7469625,
+    "ast_hash": "6e24659fe3b962022fd5903269d0d2ba",
     "semantic_hash": ""
   },
   "crates/curio-core/src/sidecar.rs": {
@@ -585,8 +585,8 @@
     "semantic_hash": ""
   },
   "crates/curio-db/src/sidecars.rs": {
-    "mtime": 1785535931.2579615,
-    "ast_hash": "49825b7f63c15e9d014fbbf3c7a0396f",
+    "mtime": 1785642905.0701153,
+    "ast_hash": "8cd5bd7730bea1dfec282f41c8be69d8",
     "semantic_hash": ""
   },
   "crates/curio-db/src/vocabulary/merge.rs": {
@@ -630,8 +630,8 @@
     "semantic_hash": ""
   },
   "web/spa/src/lib/api.ts": {
-    "mtime": 1785633636.015561,
-    "ast_hash": "937e0388810f6f9a0c18c709b60288d2",
+    "mtime": 1785642944.7321894,
+    "ast_hash": "1e13c6d2fe460caa4620431db0df7982",
     "semantic_hash": ""
   },
   "web/spa/src/lib/http.ts": {
@@ -645,8 +645,8 @@
     "semantic_hash": ""
   },
   "web/spa/src/lib/stores.ts": {
-    "mtime": 1785535932.4070654,
-    "ast_hash": "d461b28a3cb00182ad5deadf518bd80c",
+    "mtime": 1785642953.2343426,
+    "ast_hash": "e8196bb4f48a9d147b6c23d1b442aa77",
     "semantic_hash": ""
   },
   "web/spa/src/lib/types.ts": {
@@ -1145,8 +1145,8 @@
     "semantic_hash": ""
   },
   "web/extension/src/capture/injected.ts": {
-    "mtime": 1785551895.6932697,
-    "ast_hash": "b838bd65b72583fc8e96e35a392aa48e",
+    "mtime": 1785642958.7099738,
+    "ast_hash": "3dd7fa0a336083fbcdf686c532ed1cac",
     "semantic_hash": ""
   },
   "web/extension/src/worker/connection.ts": {
@@ -1280,8 +1280,8 @@
     "semantic_hash": ""
   },
   "web/spa/src/components/vocabulary/sort.ts": {
-    "mtime": 1785595880.6487088,
-    "ast_hash": "d63c9157042f01dc2d71a124139e6404",
+    "mtime": 1785642956.9421158,
+    "ast_hash": "9bbe999c4257c1606b8caaf2caee1613",
     "semantic_hash": ""
   },
   "docs/prompt-template.md": {
