@@ -85,7 +85,7 @@ flowchart TD
   4. SPA: typecheck + lint + production build
   5. Extension: typecheck + build
   6. `cargo-deny check licenses advisories` (license allowlist = MIT-compatible; advisories include the rmcp ≥ 1.4.0 floor, [ARCH-05](05-mcp-architecture.md) R-MCP-14)
-  7. File-length check: any source file > 500 lines fails; 400–500 lines passes only with a justification recorded in the PR
+  7. File-length check: any **code** file > 650 lines fails; 500–650 lines passes only with a justification recorded in the PR. Ceiling raised from 500 and stylesheets removed from the check by D35 (2026-08-02) — the raise was expedient and is recorded as such; the stylesheet exemption is principled, because the rule measures control flow a reviewer must trace and a flat declaration list has none
   8. Dependency-direction check: R-DEL-2's rules asserted on `cargo tree` (e.g. only `curio-db` sees SQL)
 - **R-DEL-7** — **Footprint budget as a tracked report, not a hard gate.** Release CI MUST produce and archive: binary size (`cargo bloat` summary), and — on runners where measurable — idle private RSS of the shell. Numbers are compared against the §8 strategy budget (≤ 25 MB RSS with tray; ≤ 12 MB empty shell from D0). Regressions block release by human decision, not by script, because CI runners measure memory noisily.
 
