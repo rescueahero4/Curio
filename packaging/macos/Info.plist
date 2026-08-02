@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Curio's bundle metadata (R-DEL-8).
+
+  __VERSION__ is substituted by bundle.sh from the one workspace version (R-DEL-12), so this
+  file never carries a version number that can disagree with the binary's `--version` or
+  /health.
+
+  LSUIElement is the load-bearing key: it makes Curio an agent app — menu-bar icon, no Dock
+  tile, no application menu. Without it a tray-only app still claims a Dock slot and looks
+  like it failed to open a window.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key>
+  <string>Curio</string>
+  <key>CFBundleDisplayName</key>
+  <string>Curio</string>
+  <key>CFBundleIdentifier</key>
+  <string>com.curio.app</string>
+  <key>CFBundleExecutable</key>
+  <string>curio</string>
+  <key>CFBundleIconFile</key>
+  <string>curio</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleShortVersionString</key>
+  <string>__VERSION__</string>
+  <key>CFBundleVersion</key>
+  <string>__VERSION__</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+
+  <!-- Agent app: menu-bar only, no Dock tile (R-DEL-8). -->
+  <key>LSUIElement</key>
+  <true/>
+
+  <key>LSMinimumSystemVersion</key>
+  <string>11.0</string>
+  <key>NSHighResolutionCapable</key>
+  <true/>
+  <key>NSHumanReadableCopyright</key>
+  <string>MIT — Rob Bags</string>
+
+  <!--
+    No telemetry, and nothing here should ever suggest otherwise (R-DEL-16). The app makes
+    no network calls except the user's own AI API calls, all of them to a host the user
+    configured. There is deliberately no NSAppTransportSecurity exception list: loopback is
+    exempt from ATS already, and a blanket arbitrary-loads key would be a standing
+    permission this app does not need.
+  -->
+</dict>
+</plist>

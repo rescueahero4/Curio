@@ -2,8 +2,8 @@
 id: ARCH-07
 title: Delivery & Open Source
 status: draft
-version: 1.3.0
-date: 2026-07-31
+version: 1.4.0
+date: 2026-08-02
 project: curio
 supersedes: []
 depends_on: [ARCH-00]
@@ -15,7 +15,7 @@ source_of_truth:
 parity_reference: "Curiol (Bun/React implementation) + its PRD FR-1..FR-27"
 ---
 
-> TL;DR: curio ships as one cargo workspace with six crates, a SolidJS SPA and an MV3 extension, built by a single gate script that CI and developers both run. Releases are signed installers for Windows and macOS plus an MCPB bundle, all stamped with one semver version. The project is MIT-licensed and open-sourced with the standard hygiene set — contributing guide, private security disclosure, no telemetry, no secrets in the repo. The D0 verification spike is release-0: nothing else starts until its four claims are checked.
+> TL;DR: curio ships as one cargo workspace with six crates, a SolidJS SPA and an MV3 extension, built by a single gate script that CI and developers both run. Releases are an NSIS installer for Windows and a universal `.dmg` for macOS plus an MCPB bundle, all stamped with one semver version, signed where a certificate exists and shipped unsigned with documented install steps where one does not (D34). The project is MIT-licensed and open-sourced with the standard hygiene set — contributing guide, private security disclosure, no telemetry, no secrets in the repo. The D0 verification spike is release-0: nothing else starts until its four claims are checked.
 
 ## At a glance
 
@@ -91,8 +91,9 @@ flowchart TD
 
 **Packaging & uninstall**
 
-- **R-DEL-8** — macOS: `.app` bundle, `LSUIElement = true`, signed and notarised. "Start at Login" uses `SMAppService.mainApp.register()` — the app is its own login item, no helper agent.
-- **R-DEL-9** — Windows: **NSIS or MSI installer, or both — MSIX is dropped** (D29, amended 2026-08-01). MSIX was the only format that sandboxed the two writes below, so removing it removes the question rather than answering it: neither NSIS nor MSI restricts an HKCU write. `#![windows_subsystem = "windows"]`; installer writes the native-messaging registry key (`HKCU\SOFTWARE\Google\Chrome\NativeMessagingHosts\<name>`) at install time. Autostart via Run key, toggled in-app.
+- **R-DEL-8** — macOS: `.app` bundle, `LSUIElement = true`, **signed and notarised when a Developer ID is available; ad-hoc signed and shipped with documented install steps when it is not** (D34, amended 2026-08-02). Apple gates both the certificate and the notarisation service behind a paid membership and offers no open-source exemption, so signing is a funding state, not an engineering one. The ad-hoc signature is not optional in either case: Apple Silicon refuses to execute an unsigned arm64 binary, and `lipo` strips the signatures of its inputs. "Start at Login" uses `SMAppService.mainApp.register()` — the app is its own login item, no helper agent.
+- **R-DEL-8a** — Release CI MUST NOT fail for want of a signing credential. The signing and notarisation steps are conditional on their secrets being present; absent them the pipeline produces an unsigned artifact and says so in the release notes. A release pipeline that cannot run until someone has paid a vendor has encoded a billing relationship as a build dependency.
+- **R-DEL-9** — Windows: **NSIS** (D34, chosen 2026-08-02 from the NSIS-or-MSI option D29 left open). Every write the installer makes is per-user — an HKCU value per browser, a Run key, a directory under `%LOCALAPPDATA%` — and MSI's per-machine default would ask for an elevation none of them needs. The installer MUST NOT reimplement registration: it invokes `curio-nmh --register`, which is already on disk and already owns that logic (R-EXT-20, R-OV-2). **MSIX is dropped** (D29, amended 2026-08-01). MSIX was the only format that sandboxed the two writes below, so removing it removes the question rather than answering it: neither NSIS nor MSI restricts an HKCU write. `#![windows_subsystem = "windows"]`; installer writes the native-messaging registry key (`HKCU\SOFTWARE\Google\Chrome\NativeMessagingHosts\<name>`) at install time. Autostart via Run key, toggled in-app.
 - **R-DEL-10** — MCPB bundle: `packaging/mcpb` holds the `manifest.json`; release CI runs `mcpb pack` against the platform binary to produce the Claude Desktop one-click artifact ([ARCH-05](05-mcp-architecture.md) R-MCP-7).
 - **R-DEL-11** — **Clean uninstall is a feature.** Uninstall MUST remove: the app bundle/exe, NM manifests (registry key on Windows, per-user manifest file on macOS), autostart registration, and `runtime.json`. User data (the data root: DB, screenshots, sidecars, prompts) MUST be left in place — deleting a library is the user's explicit act, never a side effect.
 

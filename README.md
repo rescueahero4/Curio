@@ -7,11 +7,37 @@ them in your own vocabulary, compose design prompts from that vocabulary, and ca
 the projects your AI tools produce. Everything runs on your machine: the browser is the
 screen, the tray is the switch, one SQLite file is the memory.
 
-> **Status: E0–E9 complete, E10 (packaging) not started.** The app runs, captures,
-> assesses, and answers MCP. There is no installer yet, so it is run from source — see
+> **Status: E0–E9 complete, E10 (packaging) in progress.** The app runs, captures,
+> assesses, and answers MCP. The release pipeline that builds the installers exists but has
+> not yet cut a tag, so for now it is run from source — see
 > [Running it in development](#running-it-in-development). Epic-by-epic status lives in
 > [the PRD](docs/PRD-01-Foundations.md); what lands when is in the
 > [phase plan](docs/architecture/07-delivery-open-source.md).
+
+## Install
+
+Once a release is tagged, installers are attached to it on the
+[Releases page](https://github.com/rescueahero4/Curio/releases).
+
+| Platform | File | What it does |
+|---|---|---|
+| Windows 10/11 | `curio-<version>-x86_64-setup.exe` | Per-user install, no admin prompt. Registers the browser helper. |
+| macOS 11+ | `curio-<version>-universal.dmg` | Universal (Intel + Apple Silicon). Drag to Applications. |
+
+### Both platforms will warn you about the download
+
+These builds are **not signed with a paid certificate**, so Windows SmartScreen and macOS
+Gatekeeper flag them. That is what an unsigned build looks like, not a sign that something
+is wrong with the file — and there is no free way around it on macOS, where Apple gates
+signing behind a $99/year membership with no open-source exemption
+([D34](docs/architecture/00-architecture-overview.md)).
+
+- **Windows** — "Windows protected your PC" → **More info** → **Run anyway**.
+- **macOS** — the app is blocked on first launch. **System Settings → Privacy & Security**,
+  scroll to the message about Curio, **Open Anyway**.
+
+If you would rather not take our word for it, everything here builds from source in two
+commands — that path is below, and it is the same one CI runs.
 
 ## Shape
 
@@ -294,16 +320,16 @@ step-by-step guide written to need no technical background.
 | `crates/xtask` | The gate script and measurement tooling. |
 | `web/spa` | SolidJS + Vite + Tailwind 4 dashboard. |
 | `web/extension` | MV3 capture extension, plain TypeScript. |
-| `web/site` | The public project site (Astro + Starlight). Deployed to GitHub Pages; never shipped in the binary. |
+| `web/site` | The public landing page (Astro). Deployed to GitHub Pages; never shipped in the binary. |
 | `packaging/` | macOS `.app`, Windows installer, MCPB bundle. |
 | `docs/architecture` | ARCH-00..08 — the contract these crates implement. |
 | `docs/tests` | Manual test guides. |
 
 ## Documentation
 
-Everything below is also published at **https://rescueahero4.github.io/Curio/**, built from
-this same `docs/` tree — the site holds no documentation of its own, so there is one copy
-to keep right.
+Documentation lives here in `docs/` and is read on GitHub — the landing page at
+**https://rescueahero4.github.io/Curio/** publishes none of it, so this tree is the only
+copy.
 
 The architecture documents are **contract-level**: they state interfaces, invariants and
 budgets, and code must conform to their numbered rules. Start at
