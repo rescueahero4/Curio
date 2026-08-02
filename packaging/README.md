@@ -100,7 +100,7 @@ cargo build --release
 mkdir stage && cp target/release/curio.exe target/release/curio-nmh.exe LICENSE stage/
 makensis -DAPP_VERSION=0.1.0 \
   "-DSRC_DIR=$(pwd -W | tr / \\\\)\\stage" \
-  "-DOUT_FILE=$(pwd -W | tr / \\\\)\\curio-setup.exe" \
+  "-DOUT_FILE=$(pwd -W | tr / \\\\)\\curio-windows-x64-setup.exe" \
   packaging/windows/curio.nsi
 
 # macOS — both arch dirs may be the same one for a single-arch test build
