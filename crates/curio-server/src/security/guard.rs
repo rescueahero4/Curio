@@ -37,6 +37,90 @@ pub enum Access {
     Mutation,
 }
 
+/// Headers a cross-origin caller may send (R-SEC-8, Inventory §1).
+///
+/// **`x-curio-quit-token` is absent, and must stay absent.** A browser refuses to send a
+/// header the preflight did not allow, so leaving it out is what stops a token-holding
+/// cross-origin client from reaching the kill switch. Adding it here would hand every
+/// paired client a way to stop the app — the exact escalation R-SEC-8 exists to prevent.
+const ALLOWED_REQUEST_HEADERS: &str = "authorization, content-type";
+
+/// Methods the API answers. Advisory to the browser; routing and `authenticate` remain the
+/// enforcement, so naming a method here grants nothing the router would otherwise refuse.
+const ALLOWED_METHODS: &str = "GET, POST, PATCH, DELETE, OPTIONS";
+
+/// How long a browser may cache a preflight. Ten minutes turns the extension's per-capture
+/// preflight into a once-per-session one without outliving a run's token.
+const PREFLIGHT_MAX_AGE: &str = "600";
+
+/// Tell the browser what the identity rules already permit.
+///
+/// `identity` decides whether an origin *may* call; this decides whether the browser is
+/// *told* so. They are different jobs, and having only the first is why the extension could
+/// complete a native-messaging handshake and still fail every `fetch` with "Failed to
+/// fetch": the request was allowed and the answer was unreadable.
+///
+/// Two rules this must never break:
+///
+/// * **Never `*`.** The allowed set is a specific trio (R-SEC-7), and a wildcard on a
+///   loopback daemon holding a bearer token and an API key would let any page on the
+///   internet read the library.
+/// * **Answer preflights before `authenticate`.** A CORS preflight carries no credentials —
+///   the spec forbids it — so a preflight that must authenticate can never succeed. This
+///   layer therefore sits outside the credential check and short-circuits `OPTIONS` itself.
+///   That is not a hole: a preflight reveals only which methods and headers are permitted,
+///   and the real request behind it still passes the full stack.
+pub async fn cors(request: Request, next: Next) -> Response {
+    let headers = request.headers();
+    let host = header_str(headers, header::HOST).map(str::to_owned);
+    let origin = header_str(headers, header::ORIGIN).map(str::to_owned);
+
+    // Re-validated here rather than trusted from `identity`, so this layer is correct
+    // wherever it is mounted and cannot be made unsafe by a future reordering.
+    let granted = origin.filter(|origin| {
+        !origin.is_empty() && origin != "null" && origin_is_allowed(Some(origin), host.as_deref())
+    });
+
+    let is_preflight = request.method() == axum::http::Method::OPTIONS;
+    let mut response = if is_preflight {
+        StatusCode::NO_CONTENT.into_response()
+    } else {
+        next.run(request).await
+    };
+
+    let Some(granted) = granted else {
+        return response;
+    };
+    let Ok(value) = granted.parse() else {
+        return response;
+    };
+
+    let out = response.headers_mut();
+    out.insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, value);
+    // Without this a shared cache could hand one origin's permissive answer to another.
+    out.insert(
+        header::VARY,
+        header::ORIGIN.as_str().parse().expect("header"),
+    );
+
+    if is_preflight {
+        out.insert(
+            header::ACCESS_CONTROL_ALLOW_METHODS,
+            ALLOWED_METHODS.parse().expect("header"),
+        );
+        out.insert(
+            header::ACCESS_CONTROL_ALLOW_HEADERS,
+            ALLOWED_REQUEST_HEADERS.parse().expect("header"),
+        );
+        out.insert(
+            header::ACCESS_CONTROL_MAX_AGE,
+            PREFLIGHT_MAX_AGE.parse().expect("header"),
+        );
+    }
+
+    response
+}
+
 /// Host, Origin, and `Sec-Fetch-Site` — the identity checks every guarded route shares.
 ///
 /// Applied to `/api/*`, `/mcp`, `/ws`, and both jails. Deliberately **not** applied to
@@ -196,7 +280,21 @@ mod tests {
                 authenticate,
             ))
             .layer(axum::middleware::from_fn(identity))
+            .layer(axum::middleware::from_fn(cors))
             .with_state(state)
+    }
+
+    /// The full response, for the tests that care about headers rather than status.
+    async fn respond(state: &AppState, request: HttpRequest<Body>) -> Response {
+        app(state.clone()).oneshot(request).await.expect("response")
+    }
+
+    fn header_of(response: &Response, name: header::HeaderName) -> Option<String> {
+        response
+            .headers()
+            .get(name)
+            .and_then(|value| value.to_str().ok())
+            .map(str::to_owned)
     }
 
     fn request(method: &str, path: &str) -> axum::http::request::Builder {
@@ -250,6 +348,115 @@ mod tests {
         .await;
 
         assert_eq!(response, StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn a_preflight_is_answered_without_a_credential() {
+        // The regression this exists for: `authenticate` used to 401 the preflight, and a
+        // CORS preflight carries no credentials by spec — so the extension could complete a
+        // native-messaging handshake and still fail every capture with "Failed to fetch".
+        let state = state();
+        let response = respond(
+            &state,
+            request("OPTIONS", "/write")
+                .header(header::ORIGIN, crate::security::EXTENSION_ORIGIN)
+                .header(header::ACCESS_CONTROL_REQUEST_METHOD, "POST")
+                .header(header::ACCESS_CONTROL_REQUEST_HEADERS, "authorization")
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::NO_CONTENT);
+        assert_eq!(
+            header_of(&response, header::ACCESS_CONTROL_ALLOW_ORIGIN).as_deref(),
+            Some(crate::security::EXTENSION_ORIGIN)
+        );
+    }
+
+    #[tokio::test]
+    async fn the_quit_token_header_is_never_allowed_cross_origin() {
+        // R-SEC-8. A browser refuses to send a header the preflight did not name, so this
+        // list is what keeps a token-holding cross-origin client away from the kill switch.
+        let state = state();
+        let response = respond(
+            &state,
+            request("OPTIONS", "/write")
+                .header(header::ORIGIN, crate::security::EXTENSION_ORIGIN)
+                .header(header::ACCESS_CONTROL_REQUEST_METHOD, "POST")
+                .header(header::ACCESS_CONTROL_REQUEST_HEADERS, "x-curio-quit-token")
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await;
+
+        let allowed = header_of(&response, header::ACCESS_CONTROL_ALLOW_HEADERS)
+            .expect("preflight names its allowed headers");
+        assert!(!allowed.to_ascii_lowercase().contains("quit"), "{allowed}");
+    }
+
+    #[tokio::test]
+    async fn a_hostile_origin_is_never_granted_access() {
+        // The preflight may answer, but it must not carry permission — and the real request
+        // behind it still dies on the identity check rather than on CORS alone.
+        let state = state();
+        let preflight = respond(
+            &state,
+            request("OPTIONS", "/read")
+                .header(header::ORIGIN, "https://evil.example")
+                .header(header::ACCESS_CONTROL_REQUEST_METHOD, "GET")
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await;
+
+        assert_eq!(
+            header_of(&preflight, header::ACCESS_CONTROL_ALLOW_ORIGIN),
+            None
+        );
+
+        let real = send(
+            &state,
+            request("GET", "/read")
+                .header(header::ORIGIN, "https://evil.example")
+                .header(
+                    header::AUTHORIZATION,
+                    format!("Bearer {}", state.token().expose()),
+                )
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await;
+
+        assert_eq!(real, StatusCode::FORBIDDEN);
+    }
+
+    #[tokio::test]
+    async fn the_allowed_origin_is_echoed_never_a_wildcard() {
+        // A wildcard on a loopback daemon holding a bearer token and an API key would let
+        // any page on the internet read the library.
+        let state = state();
+        let response = respond(
+            &state,
+            request("GET", "/read")
+                .header(header::ORIGIN, crate::security::EXTENSION_ORIGIN)
+                .header(
+                    header::AUTHORIZATION,
+                    format!("Bearer {}", state.token().expose()),
+                )
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await;
+
+        let allowed = header_of(&response, header::ACCESS_CONTROL_ALLOW_ORIGIN);
+        assert_eq!(allowed.as_deref(), Some(crate::security::EXTENSION_ORIGIN));
+        assert_ne!(allowed.as_deref(), Some("*"));
+        // Without Vary a shared cache could hand one origin's answer to another.
+        assert_eq!(
+            header_of(&response, header::VARY).as_deref(),
+            Some(header::ORIGIN.as_str())
+        );
     }
 
     #[tokio::test]

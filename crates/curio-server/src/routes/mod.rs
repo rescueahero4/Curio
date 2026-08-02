@@ -98,6 +98,10 @@ fn open_routes(state: &AppState) -> Router<AppState> {
                 .layer(from_fn_with_state(state.clone(), guard::authenticate_quit)),
         )
         .layer(from_fn(guard::identity))
+        // The quit route sits in this group, and its preflight deliberately advertises an
+        // allow-headers list without `x-curio-quit-token` — so a browser will refuse to send
+        // the one header that route accepts (R-SEC-8).
+        .layer(from_fn(guard::cors))
 }
 
 /// Reads. Never blocked by pause — browsing a paused library is the point of soft-disable
@@ -133,6 +137,9 @@ fn read_routes(state: &AppState) -> Router<AppState> {
         .route("/p/{id}/{*rest}", get(files::project_file))
         .layer(from_fn_with_state(state.clone(), guard::authenticate))
         .layer(from_fn(guard::identity))
+        // Outermost, and it has to be: a CORS preflight carries no credentials, so it must
+        // be answered before `authenticate` rather than 401'd by it (R-SEC-7, R-SEC-8).
+        .layer(from_fn(guard::cors))
 }
 
 /// Mutations and ingest. Refused with `503 + Retry-After` while paused (R-BE-3).
@@ -196,6 +203,10 @@ fn mutating_routes(state: &AppState) -> Router<AppState> {
             guard::refuse_while_paused,
         ))
         .layer(from_fn(guard::identity))
+        // Outermost. This is the group the extension's capture POST lands in, and the
+        // preflight for it must be answered before both the pause check and the credential
+        // check — a browser that cannot preflight never sends the request at all.
+        .layer(from_fn(guard::cors))
 }
 
 /// `GET /p/:id` — the project's front door, without a trailing path.
