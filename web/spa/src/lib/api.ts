@@ -17,7 +17,6 @@ import type {
   ItemFilter,
   ItemPatch,
   ItemQuery,
-  Job,
   LaunchOutcome,
   OpenedProject,
   Page,
@@ -218,10 +217,6 @@ export function clearApiKey(): Promise<void> {
   return del<void>("/api/settings/api-key");
 }
 
-export function verifyApiKey(body: { api_key?: string } = {}): Promise<{ ok: boolean }> {
-  return post<{ ok: boolean }>("/api/settings/verify-key", body);
-}
-
 /* -- system ------------------------------------------------------------------------- */
 
 /**
@@ -246,16 +241,6 @@ export function openSkillFile(): Promise<LaunchOutcome> {
  */
 export function sendToClaude(text: string): Promise<LaunchOutcome> {
   return post<LaunchOutcome>("/api/system/send-to-claude", { text });
-}
-
-/* -- jobs --------------------------------------------------------------------------- */
-
-export function listJobs(): Promise<Job[]> {
-  return get<Job[]>("/api/jobs");
-}
-
-export function cancelJob(id: string): Promise<Job> {
-  return post<Job>(`/api/jobs/${encodeURIComponent(id)}/cancel`);
 }
 
 /* -- files -------------------------------------------------------------------------- */

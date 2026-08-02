@@ -114,14 +114,6 @@ pub fn runtime_file() -> crate::Result<PathBuf> {
     Ok(app_data_dir()?.join(curio_runtime_file_name()))
 }
 
-/// Where the single-instance lock lives.
-///
-/// # Errors
-/// Propagates [`app_data_dir`]'s failure.
-pub fn lock_file() -> crate::Result<PathBuf> {
-    Ok(app_data_dir()?.join(LOCK_FILE_NAME))
-}
-
 /// The directory holding one item's screenshot, thumbnail, and sidecar.
 #[must_use]
 pub fn item_dir(data_root: &Path, item_id: &str) -> PathBuf {

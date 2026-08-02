@@ -31,15 +31,3 @@ pub use vocabulary::{CreatedBy, Family, MAX_NAME_LEN, Term, VocabularyKind};
 /// never a silent trim to the first 500 (R-BE-18, R-FE-11, Inventory §10.11). Trimming
 /// would give the user a confident wrong answer about what they just changed.
 pub const BULK_ITEM_CAP: usize = 500;
-
-/// The number of items at which a bulk retag switches from serial calls to the Batch API.
-///
-/// Below it, serial work is resumable through `progress.done` and finishes sooner. At or
-/// above it, batching is dramatically cheaper (R-BE-18).
-pub const BULK_BATCH_THRESHOLD: usize = 8;
-
-/// How many times a job may fail before it is abandoned.
-///
-/// Counted only against real failures: a missing API key requeues without consuming an
-/// attempt, and parking refunds one (R-BE-17, Inventory §10.10).
-pub const JOB_MAX_ATTEMPTS: u32 = 3;

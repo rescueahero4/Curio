@@ -58,8 +58,6 @@ export function createSort() {
   };
 }
 
-export type Sort = ReturnType<typeof createSort>;
-
 /**
  * Order two entries.
  *

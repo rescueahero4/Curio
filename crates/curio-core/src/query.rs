@@ -128,18 +128,6 @@ pub struct Page<T> {
     pub next_cursor: Option<String>,
 }
 
-/// What a bulk operation was asked to act on (Inventory §6).
-///
-/// Two modes and no third: explicit ids, or "everything the current filter matches". The
-/// filter form is resolved to ids **once, at enqueue**, and frozen there (R-BE-18) — a job
-/// that re-ran its filter could act on a different set than the one the user was looking at
-/// when they pressed the button.
-#[derive(Debug, Clone, PartialEq)]
-pub enum Selection {
-    Picked(Vec<String>),
-    Matching(Box<ItemQuery>),
-}
-
 /// Refuse a selection that exceeds the cap, naming both numbers.
 ///
 /// Never a silent trim (R-BE-18, R-FE-11): trimming gives the user a confident wrong
