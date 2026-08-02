@@ -1,0 +1,97 @@
+---
+/**
+ * Terms of use for the site and the software.
+ *
+ * Deliberately short. Curio has no accounts, no fees, no hosted service and no data of
+ * yours in our possession, so most of what a SaaS terms page exists to govern has no
+ * subject here. The substance is: MIT covers the software, you bring your own Anthropic
+ * account, and there is no warranty.
+ */
+import Prose from "../layouts/Prose.astro";
+---
+
+<Prose
+	title="Terms of Use"
+	description="The terms covering the Curio website, the Curio application and the Curio Capture browser extension. MIT-licensed, no accounts, no warranty."
+	updated="2026-08-02"
+>
+	<p class="lede">
+		Curio is free and open-source software, provided as-is. There are no accounts, no
+		subscriptions and no hosted service — which means most of what these terms could govern
+		simply does not exist. What follows is the short version of that.
+	</p>
+
+	<h2>What these terms cover</h2>
+	<p>
+		This website, the <strong>Curio</strong> desktop application, and the{" "}
+		<strong>Curio Capture</strong> browser extension. By using any of them you accept these
+		terms. If you do not, do not use them.
+	</p>
+
+	<h2>Licence</h2>
+	<p>
+		The software is released under the{" "}
+		<a href="https://github.com/rescueahero4/Curio/blob/master/LICENSE" rel="noreferrer">MIT
+		Licence</a>. You may use, copy, modify and redistribute it, including commercially,
+		provided the copyright notice and permission notice are preserved. The licence text is
+		authoritative; this page only summarises it.
+	</p>
+
+	<h2>No warranty</h2>
+	<p>
+		The software is provided <strong>"as is", without warranty of any kind</strong>, express or
+		implied, including but not limited to the warranties of merchantability, fitness for a
+		particular purpose and non-infringement. In no event shall the authors or copyright holders
+		be liable for any claim, damages or other liability arising from the software or its use.
+	</p>
+	<p>
+		In practice that means: your library is files on your own disk, and keeping a backup of
+		them is your responsibility. Curio does not hold a copy.
+	</p>
+
+	<h2>Your Anthropic account</h2>
+	<p>
+		Curio's optional assessment feature uses <em>your</em> Anthropic API key against{" "}
+		<em>your</em> Anthropic account. Your use of that service is governed by your agreement
+		with Anthropic, and any charges it incurs are between you and them — we neither bill you
+		nor receive any part of it. See{" "}
+		<a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/privacy/`}>the privacy policy</a>{" "}
+		for exactly what is sent.
+	</p>
+
+	<h2>Acceptable use</h2>
+	<p>
+		Curio captures pages you visit, so the ordinary rules about other people's material apply.
+		You are responsible for having the right to capture and store what you capture, and for
+		respecting the copyright, terms and robots directives of the sites you use it on. Do not
+		use Curio to collect personal data about people, to circumvent access controls, or for
+		anything unlawful where you are.
+	</p>
+
+	<h2>Contributions</h2>
+	<p>
+		Contributions are welcome under the{" "}
+		<a href="https://github.com/rescueahero4/Curio/blob/master/CONTRIBUTING.md" rel="noreferrer"
+			>contributing guide</a
+		>. Anything you submit is offered under the same MIT licence as the project.
+	</p>
+
+	<h2>This website</h2>
+	<p>
+		The site is published as static files from the project's repository and sets no cookies and
+		runs no analytics. It links to third-party sites, principally GitHub, whose terms and
+		policies are their own.
+	</p>
+
+	<h2>Changes</h2>
+	<p>
+		These terms may change; the current version is always the one on this page, dated above,
+		and every previous version stays readable in the repository's history. Continuing to use
+		Curio after a change means accepting it.
+	</p>
+
+	<h2>Contact</h2>
+	<p>
+		<a href="mailto:rescueahero@gmail.com">rescueahero@gmail.com</a>
+	</p>
+</Prose>
