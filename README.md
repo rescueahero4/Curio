@@ -21,8 +21,11 @@ Once a release is tagged, installers are attached to it on the
 
 | Platform | File | What it does |
 |---|---|---|
-| Windows 10/11 | `curio-<version>-x86_64-setup.exe` | Per-user install, no admin prompt. Registers the browser helper. |
-| macOS 11+ | `curio-<version>-universal.dmg` | Universal (Intel + Apple Silicon). Drag to Applications. |
+| Windows 10/11 | `curio-windows-x64-setup.exe` | Per-user install, no admin prompt. Registers the browser helper. |
+| macOS 11+ | `curio-macos-universal.dmg` | Universal (Intel + Apple Silicon). Drag to Applications. |
+
+The filenames carry no version so the site can link the newest build directly (D36); the
+release page states the version, and so does the installed app under `--version`.
 
 ### Both platforms will warn you about the download
 

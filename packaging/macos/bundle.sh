@@ -35,7 +35,10 @@ REPO="$(cd "$HERE/../.." && pwd)"
 APP="$OUT_DIR/Curio.app"
 MACOS_DIR="$APP/Contents/MacOS"
 RES_DIR="$APP/Contents/Resources"
-DMG="$OUT_DIR/curio-$VERSION-universal.dmg"
+# No version in the name, so the landing page can link /releases/latest/download/ once and
+# never revisit it (D36). $VERSION is still required — it is what the Info.plist below is
+# stamped with, which is where macOS reads the version from.
+DMG="$OUT_DIR/curio-macos-universal.dmg"
 
 rm -rf "$APP" "$DMG"
 mkdir -p "$MACOS_DIR" "$RES_DIR"

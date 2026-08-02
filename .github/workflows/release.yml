@@ -181,10 +181,15 @@ jobs:
         run: |
           version="${{ needs.version.outputs.version }}"
           root=$(pwd -W)
+          # The output name carries no version, so the landing page can link
+          # /releases/latest/download/curio-windows-x64-setup.exe and never touch that URL
+          # again (D36). `-DAPP_VERSION` still stamps VIProductVersion, so the version is
+          # present in the file's properties, in Add/Remove Programs, and in `--version` —
+          # the filename was always the weakest of its carriers.
           "/c/Program Files (x86)/NSIS/makensis.exe" \
             -DAPP_VERSION="$version" \
             -DSRC_DIR="${root//\//\\}\\stage" \
-            -DOUT_FILE="${root//\//\\}\\curio-$version-x86_64-setup.exe" \
+            -DOUT_FILE="${root//\//\\}\\curio-windows-x64-setup.exe" \
             packaging/windows/curio.nsi
 
       # Wired but dormant. SignPath, Azure Trusted Signing, or a PFX all land here; until one
@@ -196,7 +201,7 @@ jobs:
           echo "$WINDOWS_PFX_BASE64" | base64 -d > cert.pfx
           signtool sign /f cert.pfx /p "$WINDOWS_PFX_PASSWORD" \
             /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 \
-            "curio-${{ needs.version.outputs.version }}-x86_64-setup.exe"
+            "curio-windows-x64-setup.exe"
           rm -f cert.pfx
 
       - uses: actions/upload-artifact@v4
@@ -259,24 +264,22 @@ jobs:
           path: installers
           merge-multiple: true
 
-      # `footprint-*`, not `curio-*`: the latter now names the binaries artifact, and
-      # attaching raw executables beside the installers would give users a download that
-      # cannot register the native-messaging host.
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: footprint-*
-          path: reports
-          merge-multiple: true
-
+      # The footprint reports are deliberately NOT downloaded here. R-DEL-7 asks release CI to
+      # produce and archive them, and the Actions artifact does both — while the draft-release
+      # gate provides the human review the rule routes them through. Nothing says the archive
+      # has to be a public download, and three .txt diagnostics beside two installers dilute
+      # the one-click surface the landing page depends on (D36).
       - uses: softprops/action-gh-release@v2
         with:
           draft: true
           generate_release_notes: true
           name: Curio ${{ needs.version.outputs.version }}
+          # Literal names, not globs. The landing page links these two paths under
+          # /releases/latest/download/, so a rename must fail the release loudly here rather
+          # than silently 404 a button nobody tests until a user complains (D36).
           files: |
-            installers/*.exe
-            installers/*.dmg
-            reports/footprint-*.txt
+            installers/curio-windows-x64-setup.exe
+            installers/curio-macos-universal.dmg
           body: |
             ## Install
 

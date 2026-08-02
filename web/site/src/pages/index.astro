@@ -41,15 +41,12 @@ import windowsIcon from "@tabler/icons/outline/brand-windows.svg?raw";
 import birdIcon from "../assets/icons/bird.svg?raw";
 import mcpIcon from "../assets/icons/mcp.svg?raw";
 
-const REPO = "https://github.com/rescueahero4/Curio";
+// Every destination outside this site lives in one file, so a moved release asset or a
+// published extension listing is a one-line change there rather than a hunt through markup.
+import { REPO, downloads } from "../data/downloads";
+
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const CLONE_URL = "https://github.com/rescueahero4/Curio.git";
-
-/**
- * The extension is not on any web store yet (E10), so both places the design points at it
- * lead to its source instead of a listing that does not exist.
- */
-const EXTENSION = `${REPO}/tree/master/web/extension`;
 
 /** The Collect → Connect → Produce flow. Labels only; the arrows are decoration. */
 const flow = [
@@ -96,15 +93,20 @@ const description =
 				</p>
 
 				<div class="ctas">
-					<a class="pill pill--solid" href={`${REPO}/releases`}>
+					{/*
+						These two download the installer outright rather than opening the releases
+						page. No `download` attribute: it is ignored cross-origin, and GitHub already
+						sends `Content-Disposition: attachment`, so a plain href is what works.
+					*/}
+					<a class="pill pill--solid" href={downloads.windows}>
 						<span class="icon icon--24" set:html={windowsIcon} />
 						Get Windows
 					</a>
-					<a class="pill pill--solid" href={`${REPO}/releases`}>
+					<a class="pill pill--solid" href={downloads.macos}>
 						<span class="icon icon--24" set:html={appleIcon} />
 						Get Mac App
 					</a>
-					<a class="pill pill--solid" href={EXTENSION}>
+					<a class="pill pill--solid" href={downloads.extension}>
 						<span class="icon icon--24" set:html={puzzleIcon} />
 						Get Browser Extension
 					</a>
@@ -148,7 +150,7 @@ const description =
 
 					<ol class="steps">
 						<li>Download App, and install Browser Extension - or build app locally by forking repo</li>
-						<li>Use <a href={EXTENSION}>Curio browser extension</a> to screenshot and curate design inspirations</li>
+						<li>Use <a href={downloads.extension}>Curio browser extension</a> to screenshot and curate design inspirations</li>
 						<li>Connect AI apps via Curio’s built-in MCP</li>
 						<li>Use Curio’s prompt builder which links your library to your AI apps</li>
 					</ol>

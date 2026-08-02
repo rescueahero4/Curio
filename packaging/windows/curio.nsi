@@ -48,8 +48,12 @@ ManifestDPIAware true
 !ifndef ICON_FILE
   !define ICON_FILE "curio.ico"
 !endif
+; Matches the name release CI passes, so a local `makensis` run and a release produce the
+; same file. That name is version-less on purpose (D36): the landing page links
+; /releases/latest/download/curio-windows-x64-setup.exe, which only resolves while the asset
+; filename stays byte-identical across releases.
 !ifndef OUT_FILE
-  !define OUT_FILE "curio-setup.exe"
+  !define OUT_FILE "curio-windows-x64-setup.exe"
 !endif
 
 !define UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"

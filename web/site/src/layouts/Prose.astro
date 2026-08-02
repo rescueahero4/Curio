@@ -14,6 +14,8 @@ import "../styles/base.css";
 
 import birdIcon from "../assets/icons/bird.svg?raw";
 
+import { REPO } from "../data/downloads";
+
 interface Props {
 	title: string;
 	description: string;
@@ -24,7 +26,6 @@ interface Props {
 const { title, description, updated } = Astro.props;
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-const REPO = "https://github.com/rescueahero4/Curio";
 
 const updatedLabel = new Date(`${updated}T00:00:00Z`).toLocaleDateString("en-GB", {
 	day: "numeric",
