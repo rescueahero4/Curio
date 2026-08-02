@@ -19,7 +19,10 @@
 //! Brave would be absurd, and silently doing nothing would leave them with an extension
 //! that cannot find the app and no way to find out why.
 
-use std::path::{Path, PathBuf};
+// `PathBuf` is named in full at its one use rather than imported: that use is the return
+// type of a `cfg(windows)` function, so a plain import is an unused-import error on macOS —
+// and `-D warnings` turns that into a failed gate on two of the three release targets.
+use std::path::Path;
 
 use curio_core::nm::{self, Browser};
 
@@ -165,7 +168,7 @@ pub fn unregister() -> Report {
 /// Where the single Windows manifest lives: beside the binary it names.
 #[cfg(windows)]
 #[must_use]
-fn windows_manifest_path(host_path: &Path) -> PathBuf {
+fn windows_manifest_path(host_path: &Path) -> std::path::PathBuf {
     host_path
         .parent()
         .unwrap_or_else(|| Path::new("."))

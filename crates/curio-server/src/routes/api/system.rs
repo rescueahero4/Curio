@@ -94,6 +94,15 @@ pub async fn reassess(
 #[derive(Debug, Deserialize)]
 pub struct RevealBody {
     pub path: String,
+    /// When `path` itself is gone, open the closest folder above it that still exists.
+    ///
+    /// Off by default, and deliberately opt-in: for a prompt snapshot "that file is not on
+    /// disk" is the honest answer, and quietly opening its parent instead would read as
+    /// though the file had been found. A project whose folder was deleted is the opposite
+    /// case — the user is being asked to go and look for it, so somewhere to start looking
+    /// is the whole point.
+    #[serde(default)]
+    pub nearest: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -111,10 +120,41 @@ pub struct Outcome {
 /// declined to open is not a failed request, and rendering it as one would put a red error
 /// in front of a user whose only problem is that nothing appeared.
 pub async fn reveal(Json(body): Json<RevealBody>) -> Json<Outcome> {
-    Json(open_in_os(
-        std::path::Path::new(&body.path),
-        "Asked your file manager to open",
-    ))
+    let wanted = std::path::Path::new(&body.path);
+    if body.nearest && !wanted.exists() {
+        return Json(match nearest_folder(wanted) {
+            Some(found) => {
+                let mut outcome = open_in_os(&found, "Asked your file manager to open");
+                // Never let the fallback pass for the real thing: the message names what was
+                // opened *and* what was not there.
+                if outcome.asked {
+                    outcome.message = format!(
+                        "{} is not there. Opened the closest folder that is, {}.",
+                        wanted.display(),
+                        found.display()
+                    );
+                }
+                outcome
+            }
+            None => Outcome {
+                asked: false,
+                message: format!(
+                    "Neither {} nor anything above it is on disk.",
+                    wanted.display()
+                ),
+            },
+        });
+    }
+
+    Json(open_in_os(wanted, "Asked your file manager to open"))
+}
+
+/// The closest ancestor of `path` that is a folder on disk, if there is one.
+fn nearest_folder(path: &std::path::Path) -> Option<std::path::PathBuf> {
+    path.ancestors()
+        .skip(1)
+        .find(|ancestor| ancestor.is_dir())
+        .map(std::path::Path::to_path_buf)
 }
 
 /// `POST /api/system/open-skill-file` — open the editable assessment rubric (FR-3's
@@ -252,6 +292,7 @@ mod tests {
         // nothing appeared.
         let Json(outcome) = reveal(Json(RevealBody {
             path: "/definitely/not/here".to_owned(),
+            nearest: false,
         }))
         .await;
 
@@ -261,6 +302,16 @@ mod tests {
             "{}",
             outcome.message
         );
+    }
+
+    #[test]
+    fn locating_a_deleted_folder_falls_back_to_the_closest_one_that_exists() {
+        // What "Locate" on a missing project needs: somewhere to start looking. Revealing
+        // the vanished path itself would open nothing at all.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let gone = dir.path().join("gone").join("deeper");
+
+        assert_eq!(nearest_folder(&gone).as_deref(), Some(dir.path()));
     }
 
     #[test]

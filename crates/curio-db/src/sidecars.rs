@@ -10,7 +10,7 @@
 //! [`curio_core::prompt`]) — this module only decides where the bytes go and how they
 //! land.
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use curio_core::domain::Item;
 
@@ -79,12 +79,6 @@ pub fn remove_prompt(data_root: Option<&Path>, id: &str) {
     {
         tracing::warn!(%err, prompt = id, "could not remove the prompt snapshot");
     }
-}
-
-/// The absolute directory an agent should be pointed at for an item (FR-14).
-#[must_use]
-pub fn item_directory(data_root: &Path, item_id: &str) -> PathBuf {
-    curio_core::paths::item_dir(data_root, item_id)
 }
 
 /// Write via a temporary file and rename.

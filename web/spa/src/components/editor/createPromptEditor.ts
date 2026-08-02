@@ -51,9 +51,48 @@ const SURFACE = [
   "[&_code]:font-mono [&_code]:text-sm",
   "[&_pre]:bg-desk [&_pre]:rounded-card [&_pre]:p-3 [&_pre]:font-mono [&_pre]:text-sm",
   "[&_hr]:border-line [&_hr]:my-4",
+  /*
+   * Ghost text, in two pseudo-elements — one that shows and one that measures.
+   *
+   * The placeholders are worked examples now, several lines each, and that pulls two
+   * requirements against each other:
+   *
+   * 1. **The caret must sit at the start of the line.** The usual trick is `float: left;
+   *    height: 0`: a zero-height float intrudes on no line box, so the empty paragraph's
+   *    caret stays at x=0 with the hint painted around it. An in-flow hint (`inline-block`)
+   *    instead pushes the caret past the whole thing — measured at 862px to the right, on
+   *    the example's *last* line, which is where a user clicking an empty section found it.
+   * 2. **The paragraph must be as tall as its hint.** A zero-height float reserves no space,
+   *    so a five-line example spills straight over the heading below it.
+   *
+   * `::before` satisfies the first and `::after` the second: the same text, in flow but
+   * `invisible`, sizing the box the float paints into. `w-full` on the float so both wrap at
+   * exactly the same width — shrink-to-fit would let them disagree, and the box would then
+   * be the wrong height for what is drawn in it. `pre-line` on both because a direction is a
+   * shape and its line breaks are part of the example.
+   *
+   * All of it costs nothing the moment the user types: the decoration goes with the first
+   * keystroke and the line collapses to the real content.
+   */
   "[&_.curio-ghost]:before:pointer-events-none [&_.curio-ghost]:before:float-left",
-  "[&_.curio-ghost]:before:h-0 [&_.curio-ghost]:before:text-ink-faint",
+  "[&_.curio-ghost]:before:h-0 [&_.curio-ghost]:before:w-full",
+  "[&_.curio-ghost]:before:whitespace-pre-line [&_.curio-ghost]:before:text-ink-faint",
   "[&_.curio-ghost]:before:content-[attr(data-ghost)]",
+  "[&_.curio-ghost]:after:pointer-events-none [&_.curio-ghost]:after:block",
+  "[&_.curio-ghost]:after:invisible [&_.curio-ghost]:after:whitespace-pre-line",
+  "[&_.curio-ghost]:after:content-[attr(data-ghost)]",
+  /*
+   * Pulled up by exactly one line, because the caret needs a line box of its own and that
+   * line box is already underneath the first line of the hint. Without this every empty
+   * section carries a blank line the filled ones do not, and the rhythm of the page changes
+   * as the user writes. The token is the same one the surface sets its own line-height from,
+   * so the two cannot drift.
+   */
+  "[&_.curio-ghost]:after:mt-[calc(-1*var(--text-base--line-height))]",
+  // A heading opens what follows it rather than closing what came before, so the air goes
+  // above. The template's section names are ordinary H2s, which is the point of them: they
+  // get the same treatment as one the user writes, because there is no difference.
+  "[&>h2:first-child]:mt-0 [&>h3:first-child]:mt-0",
 ].join(" ");
 
 export function createPromptEditor(config: PromptEditorConfig): Editor {

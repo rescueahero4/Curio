@@ -8,9 +8,11 @@
 
 pub mod serialize;
 pub mod template;
+pub mod title;
 
 pub use serialize::{ChipContext, serialize};
-pub use template::{SECTIONS, Section, UNTITLED, empty_document, heading_for};
+pub use template::{SECTIONS, Section, UNTITLED, heading_for, starter_document};
+pub use title::title_from;
 
 /// The header written at the top of every `prompts/{id}.md` snapshot.
 ///

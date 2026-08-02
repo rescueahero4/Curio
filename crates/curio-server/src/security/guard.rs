@@ -145,7 +145,10 @@ fn bearer(headers: &HeaderMap) -> Option<String> {
         .map(str::to_owned)
 }
 
-fn header_str(headers: &HeaderMap, name: impl axum::http::header::AsHeaderName) -> Option<&str> {
+pub(super) fn header_str(
+    headers: &HeaderMap,
+    name: impl axum::http::header::AsHeaderName,
+) -> Option<&str> {
     headers.get(name).and_then(|value| value.to_str().ok())
 }
 

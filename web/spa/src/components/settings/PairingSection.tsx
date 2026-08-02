@@ -5,6 +5,7 @@ import { Section } from "~/components/settings/section";
 export function PairingSection() {
   return (
     <Section
+      id="browser-extension"
       title="Browser extension"
       blurb="A normally installed extension connects on its own and never needs this. Use it when the extension cannot — a development install loaded unpacked, or an installer step that was declined."
     >

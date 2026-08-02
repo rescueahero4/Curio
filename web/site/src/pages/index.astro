@@ -1,0 +1,560 @@
+---
+/**
+ * The landing page, implementing Figma node 18:217.
+ *
+ * Geometry is transcribed from the design's 1512px frame. Values the design states outright
+ * (border widths, pill radii, the clone field's padding, the grid gutter) stay fixed; type
+ * and the page inset scale with the viewport so the same proportions survive on a narrower
+ * screen, which a single desktop frame does not specify.
+ *
+ * There is no documentation site behind this page any more — `docs/` is read on GitHub. The
+ * only outbound links are the repository ones.
+ */
+import "@fontsource/inria-serif/400.css";
+import "@fontsource/ibm-plex-sans/400.css";
+import "@fontsource/ibm-plex-sans/700.css";
+import "@fontsource/ibm-plex-mono/500.css";
+
+import Showcase from "../components/Showcase.astro";
+
+// Icons come from Tabler upstream, not from the Figma export of them. The design names
+// each one (`tabler:puzzle`, `tabler:terminal-2`, …), so the source set is the same
+// artwork — but upstream ships a uniform 24x24 viewBox and `stroke="currentColor"`, where
+// the exports carried baked-in black/white strokes, `preserveAspectRatio="none"`, and
+// odd-sized leaves (terminal-2 came out 17x15.33). currentColor is what lets a button's
+// own colour reach its icon, so a solid button needs no per-icon override.
+//
+// Inlined rather than <img src> so the stroke inherits and there is no request per icon.
+import appleIcon from "@tabler/icons/outline/brand-apple.svg?raw";
+import arrowIcon from "@tabler/icons/outline/arrow-right.svg?raw";
+import bookmarksIcon from "@tabler/icons/outline/bookmarks.svg?raw";
+import copyIcon from "@tabler/icons/outline/copy.svg?raw";
+import forkIcon from "@tabler/icons/outline/grill-fork.svg?raw";
+import githubIcon from "@tabler/icons/outline/brand-github.svg?raw";
+import grainIcon from "@tabler/icons/outline/grain.svg?raw";
+import puzzleIcon from "@tabler/icons/outline/puzzle.svg?raw";
+import terminalIcon from "@tabler/icons/outline/terminal-2.svg?raw";
+import windowsIcon from "@tabler/icons/outline/brand-windows.svg?raw";
+
+// The two that are not Tabler: the Curio crow, and the MCP mark (Tabler has no MCP glyph).
+import birdIcon from "../assets/icons/bird.svg?raw";
+import mcpIcon from "../assets/icons/mcp.svg?raw";
+
+const REPO = "https://github.com/rescueahero4/Curio";
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+const CLONE_URL = "https://github.com/rescueahero4/Curio.git";
+
+/**
+ * The extension is not on any web store yet (E10), so both places the design points at it
+ * lead to its source instead of a listing that does not exist.
+ */
+const EXTENSION = `${REPO}/tree/master/web/extension`;
+
+/** The Collect → Connect → Produce flow. Labels only; the arrows are decoration. */
+const flow = [
+	{ icon: bookmarksIcon, label: "Collect", size: "24" },
+	{ icon: mcpIcon, label: "Connect", size: "22" },
+	{ icon: grainIcon, label: "Produce", size: "24" },
+];
+
+const title = "Curio — free opensource local-first design inspiration library";
+const description =
+	"Free opensource personal local-first design inspiration library. Capture design references, let a vision model describe them in your own vocabulary, and compose prompts from it — all on your machine.";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<link rel="icon" href={`${BASE}/favicon.svg`} type="image/svg+xml" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+	</head>
+
+	<body>
+		<div class="frame">
+			<main>
+				<div class="lockup">
+					<span class="lockup__bird" set:html={birdIcon} />
+					<span class="lockup__word">Curio</span>
+					<a class="pill lockup__gh" href={REPO}>
+						<span class="icon icon--24" set:html={githubIcon} />
+						GitHub
+					</a>
+				</div>
+
+				<h1 class="headline">Free opensource personal local-first design inspiration library.</h1>
+
+				<p class="lede">
+					As more and more designers embrace developer tools, Curio bridges the widening gaps of traditional
+					moodboarding and inspiration libraries that are often disconnected from local agentic design pipelines
+				</p>
+
+				<div class="ctas">
+					<a class="pill pill--solid" href={`${REPO}/releases`}>
+						<span class="icon icon--24" set:html={windowsIcon} />
+						Get Windows
+					</a>
+					<a class="pill pill--solid" href={`${REPO}/releases`}>
+						<span class="icon icon--24" set:html={appleIcon} />
+						Get Mac App
+					</a>
+					<a class="pill pill--solid" href={EXTENSION}>
+						<span class="icon icon--24" set:html={puzzleIcon} />
+						Get Browser Extension
+					</a>
+					<a class="pill pill--fork" href={`${REPO}/fork`}>
+						<span class="icon icon--24" set:html={forkIcon} />
+						Fork from Github
+					</a>
+				</div>
+
+				<section class="clone">
+					<h2 class="clone__label">
+						<span class="icon icon--20" set:html={terminalIcon} />
+						Clone
+					</h2>
+
+					<div class="clone__field">
+						<code class="clone__url">{CLONE_URL}</code>
+						<button class="clone__copy" type="button" data-clone={CLONE_URL} aria-label="Copy clone URL to clipboard">
+							<span class="icon icon--24" set:html={copyIcon} />
+						</button>
+					</div>
+
+					{/* Announced to screen readers and shown as text; the icon alone cannot report success. */}
+					<p class="clone__status" role="status" aria-live="polite"></p>
+				</section>
+
+				<section class="howto">
+					<h2 class="section-label">How to use</h2>
+
+					<ul class="flow">
+						{
+							flow.map((step, i) => (
+								<li class="flow__step">
+									<span class={`icon icon--${step.size}`} set:html={step.icon} />
+									{step.label}
+									{i < flow.length - 1 && <span class="icon flow__arrow" aria-hidden="true" set:html={arrowIcon} />}
+								</li>
+							))
+						}
+					</ul>
+
+					<ol class="steps">
+						<li>Download App, and install Browser Extension - or build app locally by forking repo</li>
+						<li>Use <a href={EXTENSION}>Curio browser extension</a> to screenshot and curate design inspirations</li>
+						<li>Connect AI apps via Curio’s built-in MCP</li>
+						<li>Use Curio’s prompt builder which links your library to your AI apps</li>
+					</ol>
+				</section>
+
+				<Showcase />
+			</main>
+		</div>
+	</body>
+</html>
+
+<style is:global>
+	:root {
+		/* Straight from the design: white paper, black rule, one grey for solid buttons,
+		   one for the clone field. */
+		--paper: #fff;
+		--ink: #000;
+		--solid: #3f3f3f;
+		--fork-ink: #282828;
+		--field: #ebebeb;
+
+		/* The frame is 1512 wide with a 197px content inset — 13.03% — held as a
+		   percentage so the proportion survives below the design width, and capped so it
+		   stops growing once the frame is centred. */
+		--frame: 1512px;
+		--pad-inline: clamp(20px, 13.03vw, 197px);
+
+		/* The design's sizes as their share of 1512, floored at a legible mobile size.
+		   28/1512 = 1.85vw, 18/1512 = 1.19vw. The 16px sizes do not scale: below that
+		   body copy stops being comfortable, and they are already at the floor. */
+		--type-word: clamp(52px, 4.76vw, 72px);
+		--type-h1: clamp(21px, 1.85vw, 28px);
+		--type-lede: clamp(16px, 1.19vw, 18px);
+		--type-feature: clamp(16px, 1.19vw, 18px);
+		--type-section: 16px;
+		--type-body: 16px;
+
+		/* Section label to its content: 768→778 under "See it in action". */
+		--gap-section: 10px;
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+
+	html {
+		-webkit-text-size-adjust: 100%;
+	}
+
+	body {
+		margin: 0;
+		background: var(--paper);
+		color: var(--ink);
+		font-family: "IBM Plex Sans", system-ui, sans-serif;
+		font-weight: 400;
+		/* The design's only border treatment — a hairline black rule around the frame. */
+		border: 1px solid var(--ink);
+		min-height: 100vh;
+	}
+
+	a {
+		color: inherit;
+	}
+
+	/* Every rule that targets an inlined <svg> lives in this global block, and must.
+	   Astro's scoped styles compile a child selector to `svg:where(.astro-hash)`, and markup
+	   injected with `set:html` never receives that hash — so the same rule written in a
+	   scoped block silently does nothing. It cost a half-turn on the crow once; keep SVG
+	   selectors here. */
+	.icon {
+		display: inline-flex;
+		flex: 0 0 auto;
+		align-items: center;
+		justify-content: center;
+	}
+
+	/* Tabler draws on a uniform 24x24 viewBox with `stroke="currentColor"`, so sizing is
+	   one width/height pair and colour needs no rule at all — each icon inherits from the
+	   button or text it sits in. */
+	.icon > svg {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	.icon--20 {
+		width: 20px;
+		height: 20px;
+	}
+
+	.icon--22 {
+		width: 22px;
+		height: 22px;
+	}
+
+	.icon--24 {
+		width: 24px;
+		height: 24px;
+	}
+
+	.lockup__bird > svg {
+		width: 50.624px;
+		height: 45.925px;
+		/* Required, not decorative. The export carries the path data unrotated while the
+		   Figma node is rotated a half-turn, so without this the crow stands on its head —
+		   confirmed against both the design and assets/brand/curio-mark.svg. The box is
+		   symmetric about its centre, so this changes orientation only, not position. */
+		transform: rotate(180deg);
+	}
+
+	.flow__arrow {
+		width: 24px;
+		height: 24px;
+	}
+</style>
+
+<style>
+	.frame {
+		max-width: var(--frame);
+		margin-inline: auto;
+		padding-inline: var(--pad-inline);
+		padding-bottom: 96px;
+	}
+
+	/* ---- wordmark lockup ---- */
+
+	.lockup {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		/* The bird's box starts at y=104 and the word at y=127: the mark overlaps the top
+		   of the "C" by 23px, which is the lockup. */
+		margin-top: 104px;
+		padding-top: 23px;
+		/* The design sets the mark and the word at x=188 while the copy below starts at
+		   197. That 9px is the serif "C"'s left side bearing — pulling the lockup out by it
+		   puts the glyph's visible edge on the column, not its box. */
+		margin-left: -9px;
+	}
+
+	.lockup__bird {
+		position: absolute;
+		top: -9px;
+		left: -1px;
+		display: block;
+	}
+
+	.lockup__word {
+		font-family: "Inria Serif", Georgia, serif;
+		font-size: var(--type-word);
+		line-height: 1;
+	}
+
+	.lockup__gh {
+		/* The design drops the pill below the wordmark's optical centre, level with the
+		   x-height rather than the full line box. */
+		align-self: flex-end;
+		margin-bottom: 1px;
+	}
+
+	/* ---- pills ---- */
+
+	.pill {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		min-height: 36px;
+		padding: 6px 12px;
+		border: 1px solid var(--ink);
+		border-radius: 100px;
+		background: var(--paper);
+		color: var(--ink);
+		font-family: inherit;
+		font-size: 14px;
+		line-height: normal;
+		text-decoration: none;
+		white-space: nowrap;
+		cursor: pointer;
+	}
+
+	.pill--solid {
+		background: var(--solid);
+		color: var(--paper);
+	}
+
+	/* Outline in the design, unlike the three download buttons beside it — forking is the
+	   alternative to downloading, not a fourth download. */
+	.pill--fork {
+		color: var(--fork-ink);
+	}
+
+	.pill:hover {
+		background: var(--ink);
+		color: var(--paper);
+	}
+
+	.pill:focus-visible {
+		outline: 2px solid var(--ink);
+		outline-offset: 2px;
+	}
+
+	/* ---- hero copy ---- */
+
+	.headline {
+		max-width: 889px;
+		margin: 17px 0 0;
+		font-size: var(--type-h1);
+		font-weight: 400;
+		line-height: 1.2;
+	}
+
+	.lede {
+		max-width: 889px;
+		margin: 11px 0 0;
+		font-size: var(--type-lede);
+		/* 26px on 18px type. */
+		line-height: 1.444;
+	}
+
+	.ctas {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 14px;
+		margin-top: 29px;
+	}
+
+	/* ---- clone ---- */
+
+	.clone {
+		position: relative;
+		max-width: 466px;
+		margin-top: 30px;
+	}
+
+	.clone__label {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		margin: 0;
+		font-size: var(--type-body);
+		font-weight: 400;
+		line-height: 1.2;
+	}
+
+	.clone__field {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		margin-top: 13px;
+		padding: 10px 16px;
+		border-radius: 12px;
+		background: var(--field);
+	}
+
+	.clone__url {
+		font-family: "IBM Plex Mono", ui-monospace, monospace;
+		font-weight: 500;
+		font-size: 14px;
+		/* The URL is the point of the field; let it shrink and scroll rather than push the
+		   copy button out of the box on a narrow screen. */
+		overflow-x: auto;
+		white-space: nowrap;
+	}
+
+	.clone__copy {
+		display: inline-flex;
+		flex: 0 0 auto;
+		padding: 0;
+		border: 0;
+		background: none;
+		color: inherit;
+		cursor: pointer;
+		border-radius: 4px;
+	}
+
+	.clone__copy:hover {
+		opacity: 0.65;
+	}
+
+	.clone__copy:focus-visible {
+		outline: 2px solid var(--ink);
+		outline-offset: 2px;
+	}
+
+	/* Taken out of flow deliberately. In flow, its reserved line sat between the clone
+	   field and "How to use" and pushed everything below it 23px down the page; as an
+	   overlay it reports the copy without moving the layout, and the 48px gap under the
+	   field leaves room for it. */
+	.clone__status {
+		position: absolute;
+		top: calc(100% + 6px);
+		left: 0;
+		margin: 0;
+		font-size: 14px;
+	}
+
+	/* ---- how to use ---- */
+
+	.howto {
+		margin-top: 48px;
+	}
+
+	.section-label {
+		margin: 0;
+		font-size: var(--type-section);
+		font-weight: 700;
+		line-height: 1.2;
+	}
+
+	.flow {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 9px;
+		margin: 11px 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.flow__step {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		font-size: var(--type-feature);
+	}
+
+	.flow__arrow {
+		display: inline-flex;
+		/* The design spaces the arrow 10px from the label it follows and 9px from the next
+		   step, which the list gap supplies. */
+		margin-left: 10px;
+	}
+
+	.steps {
+		margin: 8px 0 0;
+		padding-left: 24px;
+		max-width: 889px;
+		font-size: var(--type-body);
+		/* 26px on 16px type. */
+		line-height: 1.625;
+	}
+
+	.steps a {
+		text-decoration: underline;
+		text-underline-position: from-font;
+	}
+
+	/* ---- showcase ---- */
+
+	:global(.showcase) {
+		margin-top: 48px;
+	}
+
+	@media (max-width: 560px) {
+		.ctas {
+			gap: 10px;
+		}
+
+		.lockup {
+			flex-wrap: wrap;
+			gap: 10px;
+		}
+
+		.lockup__gh {
+			align-self: center;
+			margin-bottom: 0;
+		}
+	}
+</style>
+
+<script>
+	const button = document.querySelector<HTMLButtonElement>("[data-clone]");
+	const status = document.querySelector<HTMLElement>(".clone__status");
+
+	if (button) {
+		let clear: ReturnType<typeof setTimeout> | undefined;
+
+		const report = (message: string) => {
+			if (!status) return;
+			status.textContent = message;
+			clearTimeout(clear);
+			clear = setTimeout(() => {
+				status.textContent = "";
+			}, 2500);
+		};
+
+		button.addEventListener("click", async () => {
+			const url = button.dataset.clone ?? "";
+			try {
+				await navigator.clipboard.writeText(url);
+				report("Copied to clipboard");
+			} catch {
+				// Clipboard access needs a secure context and permission; on refusal, say so
+				// rather than claiming a copy that did not happen.
+				report("Press Ctrl/Cmd+C to copy");
+				const url_node = document.querySelector(".clone__url");
+				if (url_node) {
+					const range = document.createRange();
+					range.selectNodeContents(url_node);
+					const selection = window.getSelection();
+					selection?.removeAllRanges();
+					selection?.addRange(range);
+				}
+			}
+		});
+	}
+</script>

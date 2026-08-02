@@ -8,7 +8,13 @@
  * Ghost text is a decoration rather than content, and that is the load-bearing part:
  * decorations live outside the document, so an untouched section carries no text to
  * autosave, no text to serialize, and no text to accidentally paste into someone's brief.
- * Every section stays deletable — the attribute rides on an ordinary paragraph.
+ *
+ * **The section headings are not drawn here.** They were, briefly, as widget decorations —
+ * and a decoration is exactly the thing a caret cannot enter, so "Brief" and "Intent" were
+ * the two words in the document the author could not edit. They are real heading nodes in
+ * the template now (`curio_core::prompt::template`), which is what makes this a document
+ * rather than a form: rename them, reorder them, delete them, write something else. All this
+ * attribute still does is decide which placeholder an empty line shows.
  */
 
 import { Extension } from "@tiptap/core";
@@ -80,7 +86,14 @@ export const Sections = Extension.create<SectionOptions>({
   },
 });
 
-/** The `{id: ghost}` map the extension wants, from the shape the server sends. */
+/**
+ * The `{id: ghost}` map the extension wants, from the shape the server sends.
+ *
+ * The server calls it `body` because it is primarily the section's starting content — it is
+ * already written into the document the editor opens on. It becomes ghost text only in the
+ * one case this extension handles: a section the user has emptied, where showing it again
+ * says what belonged there instead of leaving a blank.
+ */
 export function ghostMap(sections: PromptTemplate["sections"]): Record<string, string> {
-  return Object.fromEntries(sections.map((section) => [section.id, section.ghost]));
+  return Object.fromEntries(sections.map((section) => [section.id, section.body]));
 }

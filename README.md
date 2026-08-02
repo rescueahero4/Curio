@@ -7,11 +7,37 @@ them in your own vocabulary, compose design prompts from that vocabulary, and ca
 the projects your AI tools produce. Everything runs on your machine: the browser is the
 screen, the tray is the switch, one SQLite file is the memory.
 
-> **Status: E0–E9 complete, E10 (packaging) not started.** The app runs, captures,
-> assesses, and answers MCP. There is no installer yet, so it is run from source — see
+> **Status: E0–E9 complete, E10 (packaging) in progress.** The app runs, captures,
+> assesses, and answers MCP. The release pipeline that builds the installers exists but has
+> not yet cut a tag, so for now it is run from source — see
 > [Running it in development](#running-it-in-development). Epic-by-epic status lives in
 > [the PRD](docs/PRD-01-Foundations.md); what lands when is in the
 > [phase plan](docs/architecture/07-delivery-open-source.md).
+
+## Install
+
+Once a release is tagged, installers are attached to it on the
+[Releases page](https://github.com/rescueahero4/Curio/releases).
+
+| Platform | File | What it does |
+|---|---|---|
+| Windows 10/11 | `curio-<version>-x86_64-setup.exe` | Per-user install, no admin prompt. Registers the browser helper. |
+| macOS 11+ | `curio-<version>-universal.dmg` | Universal (Intel + Apple Silicon). Drag to Applications. |
+
+### Both platforms will warn you about the download
+
+These builds are **not signed with a paid certificate**, so Windows SmartScreen and macOS
+Gatekeeper flag them. That is what an unsigned build looks like, not a sign that something
+is wrong with the file — and there is no free way around it on macOS, where Apple gates
+signing behind a $99/year membership with no open-source exemption
+([D34](docs/architecture/00-architecture-overview.md)).
+
+- **Windows** — "Windows protected your PC" → **More info** → **Run anyway**.
+- **macOS** — the app is blocked on first launch. **System Settings → Privacy & Security**,
+  scroll to the message about Curio, **Open Anyway**.
+
+If you would rather not take our word for it, everything here builds from source in two
+commands — that path is below, and it is the same one CI runs.
 
 ## Shape
 
@@ -82,7 +108,9 @@ npm --prefix web/spa run build
 ## 3. Run the app
 
 ```sh
-cargo run --bin curio
+cargo run --bin curio                       # terminal 1 — leave it running
+npm --prefix web/spa run build -- --watch   # terminal 2 — rebuilds dist on save
+
 ```
 
 `--bin curio` is not optional: the workspace builds two binaries — the app itself and the
@@ -171,12 +199,32 @@ cargo run --bin curio-nmh -- --unregister
 
 ## 6. Enable the MCP server — optional, lets AI agents read your library
 
-Off by default. Turn it on in **Settings → MCP**, then point a client at it:
+Off by default. Turn it on in **Settings → MCP**, then point a client at it.
 
+For Claude Code, one line does the whole registration:
+
+```sh
+claude mcp add --scope user curio -- <path-to-curio> --mcp-stdio
+```
+
+**Copy the real line from Settings → MCP** rather than typing this one. Nothing installs
+`curio` onto your `PATH`, and Claude Code spawns the command without a shell, so a bare
+`curio` resolves for nobody — the registration is accepted and then every connection dies
+with "connection closed". Settings fills in the running executable's absolute path, which is
+what makes the command work. Re-copy it if you move or reinstall Curio.
+
+`--scope user` registers Curio for every project rather than the folder you ran it in, and
+everything after `--` is the command Claude Code spawns.
+
+The two transports underneath, for anything else:
+
+- **stdio** — `curio --mcp-stdio`. It forwards to the running app rather than opening the
+  database itself, so Curio must already be running. It re-reads `runtime.json` per frame,
+  which is why it keeps working across restarts on an ephemeral port. Claude Desktop uses
+  this one, as JSON in `claude_desktop_config.json`; Settings shows the snippet.
 - **HTTP** — `http://127.0.0.1:<port>/mcp`. The port is in `runtime.json`, and Settings
-  shows the snippet.
-- **stdio**, for Claude Desktop and similar — `curio --mcp-stdio`. It forwards to the
-  running app rather than opening the database itself, so Curio must already be running.
+  shows the command. Curio takes a new port each run unless you pin one in `config.json`,
+  so a registration made this way goes stale at the next restart.
 
 ---
 
@@ -272,11 +320,16 @@ step-by-step guide written to need no technical background.
 | `crates/xtask` | The gate script and measurement tooling. |
 | `web/spa` | SolidJS + Vite + Tailwind 4 dashboard. |
 | `web/extension` | MV3 capture extension, plain TypeScript. |
+| `web/site` | The public landing page (Astro). Deployed to GitHub Pages; never shipped in the binary. |
 | `packaging/` | macOS `.app`, Windows installer, MCPB bundle. |
 | `docs/architecture` | ARCH-00..08 — the contract these crates implement. |
 | `docs/tests` | Manual test guides. |
 
 ## Documentation
+
+Documentation lives here in `docs/` and is read on GitHub — the landing page at
+**https://rescueahero4.github.io/Curio/** publishes none of it, so this tree is the only
+copy.
 
 The architecture documents are **contract-level**: they state interfaces, invariants and
 budgets, and code must conform to their numbered rules. Start at

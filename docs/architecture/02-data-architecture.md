@@ -9,8 +9,9 @@ supersedes: []
 depends_on: [ARCH-00]
 governs: [data]
 source_of_truth:
-  - "docs/Architecture Solution Strategy.md"
-  - "docs/local-first-rust-mcp-architecture-paper_1.md"
+  # Planning inputs. Kept out of the published repo — docs/_plan/ is gitignored.
+  - "docs/_plan/Architecture Solution Strategy.md"
+  - "docs/_plan/local-first-rust-mcp-architecture-paper_1.md"
 parity_reference: "Curiol (Bun/React implementation) + its PRD FR-1..FR-27"
 ---
 

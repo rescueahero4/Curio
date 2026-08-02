@@ -2,19 +2,20 @@
 id: ARCH-07
 title: Delivery & Open Source
 status: draft
-version: 1.3.0
-date: 2026-07-31
+version: 1.4.0
+date: 2026-08-02
 project: curio
 supersedes: []
 depends_on: [ARCH-00]
 governs: [delivery]
 source_of_truth:
-  - "docs/Architecture Solution Strategy.md"
-  - "docs/local-first-rust-mcp-architecture-paper_1.md"
+  # Planning inputs. Kept out of the published repo — docs/_plan/ is gitignored.
+  - "docs/_plan/Architecture Solution Strategy.md"
+  - "docs/_plan/local-first-rust-mcp-architecture-paper_1.md"
 parity_reference: "Curiol (Bun/React implementation) + its PRD FR-1..FR-27"
 ---
 
-> TL;DR: curio ships as one cargo workspace with six crates, a SolidJS SPA and an MV3 extension, built by a single gate script that CI and developers both run. Releases are signed installers for Windows and macOS plus an MCPB bundle, all stamped with one semver version. The project is MIT-licensed and open-sourced with the standard hygiene set — contributing guide, private security disclosure, no telemetry, no secrets in the repo. The D0 verification spike is release-0: nothing else starts until its four claims are checked.
+> TL;DR: curio ships as one cargo workspace with six crates, a SolidJS SPA and an MV3 extension, built by a single gate script that CI and developers both run. Releases are an NSIS installer for Windows and a universal `.dmg` for macOS plus an MCPB bundle, all stamped with one semver version, signed where a certificate exists and shipped unsigned with documented install steps where one does not (D34). The project is MIT-licensed and open-sourced with the standard hygiene set — contributing guide, private security disclosure, no telemetry, no secrets in the repo. The D0 verification spike is release-0: nothing else starts until its four claims are checked.
 
 ## At a glance
 
@@ -84,14 +85,15 @@ flowchart TD
   4. SPA: typecheck + lint + production build
   5. Extension: typecheck + build
   6. `cargo-deny check licenses advisories` (license allowlist = MIT-compatible; advisories include the rmcp ≥ 1.4.0 floor, [ARCH-05](05-mcp-architecture.md) R-MCP-14)
-  7. File-length check: any source file > 500 lines fails; 400–500 lines passes only with a justification recorded in the PR
+  7. File-length check: any **code** file > 650 lines fails; 500–650 lines passes only with a justification recorded in the PR. Ceiling raised from 500 and stylesheets removed from the check by D35 (2026-08-02) — the raise was expedient and is recorded as such; the stylesheet exemption is principled, because the rule measures control flow a reviewer must trace and a flat declaration list has none
   8. Dependency-direction check: R-DEL-2's rules asserted on `cargo tree` (e.g. only `curio-db` sees SQL)
 - **R-DEL-7** — **Footprint budget as a tracked report, not a hard gate.** Release CI MUST produce and archive: binary size (`cargo bloat` summary), and — on runners where measurable — idle private RSS of the shell. Numbers are compared against the §8 strategy budget (≤ 25 MB RSS with tray; ≤ 12 MB empty shell from D0). Regressions block release by human decision, not by script, because CI runners measure memory noisily.
 
 **Packaging & uninstall**
 
-- **R-DEL-8** — macOS: `.app` bundle, `LSUIElement = true`, signed and notarised. "Start at Login" uses `SMAppService.mainApp.register()` — the app is its own login item, no helper agent.
-- **R-DEL-9** — Windows: **NSIS or MSI installer, or both — MSIX is dropped** (D29, amended 2026-08-01). MSIX was the only format that sandboxed the two writes below, so removing it removes the question rather than answering it: neither NSIS nor MSI restricts an HKCU write. `#![windows_subsystem = "windows"]`; installer writes the native-messaging registry key (`HKCU\SOFTWARE\Google\Chrome\NativeMessagingHosts\<name>`) at install time. Autostart via Run key, toggled in-app.
+- **R-DEL-8** — macOS: `.app` bundle, `LSUIElement = true`, **signed and notarised when a Developer ID is available; ad-hoc signed and shipped with documented install steps when it is not** (D34, amended 2026-08-02). Apple gates both the certificate and the notarisation service behind a paid membership and offers no open-source exemption, so signing is a funding state, not an engineering one. The ad-hoc signature is not optional in either case: Apple Silicon refuses to execute an unsigned arm64 binary, and `lipo` strips the signatures of its inputs. "Start at Login" uses `SMAppService.mainApp.register()` — the app is its own login item, no helper agent.
+- **R-DEL-8a** — Release CI MUST NOT fail for want of a signing credential. The signing and notarisation steps are conditional on their secrets being present; absent them the pipeline produces an unsigned artifact and says so in the release notes. A release pipeline that cannot run until someone has paid a vendor has encoded a billing relationship as a build dependency.
+- **R-DEL-9** — Windows: **NSIS** (D34, chosen 2026-08-02 from the NSIS-or-MSI option D29 left open). Every write the installer makes is per-user — an HKCU value per browser, a Run key, a directory under `%LOCALAPPDATA%` — and MSI's per-machine default would ask for an elevation none of them needs. The installer MUST NOT reimplement registration: it invokes `curio-nmh --register`, which is already on disk and already owns that logic (R-EXT-20, R-OV-2). **MSIX is dropped** (D29, amended 2026-08-01). MSIX was the only format that sandboxed the two writes below, so removing it removes the question rather than answering it: neither NSIS nor MSI restricts an HKCU write. `#![windows_subsystem = "windows"]`; installer writes the native-messaging registry key (`HKCU\SOFTWARE\Google\Chrome\NativeMessagingHosts\<name>`) at install time. Autostart via Run key, toggled in-app.
 - **R-DEL-10** — MCPB bundle: `packaging/mcpb` holds the `manifest.json`; release CI runs `mcpb pack` against the platform binary to produce the Claude Desktop one-click artifact ([ARCH-05](05-mcp-architecture.md) R-MCP-7).
 - **R-DEL-11** — **Clean uninstall is a feature.** Uninstall MUST remove: the app bundle/exe, NM manifests (registry key on Windows, per-user manifest file on macOS), autostart registration, and `runtime.json`. User data (the data root: DB, screenshots, sidecars, prompts) MUST be left in place — deleting a library is the user's explicit act, never a side effect.
 

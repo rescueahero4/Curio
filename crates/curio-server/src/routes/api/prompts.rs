@@ -26,7 +26,7 @@ pub async fn list(State(state): State<AppState>) -> ApiResult<Json<Vec<Prompt>>>
 #[derive(Debug, Serialize)]
 pub struct Template {
     pub doc_json: serde_json::Value,
-    /// The eight sections, so the editor can render ghost text without re-deriving the
+    /// The seven sections, so the editor can render ghost text without re-deriving the
     /// list. The server owns the template; a client that hard-coded it would drift.
     pub sections: Vec<Section>,
 }
@@ -35,19 +35,19 @@ pub struct Template {
 pub struct Section {
     pub id: &'static str,
     pub heading: &'static str,
-    pub ghost: &'static str,
+    pub body: &'static str,
 }
 
 /// `GET /api/prompts/template` — the gold-standard scaffold (FR-12).
 pub async fn template() -> Json<Template> {
     Json(Template {
-        doc_json: curio_core::prompt::empty_document(),
+        doc_json: curio_core::prompt::starter_document(),
         sections: curio_core::prompt::SECTIONS
             .iter()
             .map(|section| Section {
                 id: section.id,
                 heading: section.heading,
-                ghost: section.ghost,
+                body: section.body,
             })
             .collect(),
     })
@@ -74,9 +74,14 @@ pub async fn create(
     })?))
 }
 
+/// The autosave body.
+///
+/// There is no `title` here, and its absence is the design: a prompt is named by its own
+/// first line, derived server-side on every save. Accepting a title would let a client set
+/// one that the next keystroke silently overwrote — a write that appears to succeed and does
+/// not survive is worse than one that was never offered.
 #[derive(Debug, Deserialize)]
 pub struct UpdateBody {
-    pub title: Option<String>,
     /// The TipTap document. Sent as a JSON value rather than a string so a malformed
     /// document cannot reach the database as valid-looking text.
     pub doc_json: Option<serde_json::Value>,
@@ -89,12 +94,7 @@ pub async fn update(
     Json(body): Json<UpdateBody>,
 ) -> ApiResult<Json<Prompt>> {
     Ok(Json(state.with_db(|db| {
-        prompts::update(
-            db.conn(),
-            &id,
-            body.title.as_deref(),
-            body.doc_json.as_ref(),
-        )
+        prompts::update(db.conn(), &id, body.doc_json.as_ref())
     })?))
 }
 
@@ -202,13 +202,40 @@ mod tests {
 
     #[tokio::test]
     async fn the_template_carries_the_document_and_its_sections() {
-        // The server owns the template; a client that hard-coded the eight sections would
+        // The server owns the template; a client that hard-coded the seven sections would
         // drift the moment FR-12 changed.
         let Json(template) = template().await;
 
         assert_eq!(template.doc_json["type"], "doc");
-        assert_eq!(template.sections.len(), 8);
+        assert_eq!(template.sections.len(), 7);
         assert_eq!(template.sections[0].id, "brief");
-        assert!(!template.sections[0].ghost.is_empty());
+        assert!(!template.sections[0].body.is_empty());
+
+        // The client needs both halves: the document it opens the editor on, and the bodies
+        // again as the ghost text to show over any section the user later empties.
+        let content = template.doc_json["content"].as_array().expect("content");
+        assert_eq!(
+            content
+                .iter()
+                .filter(|node| node["type"] == "heading")
+                .count(),
+            template.sections.len()
+        );
+        assert_eq!(content[1]["content"][0]["text"], template.sections[0].body);
+    }
+
+    #[test]
+    fn an_autosave_that_still_carries_a_title_is_accepted_and_the_title_ignored() {
+        // The field was removed, not rejected. A stale tab left open across an update keeps
+        // PATCHing the old shape, and answering it with 422 would break autosave for a user
+        // who did nothing wrong — the document still saves, and the name is derived from it
+        // either way.
+        let body: UpdateBody = serde_json::from_value(serde_json::json!({
+            "title": "A name the client invented",
+            "doc_json": { "type": "doc", "content": [] },
+        }))
+        .expect("a body carrying a title still deserializes");
+
+        assert!(body.doc_json.is_some());
     }
 }

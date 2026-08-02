@@ -5,11 +5,11 @@ import { createAutosave } from "~/components/library/autosave";
 import { applyPatch, mergeServer } from "~/components/library/draft";
 import { GrayZoneCard } from "~/components/library/GrayZoneCard";
 import { itemDirectory } from "~/components/library/handoff";
-import { ItemActions } from "~/components/library/ItemActions";
+import { ItemActions, ItemToolbar } from "~/components/library/ItemActions";
 import { ItemFields } from "~/components/library/ItemFields";
 import { ItemLinks } from "~/components/library/ItemLinks";
 import { ensureVocabulary } from "~/components/library/vocab";
-import { getItem, getSettings, itemImageUrl, updateItem } from "~/lib/api";
+import { getItem, getSettings, itemDetailImageUrl, updateItem } from "~/lib/api";
 import { events } from "~/lib/events";
 import { ApiError } from "~/lib/http";
 import type { Item, ItemPatch } from "~/lib/types";
@@ -84,9 +84,29 @@ export function ItemDetail() {
 
   return (
     <section class="flex flex-col gap-4">
-      <A href="/" class="pill self-start">
-        ← Library
-      </A>
+      {/* Where you came from on the left, what you can do on the right. */}
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <A href="/" class="pill">
+            ← Library
+          </A>
+
+          {/* The grid already says this on the card it was opened from; saying it here too is
+              the point. An item opened while it is still queued has empty fields and no
+              families, and without this badge that is indistinguishable from an item Curio
+              looked at and had nothing to say about. */}
+          <Show when={state.item?.status === "processing"}>
+            <span class="badge badge-strong" aria-live="polite">
+              <span class="dot-live" aria-hidden="true" />
+              Assessment in progress
+            </span>
+          </Show>
+        </div>
+
+        <Show when={state.item}>
+          {(item) => <ItemToolbar item={item()} directory={directory()} />}
+        </Show>
+      </div>
 
       <Show when={gone()}>
         <output class="banner tint-caution">
@@ -114,11 +134,22 @@ export function ItemDetail() {
           <>
             <GrayZoneCard item={item()} onResolved={(next) => setState("item", next)} />
 
-            <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+            {/* Two columns, split by kind rather than by importance: everything that is an
+                image on the left, everything that is words on the right. Interleaving the
+                two — which is what putting the fields under the screenshot did — pushed the
+                edit form below the fold for exactly the tall full-page captures that most
+                need describing. `items-start` keeps the text column at the top of a column
+                that a long screenshot has made very tall.
+
+                The text column is capped rather than proportional. Everything in it — a
+                name, three short fields, rows of chips — is done at 26rem, and a share of
+                the width would have gone on growing the whitespace beside them; capped, the
+                whole of a wider window reaches the capture, which is the one thing on this
+                page that can always use more room. */}
+            <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
+              <ItemShot item={item()} />
+
               <div class="flex flex-col gap-4">
-                {/* The 16:10 frame is the design language's, so it stays — but the whole
-                    screenshot is the point of this page, so it is contained, not cropped. */}
-                <img src={itemImageUrl(item())} alt={item().name} class="shot object-contain" />
                 <ItemFields
                   item={item()}
                   state={autosave.state()}
@@ -126,18 +157,47 @@ export function ItemDetail() {
                   onEdit={edit}
                 />
                 <ItemLinks item={item()} onEdit={edit} />
+                <ItemActions
+                  item={item()}
+                  directory={directory()}
+                  apiKeySet={settings()?.api_key_set ?? null}
+                />
               </div>
-
-              <ItemActions
-                item={item()}
-                directory={directory()}
-                apiKeySet={settings()?.api_key_set ?? null}
-              />
             </div>
           </>
         )}
       </Show>
     </section>
+  );
+}
+
+/**
+ * The capture, alone in its column, whole.
+ *
+ * Nothing is cropped here and nothing is letterboxed: the image gets the column's full
+ * width and whatever height its own proportions ask for. 16:10 is the *grid's* contract —
+ * it keeps a page of thumbnails from reflowing under a reader mid-scroll — and this page
+ * has one image, which is the subject rather than a thumbnail of it. A full-page screenshot
+ * held to that frame is either cut off below its masthead or squeezed into a stripe between
+ * two grey bars, and both answer a question nobody asked.
+ *
+ * The frame is still *reserved* at 16:10 until `load`, so the fields beside it do not jump
+ * when the bytes arrive; `loaded` then releases it to the real shape. `complete` is checked
+ * too, because a cached image can finish decoding before this handler is attached — without
+ * it, a revisit would sit boxed at 16:10 forever waiting for a `load` that already happened.
+ */
+function ItemShot(props: { item: Item }) {
+  const [loaded, setLoaded] = createSignal(false);
+
+  return (
+    <img
+      src={itemDetailImageUrl(props.item)}
+      alt={props.item.name}
+      class="shot"
+      classList={{ "shot-full": loaded() }}
+      ref={(image) => queueMicrotask(() => image.complete && setLoaded(true))}
+      onLoad={() => setLoaded(true)}
+    />
   );
 }
 

@@ -30,7 +30,7 @@ use crate::{Error, Result};
 pub const BASELINE_SQL: &str = include_str!("../sql/schema.sql");
 
 /// The newest schema version this build understands.
-pub const LATEST_VERSION: i64 = 4;
+pub const LATEST_VERSION: i64 = 5;
 
 /// One step in the chain.
 struct Migration {
@@ -116,6 +116,47 @@ const MIGRATIONS: &[Migration] = &[
                 "UPDATE projects SET fingerprint = NULL
                   WHERE fingerprint IS NOT NULL AND fingerprint NOT LIKE 'mark:%'",
             )
+        },
+    },
+    Migration {
+        version: 5,
+        description: "give prompt sections real, editable headings",
+        up: |conn| {
+            // A prompt's section headings used to exist nowhere in the document: the
+            // scaffold was eight bare paragraphs carrying a `section` attribute, the editor
+            // drew the names over them, and the serializer synthesized `## Brief` from the
+            // attribute. The user could not put a caret in a heading, rename one, or delete
+            // one — the scaffold was a form rather than a starting point (FR-12).
+            //
+            // The headings are nodes now. Both halves of the old arrangement are gone with
+            // them, and a document left in the old shape would serialize with **no section
+            // headings at all** — silently, in the text the user pastes into an agent. This
+            // rewrites those documents so the same prompt still reads the same way.
+            //
+            // Unparseable JSON is left exactly as it is rather than failing the boot. A
+            // document this cannot read is one the editor cannot open either, and refusing
+            // to start over one damaged row would take the whole library down with it.
+            let rows: Vec<(String, String)> = {
+                let mut statement = conn.prepare("SELECT id, doc_json FROM prompts")?;
+                let found = statement.query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?;
+                found.collect::<rusqlite::Result<_>>()?
+            };
+
+            for (id, stored) in rows {
+                let Ok(doc) = serde_json::from_str::<serde_json::Value>(&stored) else {
+                    tracing::warn!(prompt = %id, "prompt document is not JSON; left as it is");
+                    continue;
+                };
+                let Some(upgraded) = curio_core::prompt::template::upgrade_document(&doc) else {
+                    continue;
+                };
+                conn.execute(
+                    "UPDATE prompts SET doc_json = ?2 WHERE id = ?1",
+                    rusqlite::params![id, upgraded.to_string()],
+                )?;
+            }
+
+            Ok(())
         },
     },
 ];
@@ -279,7 +320,58 @@ mod tests {
 
         assert_eq!(upgrade.from, 0);
         assert_eq!(upgrade.to, LATEST_VERSION);
-        assert_eq!(upgrade.applied, vec![1, 2, 3, 4]);
+        assert_eq!(upgrade.applied, vec![1, 2, 3, 4, 5]);
+    }
+
+    #[test]
+    fn v5_gives_an_old_prompt_document_real_headings() {
+        // A library written before the scaffold's headings were nodes. Without this, every
+        // prompt already in it would serialize with no section headings at all.
+        let mut conn = at_version(4);
+        conn.execute_batch(
+            r#"INSERT INTO prompts (id, title, doc_json, serialized_text, created_at, updated_at)
+                 VALUES ('01A', 'Old', '{"type":"doc","content":[
+                   {"type":"paragraph","attrs":{"section":"brief"},
+                    "content":[{"type":"text","text":"A pricing page"}]}]}',
+                  '', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')"#,
+        )
+        .expect("seed");
+
+        run(&mut conn).expect("migrate");
+
+        let stored: String = conn
+            .query_row("SELECT doc_json FROM prompts WHERE id = '01A'", [], |row| {
+                row.get(0)
+            })
+            .expect("read");
+        let doc: serde_json::Value = serde_json::from_str(&stored).expect("json");
+        let content = doc["content"].as_array().expect("content");
+
+        assert_eq!(content.len(), 2);
+        assert_eq!(content[0]["type"], "heading");
+        assert_eq!(content[0]["content"][0]["text"], "Brief");
+        assert_eq!(content[1]["content"][0]["text"], "A pricing page");
+    }
+
+    #[test]
+    fn v5_leaves_a_document_it_cannot_parse_exactly_as_it_is() {
+        // One damaged row must not take the whole library down on boot.
+        let mut conn = at_version(4);
+        conn.execute_batch(
+            "INSERT INTO prompts (id, title, doc_json, serialized_text, created_at, updated_at)
+               VALUES ('01B', 'Broken', 'not json at all', '',
+                       '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+        )
+        .expect("seed");
+
+        run(&mut conn).expect("a bad document is not a boot failure");
+
+        let stored: String = conn
+            .query_row("SELECT doc_json FROM prompts WHERE id = '01B'", [], |row| {
+                row.get(0)
+            })
+            .expect("read");
+        assert_eq!(stored, "not json at all");
     }
 
     #[test]
@@ -319,7 +411,7 @@ mod tests {
 
         let upgrade = run(&mut conn).expect("migrate");
 
-        assert_eq!(upgrade.applied, vec![3, 4]);
+        assert_eq!(upgrade.applied, vec![3, 4, 5]);
         assert!(column_exists(&conn, "jobs", "not_before").expect("check"));
     }
 

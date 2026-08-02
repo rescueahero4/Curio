@@ -18,7 +18,7 @@
 import { createStore, produce } from "solid-js/store";
 import { getVocabulary } from "~/lib/api";
 import { events } from "~/lib/events";
-import type { Item, Job, JobUpdate, Vocabulary } from "~/lib/types";
+import type { Item, JobUpdate, Vocabulary } from "~/lib/types";
 
 interface ItemsState {
   list: Item[];
@@ -69,10 +69,6 @@ export function setFilterActive(active: boolean): void {
   setItemsState("filterActive", active);
 }
 
-export function clearItems(): void {
-  setItemsState("list", []);
-}
-
 /* -- vocabulary --------------------------------------------------------------------- */
 
 /**
@@ -92,21 +88,6 @@ export async function refreshVocabulary(): Promise<void> {
     // one request failed is worse than one that is briefly stale.
     console.error("curio: could not refresh the vocabulary");
   }
-}
-
-/* -- jobs --------------------------------------------------------------------------- */
-
-export function jobById(id: string): JobUpdate | undefined {
-  return jobsState.byId[id];
-}
-
-/** Land a fetched job list. */
-export function setJobs(list: Job[]): void {
-  setJobsState(
-    produce((state: JobsState) => {
-      for (const job of list) state.byId[job.id] = { ...state.byId[job.id], ...job };
-    }),
-  );
 }
 
 /* -- wiring ------------------------------------------------------------------------- */

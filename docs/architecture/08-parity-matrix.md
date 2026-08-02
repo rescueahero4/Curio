@@ -9,7 +9,7 @@ supersedes: []
 depends_on: [ARCH-00]
 governs: [parity]
 source_of_truth:
-  - "Curiol PRD (docs/01-PRD-Foundations.md) FR-1..FR-27"
+  - "Curiol PRD (docs/PRD-01-Foundations.md) FR-1..FR-27"
   - "Parity inventory (mined from the running Bun/React implementation)"
 parity_reference: "Curiol (Bun/React implementation) + its PRD FR-1..FR-27"
 ---

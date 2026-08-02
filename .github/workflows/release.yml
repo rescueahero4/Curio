@@ -12,12 +12,49 @@ on:
     tags: ["v*.*.*"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
 
 jobs:
+  # R-DEL-12 has teeth here. The workspace version is the one source, and a tag that
+  # disagrees with it is a release-blocking bug — so this job reads Cargo.toml, and when the
+  # run was triggered by a tag, refuses to go further if the two differ. Catching it here
+  # costs one runner-minute; catching it after publication costs a retracted release.
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.read.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: read
+        name: Read the workspace version
+        run: |
+          version=$(sed -n '/^\[workspace\.package\]/,/^\[/p' Cargo.toml \
+                    | sed -n 's/^version = "\(.*\)"/\1/p' | head -1)
+          if [ -z "$version" ]; then
+            echo "could not read version from Cargo.toml" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "workspace version: $version"
+
+      - name: The tag must agree with Cargo.toml
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          tag="${GITHUB_REF#refs/tags/v}"
+          if [ "$tag" != "${{ steps.read.outputs.version }}" ]; then
+            echo "tag v$tag disagrees with the workspace version \
+          ${{ steps.read.outputs.version }} (R-DEL-12)" >&2
+            exit 1
+          fi
+
   gate:
+    needs: version
     strategy:
       fail-fast: false
       matrix:
@@ -60,6 +97,8 @@ jobs:
       - name: Gate
         run: cargo gate
 
+      # The gate has already produced web/spa/dist, which is what rust-embed bakes in at
+      # release (R-DEL-3). Building before it would ship an executable with no dashboard.
       - name: Build release binary
         run: cargo build --release --target ${{ matrix.target }}
 
@@ -75,12 +114,177 @@ jobs:
         with:
           name: curio-${{ matrix.target }}
           path: |
-            target/${{ matrix.target }}/release/curio*
+            target/${{ matrix.target }}/release/curio
+            target/${{ matrix.target }}/release/curio.exe
+            target/${{ matrix.target }}/release/curio-nmh
+            target/${{ matrix.target }}/release/curio-nmh.exe
             footprint-${{ matrix.target }}.txt
           if-no-files-found: warn
 
-  # Packaging — signed .app with notarisation, MSI/MSIX, and the MCPB bundle — lands in P6
-  # (R-DEL-8, R-DEL-9, R-DEL-10). Three of its decisions are still open D0 rows: MSI vs
-  # MSIX, the `mcpb pack` CLI shape, and the binary-server manifest fields. The jobs are
-  # deliberately absent rather than stubbed, so a green release cannot imply that packaging
-  # ran.
+  # --- packaging (R-DEL-8, R-DEL-9) -------------------------------------------------------
+  #
+  # Both jobs sign when credentials are present and produce an unsigned artifact when they
+  # are not (D34). Neither fails for want of a certificate: a repository that cannot cut a
+  # release because nobody has paid Apple yet is a repository whose CI encodes a billing
+  # relationship as a build dependency.
+
+  package-windows:
+    needs: [version, gate]
+    runs-on: windows-latest
+    # Lifted to the job so the signing step can branch on it: the `secrets` context is not
+    # available in a step-level `if`, but `env` is.
+    env:
+      WINDOWS_PFX_BASE64: ${{ secrets.WINDOWS_PFX_BASE64 }}
+      WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: curio-x86_64-pc-windows-msvc
+          path: artifact
+
+      # NSIS reads everything it packs from one directory, LICENSE included — the installer
+      # shows it on its first page.
+      - name: Stage the payload
+        shell: bash
+        run: |
+          mkdir -p stage
+          cp artifact/curio.exe artifact/curio-nmh.exe stage/
+          cp LICENSE stage/
+
+      - name: Install NSIS
+        run: choco install nsis --no-progress -y
+
+      # Absolute paths, and Windows-shaped ones. NSIS resolves relative paths against the
+      # script's directory, not the working directory, so "stage" would be looked for under
+      # packaging\windows\stage. The icon is not passed at all — it lives beside the script,
+      # which is the one location NSIS resolves correctly on its own.
+      - name: Build the installer
+        shell: bash
+        run: |
+          version="${{ needs.version.outputs.version }}"
+          root=$(pwd -W)
+          "/c/Program Files (x86)/NSIS/makensis.exe" \
+            -DAPP_VERSION="$version" \
+            -DSRC_DIR="${root//\//\\}\\stage" \
+            -DOUT_FILE="${root//\//\\}\\curio-$version-x86_64-setup.exe" \
+            packaging/windows/curio.nsi
+
+      # Wired but dormant. SignPath, Azure Trusted Signing, or a PFX all land here; until one
+      # exists the step is skipped and the installer ships unsigned (D34, R-DEL-8a).
+      - name: Sign the installer
+        if: env.WINDOWS_PFX_BASE64 != ''
+        shell: bash
+        run: |
+          echo "$WINDOWS_PFX_BASE64" | base64 -d > cert.pfx
+          signtool sign /f cert.pfx /p "$WINDOWS_PFX_PASSWORD" \
+            /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 \
+            "curio-${{ needs.version.outputs.version }}-x86_64-setup.exe"
+          rm -f cert.pfx
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-windows
+          path: curio-*-setup.exe
+          if-no-files-found: error
+
+  package-macos:
+    needs: [version, gate]
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: curio-aarch64-apple-darwin
+          path: arm64
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: curio-x86_64-apple-darwin
+          path: x86_64
+
+      # upload-artifact does not preserve the executable bit, so the binaries arrive as
+      # plain files. lipo does not care, but codesign refuses to sign something that is not
+      # executable.
+      - name: Restore the executable bit
+        run: chmod +x arm64/curio arm64/curio-nmh x86_64/curio x86_64/curio-nmh
+
+      - name: Build the bundle and disk image
+        env:
+          MACOS_SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
+        run: |
+          mkdir -p dist
+          bash packaging/macos/bundle.sh \
+            "${{ needs.version.outputs.version }}" arm64 x86_64 dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-macos
+          path: dist/*.dmg
+          if-no-files-found: error
+
+  # --- publish ----------------------------------------------------------------------------
+  #
+  # Drafted, not published. ARCH-07's pipeline diagram routes the footprint report through
+  # human review before the release goes out (R-DEL-7); a draft is what that arrow looks
+  # like in YAML. Reviewing the numbers and pressing Publish is the human decision the rule
+  # asks for.
+
+  publish:
+    needs: [version, package-windows, package-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: installer-*
+          path: installers
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: curio-*
+          path: reports
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          name: Curio ${{ needs.version.outputs.version }}
+          files: |
+            installers/*.exe
+            installers/*.dmg
+            reports/footprint-*.txt
+          body: |
+            ## Install
+
+            **Windows** — download the `-setup.exe` and run it. Installs per-user under
+            `%LOCALAPPDATA%\Programs\Curio`, no admin prompt.
+
+            **macOS** — download the `.dmg`, open it, drag Curio to Applications.
+
+            ### Both platforms will warn you about this download
+
+            These builds are **not signed** with a paid certificate, so Windows SmartScreen
+            and macOS Gatekeeper both flag them. That is the expected behaviour for an
+            unsigned build, not a sign that anything is wrong with the file.
+
+            - **Windows** — SmartScreen shows "Windows protected your PC". Choose
+              **More info** then **Run anyway**.
+            - **macOS** — the app is blocked on first launch. Open **System Settings →
+              Privacy & Security**, scroll to the message about Curio, and choose
+              **Open Anyway**.
+
+            If you would rather not take our word for it, the build is reproducible from
+            source: see `CONTRIBUTING.md`.
+
+            ### Uninstalling
+
+            Windows: Add/Remove Programs. macOS: drag the app to the Trash.
+
+            Either way your library — the database, screenshots, sidecars, and prompts under
+            `%USERPROFILE%\Curio` or `~/Curio` — is left in place on purpose (R-DEL-11).
+            Deleting it is your call, never a side effect of removing the app.

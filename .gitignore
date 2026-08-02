@@ -20,7 +20,17 @@ curio.lock
 node_modules/
 web/spa/dist/
 web/extension/dist/
+web/site/dist/
+web/site/.astro/
 *.tsbuildinfo
+
+# Packaging output. Installers are release artifacts built by CI and attached to a GitHub
+# release — a committed one would be a binary nobody can reproduce from the tag it sits on.
+# `stage/` is the payload directory a local makensis run assembles.
+/stage/
+/dist/
+*-setup.exe
+*.dmg
 
 # Local databases and captures — never test against a real library in-tree.
 *.db
@@ -32,4 +42,12 @@ web/extension/dist/
 Thumbs.db
 
 # graphify: regenerable AST extraction cache
+graphify-out
 graphify-out/cache/
+
+# standard 
+.vscode/
+.idea/
+*.log
+*.pem
+*.p12

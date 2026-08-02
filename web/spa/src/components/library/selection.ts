@@ -64,12 +64,27 @@ export function createSelection(order: Accessor<string[]>, filterKey: Accessor<s
     );
   }
 
+  /**
+   * Take a whole list at once.
+   *
+   * The header checkbox of a table, where every row is already in memory and "all" means a
+   * list rather than a filter. The grid has no use for it — there "all" is the server's
+   * `matching`, precisely because the grid does not have every row — so this stays a plain
+   * addition to `picked` and leaves `matching` alone.
+   */
+  function pick(ids: string[]): void {
+    setMatching(false);
+    anchor = ids.at(-1) ?? null;
+    setPicked([...new Set(ids)]);
+  }
+
   return {
     picked,
     matching,
     any,
     clear,
     toggle,
+    pick,
     isSelected: (id: string) => matching() || picked().includes(id),
     /** Switch to "everything the filter matches". The count is the server's to know. */
     selectMatching: () => {

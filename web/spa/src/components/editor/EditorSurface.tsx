@@ -1,5 +1,5 @@
 /**
- * The white sheet: toolbar, document, slash menu (PRD §5).
+ * The document: a TipTap instance, and the slash menu that writes into it (PRD §5).
  *
  * This component owns the TipTap instance's whole life. It is created in `onMount` against
  * a Solid-managed div and destroyed in `onCleanup` — leaving it alive past the route would
@@ -9,6 +9,11 @@
  * The editor is created once, from the document it was handed. It is deliberately not
  * reactive to `doc` afterwards: the autosave loop above writes the same document back, and
  * an effect that pushed the server's echo into the view would move the user's caret.
+ *
+ * What it does **not** own is the page it sits on. The sheet, the title and the rail are the
+ * route's, because the rail is chrome that spans the window while the document has a measure
+ * — they are two different widths and only one of them is this file's business. The editor
+ * is handed upward through `onReady` so the rail can drive it.
  */
 
 import type { Editor } from "@tiptap/core";
@@ -19,12 +24,19 @@ import type { PaletteEntry, PickerEntry } from "~/components/editor/palette";
 import { SlashMenu } from "~/components/editor/SlashMenu";
 import type { SlashTrigger } from "~/components/editor/slashTrigger";
 import { dismissSlash } from "~/components/editor/slashTrigger";
-import { Toolbar } from "~/components/editor/Toolbar";
 
 interface Props {
   doc: unknown;
   ghosts: Record<string, string>;
   onChange: (doc: unknown) => void;
+  /** Hands the live editor to the route, which renders the rail that drives it. */
+  onReady: (editor: Editor) => void;
+  /**
+   * The Markdown view is up. The editor stays mounted and merely hidden: it holds the
+   * document, the selection and the undo history, and unmounting it would throw all three
+   * away to save nothing.
+   */
+  hidden?: boolean;
 }
 
 export function EditorSurface(props: Props) {
@@ -45,6 +57,7 @@ export function EditorSurface(props: Props) {
     });
 
     setEditor(instance);
+    props.onReady(instance);
     onCleanup(() => instance.destroy());
   });
 
@@ -85,15 +98,7 @@ export function EditorSurface(props: Props) {
   };
 
   return (
-    <div class="sheet flex flex-col gap-4 px-6 py-5">
-      <Show when={editor()}>
-        {(instance) => (
-          <header class="border-line border-b pb-3">
-            <Toolbar editor={instance()} />
-          </header>
-        )}
-      </Show>
-
+    <div classList={{ hidden: props.hidden }}>
       <div ref={host} class="text-base text-ink" />
 
       <Show when={trigger()}>

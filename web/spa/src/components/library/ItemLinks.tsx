@@ -2,7 +2,9 @@ import { createSignal, For, Show } from "solid-js";
 import { type Option, OptionList } from "~/components/library/OptionList";
 import { Popover } from "~/components/library/Popover";
 import { familyOptions, nameOf, termOptions } from "~/components/library/vocab";
-import { vocabulary } from "~/lib/stores";
+import { createTerm } from "~/lib/api";
+import { ApiError } from "~/lib/http";
+import { refreshVocabulary, vocabulary } from "~/lib/stores";
 import type { Item, ItemPatch } from "~/lib/types";
 
 /**
@@ -13,13 +15,57 @@ import type { Item, ItemPatch } from "~/lib/types";
  * while scoring the new ones 1.0 — a person is not 87 % sure. That is also why removing the
  * last family is a legitimate save rather than a no-op.
  *
- * Tags and types travel as names, because a name that does not exist yet is created by
- * using it; a family has a description behind it and must be created deliberately.
+ * All three sections use one picker (`VocabPicker`). What differs between them is not the
+ * control but what "create" means underneath: a tag or a type is minted by the server the
+ * first time a name is used, so adding it to the item is the whole of it, while a family is
+ * a row of its own that must exist before anything can link to it.
  */
 export function ItemLinks(props: { item: Item; onEdit: (patch: ItemPatch) => void }) {
-  const linked = () => props.item.families.map((family) => family.id);
+  const [problem, setProblem] = createSignal<string | null>(null);
 
+  const linked = () => props.item.families.map((family) => family.id);
   const setFamilies = (ids: string[]) => props.onEdit({ family_ids: ids });
+
+  /**
+   * Create a family and link it in one gesture.
+   *
+   * Two steps rather than one because the item→family link is by id, and a name that has
+   * never been saved does not have one yet. The id is recovered by refreshing the
+   * vocabulary and looking the name back up rather than by reading it out of the POST
+   * response: the store has to be refreshed regardless, or the picker would not list the
+   * family that was just made, and looking it up there keeps this from depending on a
+   * response body's exact shape.
+   */
+  async function createFamily(name: string) {
+    setProblem(null);
+    try {
+      await createTerm("families", { name });
+      await refreshVocabulary();
+
+      const created = vocabulary.families.find(
+        (family) => family.name.toLowerCase() === name.toLowerCase(),
+      );
+      if (!created) {
+        setProblem(`“${name}” was created but could not be linked. Reload and add it again.`);
+        return;
+      }
+      setFamilies([...linked(), created.id]);
+    } catch (error) {
+      setProblem(error instanceof ApiError ? error.message : `Could not create “${name}”.`);
+    }
+  }
+
+  /**
+   * A family made here has a name and nothing else, and its description is the thing Curio
+   * actually matches new captures against. Said only while it is true of a family on this
+   * item, so it is a prompt to finish a specific job rather than standing advice.
+   */
+  const undescribed = () =>
+    props.item.families.some((linkedFamily) =>
+      vocabulary.families.some(
+        (family) => family.id === linkedFamily.id && !family.description.trim(),
+      ),
+    );
 
   return (
     <div class="flex flex-col gap-3">
@@ -46,52 +92,57 @@ export function ItemLinks(props: { item: Item; onEdit: (patch: ItemPatch) => voi
             )}
           </For>
 
-          <Popover
+          <VocabPicker
+            noun="Aesthetic Family"
             title="Add a family"
-            label="+ Family"
-            blocked={
-              vocabulary.families.length
-                ? undefined
-                : "No families exist yet. Create one on the Vocabulary page."
+            options={familyOptions()}
+            selected={linked()}
+            empty="No families yet."
+            onToggle={(id) =>
+              setFamilies(
+                linked().includes(id)
+                  ? linked().filter((value) => value !== id)
+                  : [...linked(), id],
+              )
             }
-          >
-            {() => (
-              <OptionList
-                options={familyOptions()}
-                selected={linked()}
-                empty="No families yet."
-                onToggle={(id) =>
-                  setFamilies(
-                    linked().includes(id)
-                      ? linked().filter((value) => value !== id)
-                      : [...linked(), id],
-                  )
-                }
-              />
-            )}
-          </Popover>
+            onCreate={(name) => void createFamily(name)}
+          />
         </div>
+
         <Show when={props.item.families.some((family) => family.ai_proposed)}>
           <p class="text-xs text-ink-faint">
             Violet means Curio proposed this family rather than matching an existing one.
           </p>
         </Show>
+
+        <Show when={undescribed()}>
+          <p class="text-xs text-ink-faint">
+            A family here has no description yet. Curio matches new captures against that
+            description, so add one on the Vocabulary page for it to affect anything.
+          </p>
+        </Show>
+
+        <Show when={problem()}>
+          {(message) => <output class="banner tint-caution">{message()}</output>}
+        </Show>
       </section>
 
       <NameSet
         title="Design types"
+        noun="Design Type"
         values={props.item.design_types}
         options={termOptions("types")}
-        empty="No design types yet — type one below."
+        empty="No design types yet."
         onChange={(next) => props.onEdit({ design_types: next })}
         toName={(id) => nameOf("types", id)}
       />
 
       <NameSet
         title="Tags"
+        noun="Tag"
         values={props.item.tags}
         options={termOptions("tags")}
-        empty="No tags yet — type one below."
+        empty="No tags yet."
         onChange={(next) => props.onEdit({ tags: next })}
         toName={(id) => nameOf("tags", id)}
       />
@@ -99,17 +150,22 @@ export function ItemLinks(props: { item: Item; onEdit: (patch: ItemPatch) => voi
   );
 }
 
-/** A whole set of names: chips to remove, a picker and a text box to add. */
+/**
+ * A whole set of names: chips to remove, and one picker to add or create.
+ *
+ * Creating is just adding here. A tag or a design type is brought into existence by being
+ * used, so a name that is not in the list yet takes the same path as one that is — which is
+ * why this needs no request of its own and no error state.
+ */
 function NameSet(props: {
   title: string;
+  noun: string;
   values: string[];
   options: Option[];
   empty: string;
   onChange: (next: string[]) => void;
   toName: (id: string) => string | undefined;
 }) {
-  const [fresh, setFresh] = createSignal("");
-
   const add = (name: string) => {
     const trimmed = name.trim();
     if (!trimmed || props.values.includes(trimmed)) return;
@@ -132,50 +188,58 @@ function NameSet(props: {
           )}
         </For>
 
-        <Popover title={`Add to ${props.title.toLowerCase()}`} label="+">
-          {(close) => (
-            <>
-              <OptionList
-                options={props.options}
-                selected={props.options
-                  .filter((option) => props.values.includes(option.label))
-                  .map((option) => option.id)}
-                empty={props.empty}
-                onToggle={(id) => {
-                  const name = props.toName(id);
-                  if (!name) return;
-                  if (props.values.includes(name)) {
-                    props.onChange(props.values.filter((value) => value !== name));
-                    return;
-                  }
-                  add(name);
-                }}
-              />
-              <form
-                class="flex gap-2"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  add(fresh());
-                  setFresh("");
-                  close();
-                }}
-              >
-                <input
-                  type="text"
-                  class="field field-block"
-                  placeholder="New name"
-                  value={fresh()}
-                  onInput={(event) => setFresh(event.currentTarget.value)}
-                />
-                <button type="submit" class="pill pill-ink">
-                  Add
-                </button>
-              </form>
-            </>
-          )}
-        </Popover>
+        <VocabPicker
+          noun={props.noun}
+          title={`Add to ${props.title.toLowerCase()}`}
+          options={props.options}
+          selected={props.options
+            .filter((option) => props.values.includes(option.label))
+            .map((option) => option.id)}
+          empty={props.empty}
+          onToggle={(id) => {
+            const name = props.toName(id);
+            if (!name) return;
+            if (props.values.includes(name)) {
+              props.onChange(props.values.filter((value) => value !== name));
+              return;
+            }
+            add(name);
+          }}
+          onCreate={add}
+        />
       </div>
     </section>
+  );
+}
+
+/**
+ * The one picker, for all three vocabularies.
+ *
+ * It is deliberately thin: a trigger and a list whose single text box both filters and
+ * creates. Everything that differs between a family, a design type and a tag is a prop —
+ * the noun the offer is phrased with, and what `onCreate` actually does.
+ */
+function VocabPicker(props: {
+  noun: string;
+  title: string;
+  options: Option[];
+  selected: string[];
+  empty: string;
+  onToggle: (id: string) => void;
+  onCreate: (name: string) => void;
+}) {
+  return (
+    <Popover title={props.title} label="+">
+      {() => (
+        <OptionList
+          options={props.options}
+          selected={props.selected}
+          empty={props.empty}
+          onToggle={props.onToggle}
+          create={{ noun: props.noun, onCreate: props.onCreate }}
+        />
+      )}
+    </Popover>
   );
 }
 

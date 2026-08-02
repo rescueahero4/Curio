@@ -28,6 +28,14 @@ const SCREENSHOT_FILE: &str = "screenshot.png";
 /// screenshot on a 404 only for filenames that do (Inventory §10.20).
 const THUMBNAIL_FILE: &str = "thumb.jpg";
 
+/// The item page's copy: the whole capture, ≤ 1600 px wide.
+///
+/// Deliberately **not** recorded on the row. It is a derived cache file, discovered by the
+/// same name convention the thumbnail already relies on — the file route falls back to the
+/// screenshot when it is absent, which is what makes every item captured before this existed
+/// keep working without a migration.
+const DETAIL_FILE: &str = "detail.jpg";
+
 #[derive(Debug, Serialize)]
 pub struct Ingested {
     pub item_id: String,
@@ -140,6 +148,32 @@ pub async fn create(State(state): State<AppState>, mut form: Multipart) -> ApiRe
         // which is correct and merely heavier.
         None
     };
+
+    // The item page's copy — built **off** the request path.
+    //
+    // Unlike the thumbnail, which rescales a cropped fold, this one rescales the whole
+    // stitch: tens of megapixels, measured in seconds rather than milliseconds. Doing it
+    // here would break this handler's contract that a capture is a card the instant it
+    // lands, and would hold the extension's popup open while it ran.
+    //
+    // Nothing waits on the result and nothing records it. Until the file appears the file
+    // route serves the screenshot, so the whole cost of the delay is bytes over loopback —
+    // which is also why an item that predates this, or one whose encode failed, needs no
+    // migration and no repair.
+    //
+    // `spawn_blocking` rather than `spawn`: this is CPU-bound, and burning seconds on a
+    // runtime worker thread would stall every other request sharing it.
+    let source = directory.join(SCREENSHOT_FILE);
+    let target = directory.join(DETAIL_FILE);
+    tokio::task::spawn_blocking(move || {
+        let Ok(png) = std::fs::read(&source) else {
+            return;
+        };
+        let detail = crate::images::detail(&png);
+        if detail.processed {
+            let _ = std::fs::write(&target, &detail.bytes);
+        }
+    });
 
     let item = state.with_db(|db| {
         items::set_media(

@@ -14,7 +14,13 @@
 @theme {
   /*
    * Ground and cards. A card is white on the warm ground and is separated from it by a
-   * border, never by a shadow — which is why there is no shadow token here to reach for.
+   * border, never by a shadow.
+   *
+   * The one shadow token below is the exception that keeps that rule honest. A *resting*
+   * card sits in the page and a border is enough to say where it ends. A **floating**
+   * surface — the bulk bar, an open popover — overlaps content that is still visible
+   * underneath it, and there a border alone cannot say which of the two layers is on top.
+   * Nothing that sits still is allowed to reach for this.
    */
   --color-ground: #fafaf9;
   --color-card: #ffffff;
@@ -66,9 +72,24 @@
   --radius-sheet: 0.75rem;
   --radius-pill: 9999px;
 
+  /* Elevation, for floating surfaces only — see the note on the colours above. Tinted with
+   * ink rather than black so it stays warm against the ground instead of going grey. */
+  --shadow-float: 0 1px 2px rgb(28 25 23 / 0.05), 0 10px 28px -8px rgb(28 25 23 / 0.18);
+
   /* Screenshot cards are 16:10, and the frame is reserved before the image loads so the
    * grid does not reflow underneath a reader mid-scroll. */
   --aspect-shot: 16 / 10;
+
+  /*
+   * The page's outer bound: 1600px, not the 1280 a stock `max-w-7xl` gives.
+   *
+   * A reading measure is why 1280 is the usual answer, and this app is not reading — it is a
+   * wall of screenshots. Those 320px buy a whole extra column of captures on an ordinary
+   * laptop, and on the detail page they go to the image. It is a token rather than an inline
+   * `max-w-[100rem]` because the shell and the top bar both set it, and a bar that is wider
+   * than the content under it is visible immediately.
+   */
+  --container-page: 100rem;
 
   --font-sans: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Consolas", monospace;
@@ -81,6 +102,55 @@
 :root {
   --duration-hover: 120ms;
   --ease-hover: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /*
+   * How long a confirmation stays, and how long it takes to go. Both numbers are also held in
+   * `components/SavedBadge.tsx`, which owns the actual dismissal — CSS draws the countdown,
+   * JavaScript decides when it is over, and the two have to agree or the bar empties against
+   * a badge that is still sitting there. They are named here so the pair is visible at once.
+   */
+  --duration-fade: 200ms;
+  --badge-hold: 8s;
+}
+
+/*
+ * How tall the top bar is, for the one surface that has to stick *underneath* it: the Prompt
+ * Helper's rail. Two sticky elements cannot both sit at `top: 0` — the second slides under
+ * the first and disappears — so the rail needs the first one's height as a number.
+ *
+ * The bar is content-sized rather than fixed, and this is its measured height at `lg` and
+ * above, where it is a single row. That coupling is why the value lives here with a note
+ * instead of inline: if `TopBar`'s padding changes, this is the line that has to change with
+ * it, and the symptom of forgetting is a 2px seam rather than a broken page.
+ */
+:root {
+  --topbar-h: 2.9375rem;
+}
+
+/* The checkbox's box. Outside `@theme` for the same reason as the two above: it is
+ * consumed by one base rule and generates no utility. See that rule for why it exists. */
+:root {
+  --size-check: 1.125rem;
+}
+
+/*
+ * The frosted chrome, as two numbers rather than four.
+ *
+ * Header and bulk bar have to agree: they are the same material seen in two places, and a
+ * user who scrolls the library sees both at once. Written inline they drifted apart the
+ * first time one of them was tuned, so the values live here and the classes only consume
+ * them.
+ *
+ * The two numbers pull against each other, which is the whole difficulty of the effect.
+ * Blur is only visible through what the fill lets through, so raising opacity hides the
+ * blur and raising blur is wasted under an opaque fill. These sit where the panel reads as
+ * a solid surface — text on it is unambiguously legible — while the screenshot underneath
+ * still resolves as soft colour rather than as noise.
+ */
+:root {
+  --glass-blur: 24px;
+  --glass-saturate: 180%;
+  --glass-opacity: 80%;
 }
 
 /*
@@ -120,6 +190,29 @@
     outline: 2px solid var(--color-ink);
     outline-offset: 2px;
   }
+
+  /*
+   * Checkboxes, one size larger than the browser draws them.
+   *
+   * The UA default is about 13px, sized for 16px text. This app's base is 14px and its
+   * densest surfaces are smaller still, so the default lands *under* its own labels — and
+   * the two places a checkbox matters most are the worst cases for it: a filter panel where
+   * a user ticks several in a row, and a grid card where the box is a small target that
+   * only appears on hover, over a screenshot.
+   *
+   * Set here rather than per component because there are three of them and they must not
+   * drift; `--size-check` exists so a caller that genuinely needs a different one changes a
+   * number instead of re-declaring the rule.
+   *
+   * `flex: none` because every one of those three sits in a flex row: without it the box is
+   * the thing that gives way when a long tag name needs the space, and a checkbox squashed
+   * to an oval is worse than one that overflows.
+   */
+  input[type="checkbox"] {
+    block-size: var(--size-check);
+    flex: none;
+    inline-size: var(--size-check);
+  }
 }
 
 @layer components {
@@ -128,9 +221,9 @@
   }
 
   .card {
-    background: var(--color-card);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-card);
+    /* background: var(--color-card); */
+    /* border: 1px solid var(--color-line); */
+    /* border-radius: var(--radius-card); */
   }
 
   /* The Prompt Helper's white sheet on a grey desk (PRD §5). */
@@ -148,9 +241,114 @@
   .shot {
     aspect-ratio: var(--aspect-shot);
     background: var(--color-desk);
-    border-radius: calc(var(--radius-card) - 1px);
+    border: 1px solid var(--color-line);
+    border-radius: calc(var(--radius-card) - 4px);
     object-fit: cover;
     width: 100%;
+  }
+
+  /*
+   * A capture taller than the frame, shown whole.
+   *
+   * 16:10 is the *grid's* contract — it keeps a page of thumbnails from reflowing under a
+   * reader mid-scroll. On a detail page the capture is the subject, and a full-page
+   * screenshot is usually several viewports tall: held to 16:10 it is either cropped to its
+   * masthead or letterboxed down to a stripe. So the proportion is dropped, the image takes
+   * the column's full width, and its own shape decides the height.
+   *
+   * Declared after `.shot` on purpose: same specificity, so source order is what lets this
+   * override the frame it is layered onto.
+   */
+  .shot-full {
+    aspect-ratio: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  /*
+   * Frosted chrome: the header once content has passed under it, and the bulk bar, which
+   * always has content under it.
+   *
+   * A solid fill on a floating surface makes the page look like it stops at that surface's
+   * edge. Letting the grid blur through says the opposite — the content continues, this is
+   * just a layer over it.
+   *
+   * `saturate` is not decoration. Blur alone averages colour toward grey, and a screenshot
+   * grid is the one thing in this app whose colour the user is actually here to judge;
+   * pushing saturation back up keeps what shows through recognisable as the image below.
+   */
+  /*
+   * Written unprefixed only, and that is deliberate — do not "helpfully" add the `-webkit-`
+   * twin back. Lightning CSS prefixes from the build's browser targets, and a hand-written
+   * `-webkit-backdrop-filter` after the standard property makes it collapse the pair down to
+   * the prefixed one alone. That looks harmless and is not: Firefox implements only the
+   * unprefixed property, so it would match the `@supports not` rule below and drop to an
+   * opaque bar — the effect silently absent in one browser and perfect in the other.
+   */
+  .glass {
+    background: color-mix(in srgb, var(--color-ground) var(--glass-opacity), transparent);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  }
+
+  /* The same treatment for a surface that reads as a card rather than as the ground. */
+  .glass-card {
+    background: color-mix(in srgb, var(--color-card) var(--glass-opacity), transparent);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  }
+
+  /*
+   * Without `backdrop-filter` the translucency is not frosted, it is just transparent — and
+   * text over an unblurred screenshot is unreadable. Where the filter is unsupported the
+   * surfaces go opaque instead. Losing the effect is a cosmetic loss; losing the text is not.
+   */
+  @supports not (backdrop-filter: blur(1px)) {
+    .glass {
+      background: var(--color-ground);
+    }
+
+    .glass-card {
+      background: var(--color-card);
+    }
+  }
+
+  /* Elevation. Only for a surface that overlaps content — see the token's note. */
+  .float {
+    box-shadow: var(--shadow-float);
+  }
+
+  /*
+   * A surface that opens *over* the page: the vocabulary popovers, the editor's slash menu.
+   *
+   * These sat on `.card` until its chrome came off, and then stopped being opaque — the page
+   * read straight through the panel, so a list of families arrived interleaved with the chips
+   * and cards behind it. It looked like a stacking bug and was not: nothing was painted in the
+   * wrong order, the thing on top simply had nothing to paint.
+   *
+   * So a panel is its own class rather than a card that floats. A card is a *tile in* the
+   * page and can give up its background to let a screenshot be the whole of it; a panel
+   * covers the page, which is the one thing it cannot do without a background of its own.
+   */
+  .panel {
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+  }
+
+  /*
+   * The scrolling part of a popover's list.
+   *
+   * The height is not decided here. `Popover` measures the gap between its trigger and the
+   * edge of the screen and writes `--option-max` onto the panel, because that is the only
+   * place that knows the answer — a list near the bottom of a short window has less room
+   * than the same list at the top of a tall one, and a fixed `max-height` is what makes a
+   * dropdown run off the screen.
+   *
+   * The fallback is the height this list used to have, so a caller that renders one outside
+   * a popover still gets a sane box rather than an unbounded one.
+   */
+  .option-scroll {
+    max-height: var(--option-max, 16rem);
+    overflow-y: auto;
   }
 
   /* Controls are pills. One transition length, one curve, everywhere. */
@@ -207,6 +405,271 @@
     color: var(--color-ink);
   }
 
+  /*
+   * A pill that is only an icon. The glyph is 16px and the label is gone, so the horizontal
+   * padding drops to match the vertical one — otherwise the button keeps the width of the
+   * word it no longer contains.
+   */
+  .pill-icon {
+    gap: 0;
+    padding: 0.375rem;
+  }
+
+  /*
+   * ---------- The Prompt Helper's rail ----------
+   *
+   * A toolbar button is deliberately *not* a `.pill`. A rail holds sixteen controls side by
+   * side, and at pill weight — a border each, 12px of side padding each — the strip reads as
+   * sixteen competing buttons rather than as one instrument. So the chrome comes off and
+   * only the hover and the pressed state remain, which is the whole of what a formatting
+   * control has to say.
+   */
+  .tool-btn {
+    align-items: center;
+    border-radius: 0.4375rem;
+    color: var(--color-ink-muted);
+    display: inline-flex;
+    gap: 0.25rem;
+    height: 1.875rem;
+    justify-content: center;
+    min-width: 1.875rem;
+    padding: 0 0.375rem;
+    transition:
+      background-color var(--duration-hover) var(--ease-hover),
+      color var(--duration-hover) var(--ease-hover);
+  }
+
+  .tool-btn:hover:not(:disabled, [aria-disabled="true"]) {
+    background: var(--color-desk);
+    color: var(--color-ink);
+  }
+
+  .tool-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+  }
+
+  /* An applied mark reads as pressed, not merely hovered — hover is where the pointer is,
+     and the user needs to know where the document is. */
+  .tool-btn[data-on="true"] {
+    background: var(--color-ink);
+    color: var(--color-ink-invert);
+  }
+
+  /* Grouping by gap alone needs more space than the rail has; a hairline says it in 1px. */
+  .tool-sep {
+    background: var(--color-line);
+    height: 1.25rem;
+    margin: 0 0.25rem;
+    width: 1px;
+  }
+
+  /*
+   * The document itself: a page lying on the desk.
+   *
+   * This is the one resting surface allowed a shadow, and it is a considered exception to
+   * the rule stated with the colour tokens. That rule exists so cards on the ground are told
+   * apart by a border rather than by fake depth — and it holds, because a card *is* on the
+   * ground. This is not: PRD §5 asks for a white sheet on a grey desk, and a sheet with a
+   * border and no shadow is a white rectangle painted on the desk rather than a thing
+   * resting on it. The shadow is what makes the desk read as behind the page instead of
+   * around it. Softer and lower than `--shadow-float`, because the page is lying down.
+   */
+  .page {
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: 0.25rem;
+    box-shadow:
+      0 1px 2px rgb(28 25 23 / 0.04),
+      0 16px 40px -24px rgb(28 25 23 / 0.28);
+  }
+
+  /*
+   * The Markdown view: exactly the text the server will hand the agent.
+   *
+   * `pre` rather than a rendered preview, deliberately. What is being previewed is the
+   * *serialization* — the chips already expanded, the paths already absolute — and rendering
+   * that back into headings and bullets would show the user the one thing the agent will
+   * never see.
+   */
+  .prompt-source {
+    color: var(--color-ink-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /*
+   * A badge: a fact about an item, not a control you press.
+   *
+   * These sat on `.pill` until now, and a pill is sized for a finger — 12px of horizontal
+   * padding and the 13px control type. Four or five of them under a thumbnail took a band
+   * as tall as the name above it, so a card read as chrome with a picture attached. A badge
+   * keeps the round shape and drops to the small type with padding cut to what the glyphs
+   * need.
+   *
+   * The border is on **every** badge, including the neutral ones. Without it a design type
+   * is bare text floating among bordered neighbours, which reads as a caption that has lost
+   * its box rather than as one item in a row of equals.
+   */
+  .badge {
+    align-items: center;
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-pill);
+    color: var(--color-ink-muted);
+    display: inline-flex;
+    font-size: var(--text-2xs);
+    gap: 0.25rem;
+    line-height: var(--text-2xs--line-height);
+    padding: 0.0625rem 0.375rem;
+    white-space: nowrap;
+  }
+
+  /*
+   * The heavier of the two neutral badges.
+   *
+   * Aesthetic families are the taxonomy the product is organised around and design types are
+   * a secondary fact, so families take the strong line and full ink. That is a difference of
+   * weight rather than of colour, deliberately: the palette holds exactly three tints and
+   * all three are semantic. Spending one on "this is a family" would make it look like a
+   * state.
+   */
+  .badge-strong {
+    border-color: var(--color-line-strong);
+    color: var(--color-ink);
+  }
+
+  /*
+   * The disclosure mark on a control that opens a panel.
+   *
+   * Faint on purpose: it is a hint about the control, not part of its name, and at full ink
+   * a row of filters reads as a row of arrows. It turns to point at the panel while the
+   * panel is open — the only motion in the filter row, and it goes to zero under
+   * `prefers-reduced-motion` with everything else, because it shares `--duration-hover`.
+   */
+  .chevron {
+    color: var(--color-ink-faint);
+    flex: none;
+    height: 0.875rem;
+    margin-right: -0.125rem;
+    transition-property: transform;
+    transition-duration: var(--duration-hover);
+    transition-timing-function: var(--ease-hover);
+    width: 0.875rem;
+  }
+
+  .chevron-open {
+    transform: rotate(180deg);
+  }
+
+  /*
+   * A segmented control: one choice out of a small closed set, shown all at once.
+   *
+   * This is the one place the chrome needs a *selected* state that reads at a glance, and
+   * `.pill-current` cannot give it here — a lone bordered pill among bordered pills says
+   * nothing. So the group sits on the grey desk and the chosen segment is lifted out of it
+   * in card white, which is the same figure/ground move the rest of the app already makes.
+   */
+  .segmented {
+    background: var(--color-desk);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-pill);
+    display: inline-flex;
+    gap: 0.125rem;
+    padding: 0.125rem;
+  }
+
+  .segmented > .pill:hover:not(:disabled, .pill-current) {
+    background: var(--color-line);
+  }
+
+  /*
+   * A link that is text and stays text.
+   *
+   * Vocabulary sits at the end of the filter row among controls that are all pills, and a
+   * fifth pill there would read as a fifth filter. The dotted underline is what keeps it
+   * recognisably a link while saying it is a different kind of thing from its neighbours.
+   */
+  .link-dotted {
+    border-radius: 0.25rem;
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
+    text-decoration-thickness: from-font;
+    text-underline-offset: 3px;
+    transition-property: color;
+    transition-duration: var(--duration-hover);
+    transition-timing-function: var(--ease-hover);
+    white-space: nowrap;
+  }
+
+  .link-dotted:hover {
+    color: var(--color-ink);
+  }
+
+  /*
+   * One item as a row.
+   *
+   * The list view's job is a library read by name and date rather than by picture, so the
+   * thumbnail shrinks to an identifying cell and the row's height is set by its text. The
+   * 8:5 cell is the grid's 16:10 at a twentieth of the area — the same crop, so an item
+   * recognised in the grid is recognisable here.
+   */
+  .shot-row {
+    aspect-ratio: var(--aspect-shot);
+    background: var(--color-desk);
+    border: 1px solid var(--color-line);
+    border-radius: 0.25rem;
+    flex: none;
+    object-fit: cover;
+    width: 3.5rem;
+  }
+
+  /*
+   * The section tabs: Library, Projects, Prompts.
+   *
+   * Pills before this, and the change is about what they claim rather than how they look. A
+   * pill is a control you press and something happens; these three are the parts of the app
+   * you are currently in one of — a tab strip says "you are here, and here are the
+   * alternatives", which a row of buttons cannot.
+   *
+   * The rule underneath is 2px on **every** tab and merely transparent on the inactive
+   * ones. Growing the border on the current tab instead would be a pixel of layout shift
+   * under the pointer every time the route changed, and a tab strip that twitches as you
+   * move along it is the one thing this pattern must not do.
+   */
+  .tab {
+    align-items: center;
+    border-bottom: 2px solid transparent;
+    color: var(--color-ink-muted);
+    display: inline-flex;
+    font-size: var(--text-sm);
+    gap: 0.375rem;
+    line-height: var(--text-sm--line-height);
+    padding: 0.375rem 0.625rem;
+    transition-property: border-color, color;
+    transition-duration: var(--duration-hover);
+    transition-timing-function: var(--ease-hover);
+    white-space: nowrap;
+  }
+
+  .tab:hover {
+    border-bottom-color: var(--color-line-strong);
+    color: var(--color-ink);
+  }
+
+  /* Ink, against the header's own `--color-line` hairline: darker than the rule it sits
+   * over and twice its weight, which is what makes one of three read as the current one at
+   * a glance rather than after comparing them. */
+  .tab-current {
+    border-bottom-color: var(--color-ink);
+    color: var(--color-ink);
+  }
+
   .field {
     background: var(--color-card);
     border: 1px solid var(--color-line-strong);
@@ -226,6 +689,103 @@
 
   .field-block {
     border-radius: var(--radius-card);
+  }
+
+  /*
+   * A search box with the glyph inside it.
+   *
+   * The magnifier replaces the words that used to sit beside the box, and that is the trade:
+   * a toolbar with four controls on one side cannot afford a label per control, and "search"
+   * is the one concept a 16px icon says without being read. The input keeps its own
+   * `aria-label`, so nothing is lost to a screen reader that cannot see the glyph.
+   */
+  .field-wrap {
+    position: relative;
+  }
+
+  /*
+   * `pointer-events: none` is the whole reason this is not just an absolutely positioned
+   * icon: without it the glyph sits over the left end of the input and swallows the click
+   * that was aimed at the text cursor, which reads as a box that will not focus.
+   */
+  .field-mark {
+    color: var(--color-ink-faint);
+    inset-inline-start: 0.6875rem;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    translate: 0 -50%;
+  }
+
+  .field-inset {
+    padding-inline-start: 2.125rem;
+  }
+
+  /*
+   * The same mark at the other end, for a control that opens rather than accepts typing.
+   *
+   * The height matches `.chevron` rather than the glyph's own 16px box, because the control
+   * this is pretending to be is one gap away on the same row: `.chevron` squashes the box to
+   * 14px, and a chevron two pixels taller than the one beside it reads as a heavier stroke
+   * rather than as a bigger icon.
+   */
+  .field-mark-end {
+    height: 0.875rem;
+    inset-inline-end: 0.625rem;
+    inset-inline-start: auto;
+  }
+
+  /*
+   * A `<select>` that keeps the company it is in.
+   *
+   * Left to itself a native select draws its own arrow, and the browser picks the gap on
+   * both sides of it — wider than the 0.375rem every pill in this app puts between a label
+   * and its chevron, and set from the control's edge rather than from the text. Sitting one
+   * gap away from the Add button, which *is* a pill, the two read as two different kinds of
+   * control rather than as the same kind twice.
+   *
+   * So the native arrow goes and the app's own `ChevronDown` is placed over the box, the
+   * same way the search glyph is. The numbers below are the pill's, worked back from it:
+   * text, 0.375rem, a 16px chevron, then 0.625rem to the edge — which is what `.pill`'s
+   * 0.75rem padding comes to once `.chevron`'s -0.125rem margin has pulled the glyph in.
+   *
+   * It stays a real `<select>`. It is a choice from three fixed options, which is the one
+   * thing a native select is unambiguously better at than anything that could be built here
+   * — it gets the platform's own picker on a phone, and keyboard behaviour nobody has to
+   * write.
+   */
+  .field-select {
+    appearance: none;
+    cursor: pointer;
+    padding-inline-end: 2rem;
+  }
+
+  /*
+   * One choice in a popover menu.
+   *
+   * The same row the option lists use — full width, rounded, ground on hover — pulled into a
+   * class because the Add menu is the third place to draw it and the three were already
+   * drifting apart by a pixel of padding each.
+   */
+  .menu-item {
+    align-items: center;
+    border-radius: var(--radius-card);
+    color: var(--color-ink);
+    cursor: pointer;
+    display: flex;
+    font-size: var(--text-sm);
+    gap: 0.5rem;
+    inline-size: 100%;
+    line-height: var(--text-sm--line-height);
+    padding: 0.375rem 0.5rem;
+    text-align: start;
+    transition-property: background-color;
+    transition-duration: var(--duration-hover);
+    transition-timing-function: var(--ease-hover);
+  }
+
+  .menu-item:hover {
+    background: var(--color-desk);
   }
 
   /* The three tints, as the only way to reach them. */
@@ -257,6 +817,384 @@
     line-height: var(--text-sm--line-height);
     padding: 0.625rem 0.875rem;
   }
+
+  /*
+   * Work is happening elsewhere and will arrive on its own.
+   *
+   * Deliberately a breathing dot and not a spinner: a spinner is a promise that *this* view
+   * is doing something and will finish, and an assessment is neither — it is queued on the
+   * server, it may take a minute, and the page it lands on is already usable meanwhile. The
+   * label beside it carries the actual meaning; this only says the wait is still live.
+   */
+  .dot-live {
+    animation: dot-live 1.8s var(--ease-hover) infinite;
+    background: currentColor;
+    border-radius: var(--radius-pill);
+    display: inline-block;
+    flex: none;
+    height: 0.375rem;
+    width: 0.375rem;
+  }
+
+  @keyframes dot-live {
+    0%,
+    100% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /*
+   * ---------- The saved badge ----------
+   *
+   * Drawn here rather than as utilities on the element because three of its parts cannot be
+   * said in utilities at all: a keyframed countdown, a control that appears on the hover of
+   * an ancestor, and a corner that sits outside the box it belongs to. See
+   * `components/SavedBadge.tsx` for why it behaves the way it does.
+   *
+   * The outer element is only a frame: it holds the position for the close button and owns
+   * the fade. It must not clip, or the corner it exists to place would be cut off.
+   */
+  .badge-saved {
+    display: inline-flex;
+    position: relative;
+    transition: opacity var(--duration-fade) var(--ease-hover);
+  }
+
+  .badge-saved[data-leaving="true"] {
+    opacity: 0;
+    /* Eight seconds are up: nothing in here is clickable through the fade, or a click aimed
+       at what comes next lands on Undo on the way out. */
+    pointer-events: none;
+  }
+
+  /*
+   * The green itself. `.tint-confirm` is deliberately not reused: that class is a flat fill
+   * for a resting surface, and this one has to clip a bar to its own rounded corners.
+   *
+   * `--radius-card` and not `--radius-pill`, though the shape is a badge. A fully round end
+   * eats a 3px underline into a crescent at both ends, and the countdown is the one part of
+   * this that has to be read as a straight line getting shorter.
+   */
+  .badge-saved-body {
+    align-items: baseline;
+    background: var(--color-confirm-surface);
+    border: 1px solid var(--color-confirm-line);
+    border-radius: var(--radius-card);
+    display: inline-flex;
+    font-size: var(--text-xs);
+    gap: 0.5rem;
+    line-height: var(--text-xs--line-height);
+    overflow: hidden;
+    padding: 0.25rem 0.625rem 0.375rem;
+    position: relative;
+  }
+
+  .badge-saved-said {
+    color: var(--color-confirm);
+    font-weight: 600;
+  }
+
+  /*
+   * Undo is a link, not a button, and the dotted underline is the difference stated.
+   *
+   * A bordered control next to a bold green claim competes with it — the eye lands on the
+   * button, and the badge ends up announcing the way out of the change rather than the change.
+   * Ink-muted under a dotted rule reads as "there is more you may do here" without asking for
+   * the attention a solid affordance asks for.
+   */
+  .badge-saved-undo {
+    color: var(--color-ink-muted);
+    text-decoration: underline dotted;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.1875rem;
+    transition: color var(--duration-hover) var(--ease-hover);
+  }
+
+  .badge-saved-undo:hover {
+    color: var(--color-ink);
+  }
+
+  /*
+   * The countdown: full width, draining to the right-hand end first.
+   *
+   * `scaleX` from a left origin rather than an animated `width`, so the eight seconds are one
+   * composited transform instead of eight seconds of layout. It pauses whenever the badge is
+   * hovered or holds focus, matching the JavaScript clock that is doing the same thing — the
+   * bar has to stop where the user can see it stop, or holding still looks like it did nothing.
+   */
+  .badge-saved-clock {
+    animation: badge-saved-clock var(--badge-hold) linear forwards;
+    background: var(--color-confirm);
+    bottom: 0;
+    height: 0.1875rem;
+    left: 0;
+    position: absolute;
+    transform-origin: left center;
+    width: 100%;
+  }
+
+  .badge-saved:hover .badge-saved-clock,
+  .badge-saved:focus-within .badge-saved-clock {
+    animation-play-state: paused;
+  }
+
+  @keyframes badge-saved-clock {
+    from {
+      transform: scaleX(1);
+    }
+    to {
+      transform: scaleX(0);
+    }
+  }
+
+  /*
+   * The close, on the corner it overhangs.
+   *
+   * Outside the badge on purpose: inside, an 18px circle in a 24px-tall pill either crowds
+   * the words or grows the badge to make room for a control that is not there most of the
+   * time. Hidden until the pointer or the keyboard arrives, because the badge already leaves
+   * on its own — this is for the user who wants it gone now, not a thing to be read.
+   */
+  .badge-saved-close {
+    align-items: center;
+    background: var(--color-card);
+    border: 1px solid var(--color-confirm-line);
+    border-radius: var(--radius-pill);
+    color: var(--color-confirm);
+    display: inline-flex;
+    height: 1.125rem;
+    justify-content: center;
+    opacity: 0;
+    /* Invisible and still clickable is a trap: the corner would swallow clicks aimed at
+       whatever sits behind it. */
+    pointer-events: none;
+    position: absolute;
+    right: -0.4375rem;
+    top: -0.4375rem;
+    transition: opacity var(--duration-hover) var(--ease-hover);
+    width: 1.125rem;
+  }
+
+  .badge-saved:hover .badge-saved-close,
+  .badge-saved:focus-within .badge-saved-close {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .badge-saved-close:hover {
+    border-color: var(--color-confirm);
+  }
+
+  /*
+   * ---------- A table of names ----------
+   *
+   * The one real table in the app, and it earns the exception. The library is pictures and
+   * a picture is judged on its own; the vocabulary is words, and every question this page
+   * answers is a comparison down a list — which name has no description, which one Curio
+   * coined, which one has a single item and should be merged away. A fact in a column can
+   * be compared with the one above it. The same fact on a card cannot.
+   *
+   * `border-collapse: separate`, not `collapse`. A collapsed table cannot keep the rounded
+   * corners its frame gives it — the cell borders win the cascade and the radius is clipped
+   * back to square. Separate borders with a single hairline on each cell's bottom edge draw
+   * the same one-pixel rule and leave the corners alone.
+   */
+  .table-frame {
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+  }
+
+  .table {
+    border-collapse: separate;
+    border-spacing: 0;
+    inline-size: 100%;
+  }
+
+  /*
+   * The header sticks under the top bar, not to the top of the window.
+   *
+   * Two sticky elements both at `top: 0` do not stack: the second slides under the first
+   * and is never seen again. `--topbar-h` is that first one's measured height, declared
+   * with its own note at the top of this file. This is also why the frame above must not
+   * clip its overflow — a scroll container between here and the viewport would make the
+   * header stick to the frame, which does not scroll, which means it does not stick at all.
+   */
+  .th {
+    background: var(--color-desk);
+    border-bottom: 1px solid var(--color-line);
+    color: var(--color-ink-muted);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    line-height: var(--text-xs--line-height);
+    padding: 0.5rem 0.75rem;
+    position: sticky;
+    text-align: start;
+    top: var(--topbar-h);
+    white-space: nowrap;
+    z-index: 1;
+  }
+
+  /* The frame's radius, minus its own border, so the fill stops where the corner does. */
+  .th:first-child {
+    border-start-start-radius: calc(var(--radius-card) - 1px);
+  }
+
+  .th:last-child {
+    border-start-end-radius: calc(var(--radius-card) - 1px);
+  }
+
+  .th-end {
+    text-align: end;
+  }
+
+  /*
+   * The whole header is the control.
+   *
+   * A sort arrow is a 12px target and the word beside it is the thing a user is already
+   * pointing at, so the button wraps both. `inherit` rather than a colour of its own: the
+   * `<th>` decides what a header looks like and this only decides that it can be clicked.
+   */
+  .th-sort {
+    align-items: center;
+    color: inherit;
+    display: inline-flex;
+    font: inherit;
+    gap: 0.25rem;
+    transition-property: color;
+    transition-duration: var(--duration-hover);
+    transition-timing-function: var(--ease-hover);
+  }
+
+  .th-end .th-sort {
+    flex-direction: row-reverse;
+  }
+
+  .th-sort:hover {
+    color: var(--color-ink);
+  }
+
+  /*
+   * The mark is absent until it means something.
+   *
+   * At rest every header would otherwise carry an arrow, and a row of five arrows says
+   * nothing about which column is actually ordering the table. It fades in under the
+   * pointer to say the header is clickable, and goes to full ink on the one column that is
+   * sorted. The rotation is the direction, and it is decoration — `aria-sort` on the `<th>`
+   * is what actually announces it, and the glyph is `aria-hidden` with every other icon.
+   */
+  .sort-mark {
+    color: var(--color-ink-faint);
+    flex: none;
+    height: 0.75rem;
+    opacity: 0;
+    transition-property: color, opacity, transform;
+    transition-duration: var(--duration-hover);
+    transition-timing-function: var(--ease-hover);
+    width: 0.75rem;
+  }
+
+  .th-sort:hover .sort-mark {
+    opacity: 0.6;
+  }
+
+  .th[aria-sort="ascending"] .sort-mark,
+  .th[aria-sort="descending"] .sort-mark {
+    color: var(--color-ink);
+    opacity: 1;
+  }
+
+  .th[aria-sort="ascending"] .sort-mark {
+    transform: rotate(180deg);
+  }
+
+  .th[aria-sort="ascending"],
+  .th[aria-sort="descending"] {
+    color: var(--color-ink);
+  }
+
+  .td {
+    border-bottom: 1px solid var(--color-line);
+    color: var(--color-ink);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    padding: 0.4375rem 0.75rem;
+    vertical-align: middle;
+  }
+
+  /*
+   * The checkbox column, sized to the box rather than to the content beside it.
+   *
+   * `width: 0` with `white-space: nowrap` is the table idiom for "as narrow as this can
+   * be": a table lays out on content width, so zero is read as a request for the minimum
+   * rather than as a literal.
+   */
+  .th-check,
+  .td-check {
+    padding-inline-end: 0;
+    width: 0;
+  }
+
+  .td-actions,
+  .th:last-child {
+    text-align: end;
+    white-space: nowrap;
+    width: 0;
+  }
+
+  /* Prose in a column has to be given a bound, or it takes every pixel the names need. */
+  .td-description {
+    max-width: 0;
+    width: 45%;
+  }
+
+  /*
+   * What a row gives up as the window narrows, in the order it can afford to.
+   *
+   * Description first: it is the longest and the one already truncated. Then who named it,
+   * which is a filter in the toolbar as well and so is still reachable. The name, the count
+   * and the way to edit them are the reason to be on this page and they never go.
+   */
+  @media (width < 64rem) {
+    .td-description,
+    .th.td-description {
+      display: none;
+    }
+  }
+
+  @media (width < 40rem) {
+    .td-origin,
+    .th.td-origin {
+      display: none;
+    }
+  }
+
+  .table tbody tr:last-child .td {
+    border-bottom: 0;
+  }
+
+  .table tbody tr:hover .td {
+    background: var(--color-ground);
+  }
+
+  /* After the hover rule on purpose: a selected row stays selected-looking under the
+     pointer, and both are the same weight of tint so neither shouts. */
+  .tr-selected .td {
+    background: var(--color-desk);
+  }
+
+  /*
+   * The edit panel: a second row, spanning the table, sitting on the ground rather than on
+   * the card. That change of surface is the whole separation — it says the panel belongs to
+   * the row above it without drawing a box around the pair.
+   */
+  .td-panel {
+    background: var(--color-ground);
+    padding: 0.75rem;
+  }
 }
 
 /*
@@ -271,5 +1209,24 @@
   :root {
     --duration-hover: 0s;
     scroll-behavior: auto;
+  }
+
+  /*
+   * The token trick above only reaches transitions. `.dot-live` is a keyframe animation, so
+   * it has to be stopped by name — held at full opacity, where it still reads as "in
+   * progress" to anyone who has the label next to it.
+   */
+  .dot-live {
+    animation: none;
+    opacity: 1;
+  }
+
+  /*
+   * The countdown stops moving, but the badge still leaves after the same eight seconds —
+   * that clock is in JavaScript and is not motion, it is the behaviour. What is left is a
+   * static rule under the words, which is where the tint would have put one anyway.
+   */
+  .badge-saved-clock {
+    animation: none;
   }
 }

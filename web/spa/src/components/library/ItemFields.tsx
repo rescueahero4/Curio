@@ -1,4 +1,5 @@
 import { Show } from "solid-js";
+import { ExternalLink } from "~/components/icons";
 import type { SaveState } from "~/components/library/autosave";
 import { paused } from "~/lib/http";
 import type { Item, ItemPatch } from "~/lib/types";
@@ -19,6 +20,24 @@ export function ItemFields(props: {
 }) {
   const blocked = () =>
     paused() ? "Curio is paused. Edits are not being saved right now." : undefined;
+
+  /**
+   * The source URL, if it is one a browser should be sent to.
+   *
+   * `source_url` is whatever the extension captured or a user typed, and nothing validates
+   * it on the way in — it can be a half-typed host, or a `javascript:` string. So the link
+   * appears only for http and https, and the field is left to say the rest.
+   */
+  const openable = () => {
+    const raw = props.item.source_url?.trim();
+    if (!raw) return null;
+    try {
+      const url = new URL(raw);
+      return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+    } catch {
+      return null;
+    }
+  };
 
   return (
     <div class="flex flex-col gap-3">
@@ -48,17 +67,38 @@ export function ItemFields(props: {
 
       <label class="flex flex-col gap-1">
         <span class="text-sm text-ink-muted">Source URL</span>
-        <input
-          type="url"
-          class="field field-block"
-          placeholder="https://"
-          value={props.item.source_url ?? ""}
-          disabled={!!blocked()}
-          title={blocked()}
-          onInput={(event) =>
-            props.onEdit({ source_url: event.currentTarget.value.trim() || null })
-          }
-        />
+        {/* The field stays a field — this is still the place the URL is edited. The link is
+            an affordance laid into it, because the other thing anyone does with a source URL
+            is go and look at it, and select-all-copy-new-tab-paste is four gestures for
+            something the browser can do in one. It only appears once the value is a URL a
+            browser would actually follow; see `openable`. */}
+        <div class="relative">
+          <input
+            type="url"
+            class="field field-block pr-10"
+            placeholder="https://"
+            value={props.item.source_url ?? ""}
+            disabled={!!blocked()}
+            title={blocked()}
+            onInput={(event) =>
+              props.onEdit({ source_url: event.currentTarget.value.trim() || null })
+            }
+          />
+          <Show when={openable()}>
+            {(href) => (
+              <a
+                href={href()}
+                target="_blank"
+                rel="noreferrer noopener"
+                class="pill pill-icon absolute top-1/2 right-1 -translate-y-1/2"
+                title="Open in a new tab"
+              >
+                <span class="sr-only">Open the source URL in a new tab</span>
+                <ExternalLink />
+              </a>
+            )}
+          </Show>
+        </div>
       </label>
 
       <label class="flex flex-col gap-1">

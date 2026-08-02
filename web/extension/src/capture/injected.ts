@@ -25,15 +25,6 @@
 /** The single `window` key everything hangs off. */
 export const STATE_KEY = "__curioCapture";
 
-/** What the page remembers between injections. */
-export interface PageState {
-  scrollY: number;
-  scrollBehavior: string;
-  overflow: string;
-  hidden: Element[];
-  watchdog: number;
-}
-
 /** What a measurement produced. */
 export interface PageMetrics {
   width: number;

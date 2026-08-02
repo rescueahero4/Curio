@@ -34,7 +34,23 @@ pub struct PublicSettings {
     /// toggle that silently does nothing (PRD §5: every disabled control says why;
     /// Inventory §1's `launchAtLoginSupport`).
     pub launch_at_login_support: AutostartSupport,
+    /// The port a user **pinned** in `config.json`, if any. A preference, not an address.
+    ///
+    /// `None` is the default and means an OS-assigned ephemeral port (D10). Nothing may
+    /// display this as "the port Curio is on": it is what was asked for at boot, and with no
+    /// pin it answers nothing at all. Use [`bound_port`](Self::bound_port).
     pub port: Option<u16>,
+    /// The port Curio is **actually listening on**, read from the bound socket.
+    ///
+    /// This is the number a user needs — the one to put in a browser, or read out when
+    /// something cannot reach the app — and it is the only one that is true in every case.
+    /// With an ephemeral port there is no configured value to fall back on, and even with a
+    /// pin the two can disagree: `CURIO_PORT` overrides `config.json`, and the socket is
+    /// bound once at boot while `config.json` can be edited underneath it at any time.
+    ///
+    /// The settings page used to print `port` here, which is why a library with `4321` in
+    /// its config showed `4321` no matter which socket the running process held.
+    pub bound_port: u16,
     pub version: String,
     /// Whether a key is configured. Never the key, and never a prefix of it.
     pub api_key_set: bool,
@@ -220,6 +236,7 @@ fn project(state: &AppState) -> PublicSettings {
         launch_at_login: config.launch_at_login,
         launch_at_login_support: autostart_support(),
         port: config.port,
+        bound_port: state.port(),
         version: state.version().to_owned(),
         api_key_set: crate::secrets::api_key().is_some(),
         api_key_masked: crate::secrets::api_key().as_deref().map(mask),
@@ -233,9 +250,27 @@ fn project(state: &AppState) -> PublicSettings {
         // value to fall back on, and a snippet the user pastes into Claude Code has to be
         // one that can actually connect.
         mcp_http_url: format!("http://127.0.0.1:{}/mcp", state.port()),
-        mcp_stdio_command: "curio".to_owned(),
+        mcp_stdio_command: stdio_command(),
         mcp_stdio_args: vec!["--mcp-stdio".to_owned()],
     }
+}
+
+/// The executable an agent should spawn for the stdio transport — as an absolute path.
+///
+/// Not the bare name `curio`. A client spawning the proxy does it without a shell, and even
+/// with one there is nothing that puts Curio on `PATH`: it is launched from wherever it was
+/// installed or built, and no installer here writes a `PATH` entry. A bare name therefore
+/// resolves for nobody, and the failure is silent in the worst way — the registration is
+/// accepted, the client lists the server, and every connection dies with "connection closed"
+/// because the process was never found to start.
+///
+/// `curio-nmh` writes the browsers' native-messaging manifests from `current_exe()` for
+/// exactly this reason (see `register.rs`); this is the same answer for the same question.
+///
+/// The fallback is the bare name, which is no worse than what it replaces: if the OS will not
+/// say where this process lives, a name the user can correct by hand beats an empty string.
+fn stdio_command() -> String {
+    std::env::current_exe().map_or_else(|_| "curio".to_owned(), |path| path.display().to_string())
 }
 
 /// `sk-ant-…xxxx` — enough to tell two keys apart, not enough to use one (R-SEC-10).
@@ -306,11 +341,91 @@ mod tests {
     }
 
     #[test]
-    fn the_key_is_reported_as_a_boolean_and_a_mask() {
+    fn the_reported_port_is_the_bound_one_not_the_configured_one() {
+        // The defect this exists for, found on a real library: the settings page printed
+        // `port`, which is the *preference* in config.json. A user with `4321` pinned there
+        // saw "Port 4321" whatever socket the process actually held — a number that looks
+        // like an address, reads like an address, and is not one.
+        let config = Config {
+            port: Some(4321),
+            ..Config::default()
+        };
+
+        let pinned = AppState::new(
+            RuntimeToken::mint(),
+            "quit-secret",
+            "0.1.0",
+            51_234,
+            std::env::temp_dir(),
+            config,
+            curio_db::Db::open_in_memory().expect("db"),
+        );
+
+        let settings = project(&pinned);
+
+        assert_eq!(settings.bound_port, 51_234, "the socket is the truth");
+        assert_eq!(
+            settings.port,
+            Some(4321),
+            "the pin is still reported, as a pin"
+        );
+        // And the MCP snippet, which has always used the bound port, must agree with it.
+        assert!(
+            settings.mcp_http_url.contains("51234"),
+            "{}",
+            settings.mcp_http_url
+        );
+    }
+
+    #[test]
+    fn the_stdio_command_is_a_path_an_agent_can_actually_spawn() {
+        // The defect this exists for: the field said `curio`, and nothing on any supported
+        // platform puts `curio` on PATH. `claude mcp add` accepted it, Claude Code listed the
+        // server, and every session died with "connection closed" — the process was never
+        // found to start. A bare name is the one answer that cannot work, so the assertion is
+        // simply that this is a path.
+        let settings = project(&state());
+        let command = std::path::Path::new(&settings.mcp_stdio_command);
+
+        assert!(
+            command.is_absolute(),
+            "an agent spawns this without a shell: {}",
+            settings.mcp_stdio_command
+        );
+        assert_eq!(settings.mcp_stdio_args, ["--mcp-stdio"]);
+    }
+
+    #[test]
+    fn an_ephemeral_port_still_reports_a_real_number() {
+        // The default: no pin at all (D10). `port` answers nothing, and a page that had only
+        // that field to work from could say nothing more useful than "chosen at launch" —
+        // which is exactly when a user most needs the number.
         let settings = project(&state());
 
-        assert!(!settings.api_key_set);
-        assert!(settings.api_key_masked.is_none());
+        assert_eq!(settings.port, None);
+        assert_eq!(settings.bound_port, 51_234);
+    }
+
+    #[test]
+    fn the_key_is_reported_as_a_boolean_and_a_mask() {
+        // `project` reads the real OS keychain, not `state`, so whether a key exists is a
+        // property of the machine running the test. Asserting "no key" therefore passed on
+        // clean CI runners and failed on every developer who had configured one — a test
+        // that reports the environment rather than the code.
+        //
+        // What must hold either way is that the two fields agree, which is the defect worth
+        // guarding: a boolean saying "configured" beside an absent mask, or a mask beside a
+        // false boolean, is what would mislead the settings page.
+        let settings = project(&state());
+
+        assert_eq!(settings.api_key_set, settings.api_key_masked.is_some());
+
+        if let Some(masked) = &settings.api_key_masked {
+            // Whatever the machine holds, the projection must never surface it whole
+            // (Inventory §10.5).
+            assert!(masked.starts_with("sk-ant-…"), "{masked}");
+            assert!(masked.len() <= "sk-ant-…".len() + 4, "{masked}");
+        }
     }
 
     #[test]

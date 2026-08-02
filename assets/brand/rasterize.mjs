@@ -29,8 +29,12 @@ import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
-/** Sizes Chrome asks for, plus the 32 px the tray uses (R-EXT-1, PRD §5). */
-const SIZES = [16, 32, 48, 128];
+/**
+ * Sizes Chrome asks for, plus the 32 px the tray uses (R-EXT-1, PRD §5), plus the large
+ * sizes the packaged icons need: Windows' `.ico` carries up to 256 for Explorer's
+ * extra-large view, and macOS' `.icns` wants 512 for Finder's (packaging/README.md).
+ */
+const SIZES = [16, 32, 48, 128, 256, 512];
 
 /**
  * The mark, padded.

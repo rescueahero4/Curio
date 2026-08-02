@@ -160,7 +160,10 @@ async function openAuthenticated(
     const { nonce } = (await response.json()) as { nonce?: string };
     if (!nonce) throw new NotRunningError();
 
-    const path = target === "new-project" ? "/projects?new=1" : "/projects";
+    // "New Project" means "start a brief", so it lands on Prompts. The popup opens the
+    // list rather than minting a prompt: a POST from the extension would leave an untitled
+    // draft behind every time someone clicked through and changed their mind.
+    const path = target === "new-project" ? "/prompts" : "/projects";
     const separator = path.includes("?") ? "&" : "?";
     await chrome.tabs.create({
       url: `http://127.0.0.1:${connection.port}${path}${separator}t=${encodeURIComponent(nonce)}`,

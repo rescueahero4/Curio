@@ -1,25 +1,35 @@
 /**
- * The frame a settings section renders inside: a card, a heading, a save badge, and the two
+ * The frame a settings section renders inside: a rule, a heading, a save badge, and the two
  * controls every section reaches for.
+ *
+ * Not a card. Nine stacked cards read as nine separate documents, and this page is one
+ * document in one scroll — a hairline above each heading is enough to say where a section
+ * starts, and it leaves the fields sitting on the page rather than inside a container that
+ * has to be visually entered. The left-hand nav in `Settings.tsx` is what carries the
+ * structure the cards used to imply, and `id` is the anchor it aims at.
  *
  * The badge sits in the section header rather than at the top of the page because a save
  * here is scoped to one section — a page-level "Saved" would leave the user guessing which
- * of eight things it meant.
+ * of nine things it meant.
  */
 
 import { createUniqueId, type JSX, Show } from "solid-js";
+import { SavedBadge } from "~/components/SavedBadge";
 import type { Saver } from "~/components/settings/save";
 
 export function Section(props: {
+  /** Anchor target for the settings nav; see SECTION_NAV in routes/Settings.tsx. */
+  id: string;
   title: string;
   blurb?: JSX.Element;
   saver?: Saver;
   children: JSX.Element;
 }) {
   return (
-    <section class="card flex flex-col gap-3 p-5">
-      <header class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 class="text-lg font-semibold">{props.title}</h2>
+    // `scroll-mt-24` keeps a jumped-to heading clear of the sticky app header.
+    <section id={props.id} class="flex scroll-mt-24 flex-col gap-3 border-t border-line pt-6">
+      <header class="flex min-h-5 flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h2 class="text-base font-semibold">{props.title}</h2>
         <Show when={props.saver}>{(saver) => <SaveBadge saver={saver()} />}</Show>
       </header>
       <Show when={props.blurb}>
@@ -32,9 +42,10 @@ export function Section(props: {
 
 export function SaveBadge(props: { saver: Saver }) {
   const state = () => props.saver.state();
-  const undoable = () => {
+  /** The two states that leave on a clock; everything else stays until it is replaced. */
+  const confirmation = () => {
     const current = state();
-    return current.kind === "saved" && current.undoable;
+    return current.kind === "saved" || current.kind === "reverted" ? current : null;
   };
   const refusal = () => {
     const current = state();
@@ -47,17 +58,18 @@ export function SaveBadge(props: { saver: Saver }) {
         <span class="text-ink-faint">Saving…</span>
       </Show>
 
-      <Show when={state().kind === "saved"}>
-        <span class="text-confirm">Saved</span>
-        <Show when={undoable()}>
-          <button type="button" class="pill pill-outline" onClick={() => props.saver.undo()}>
-            Undo
-          </button>
-        </Show>
-      </Show>
-
-      <Show when={state().kind === "reverted"}>
-        <span class="text-ink-muted">Put back.</span>
+      {/* `keyed`, so a second save inside the first badge's eight seconds mounts a second
+          badge rather than reusing one whose clock is nearly out. Each save gets its own. */}
+      <Show when={confirmation()} keyed>
+        {(current) => (
+          <SavedBadge
+            label={current.kind === "reverted" ? "Put back" : undefined}
+            onUndo={
+              current.kind === "saved" && current.undoable ? () => props.saver.undo() : undefined
+            }
+            onDismiss={() => props.saver.dismiss()}
+          />
+        )}
       </Show>
 
       <Show when={state().kind === "paused"}>

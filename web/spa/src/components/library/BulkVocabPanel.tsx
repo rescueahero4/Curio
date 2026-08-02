@@ -36,7 +36,9 @@ export function BulkVocabPanel(props: {
   };
 
   return (
-    <Popover title={props.title} label={props.title} blocked={props.blocked}>
+    // Opens upward: this panel only ever lives in the bulk bar, which is pinned to the
+    // bottom of the viewport. See `Popover`'s `placement`.
+    <Popover title={props.title} label={props.title} blocked={props.blocked} placement="top">
       {(close) => (
         <>
           <OptionList

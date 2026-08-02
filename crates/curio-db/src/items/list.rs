@@ -95,6 +95,36 @@ pub fn count(conn: &Connection) -> Result<i64> {
     Ok(conn.query_row("SELECT COUNT(*) FROM items", [], |row| row.get(0))?)
 }
 
+/// How many items a filter matches, whole — not one page of them.
+///
+/// The library's filter row wants to say "Needs review 12" before the user has clicked
+/// anything, and the paged read cannot answer that: it deliberately reports "there is
+/// another page" rather than a total, because a total is a second query it does not need.
+/// This is that second query, asked only by a caller that actually wants the number.
+///
+/// The cursor is dropped rather than honoured. A cursor means "the part of this result the
+/// reader has not reached yet", and a count of that is not a count of the filter — it would
+/// shrink as the user scrolled.
+///
+/// # Errors
+/// Propagates a storage failure.
+pub fn count_matching(conn: &Connection, query: &ItemQuery) -> Result<i64> {
+    let whole = ItemQuery {
+        cursor: None,
+        ..query.clone()
+    };
+
+    let mut params = Vec::new();
+    let where_clause = build_where(&whole, &mut params);
+    let sql = format!("SELECT COUNT(*) FROM items i {where_clause}");
+
+    Ok(
+        conn.query_row(&sql, rusqlite::params_from_iter(params.iter()), |row| {
+            row.get(0)
+        })?,
+    )
+}
+
 /// Build the `WHERE` clause and push its bound values onto `params`.
 fn build_where(query: &ItemQuery, params: &mut Vec<Value>) -> String {
     let mut clauses: Vec<String> = Vec::new();
@@ -414,6 +444,51 @@ mod tests {
         .expect("ids");
 
         assert_eq!(all.len(), 4);
+    }
+
+    #[test]
+    fn a_filtered_count_agrees_with_the_rows_that_filter_returns() {
+        // The number on a pill and the grid under it come from two different queries. If
+        // they can disagree, the pill is worse than no pill at all.
+        let db = seeded();
+        let query = ItemQuery {
+            needs_review: true,
+            ..ItemQuery::unfiltered()
+        };
+
+        let page = list(db.conn(), &query).expect("list");
+        assert_eq!(
+            count_matching(db.conn(), &query).expect("count"),
+            i64::try_from(page.items.len()).expect("fits")
+        );
+        assert_eq!(count_matching(db.conn(), &query).expect("count"), 2);
+    }
+
+    #[test]
+    fn a_count_ignores_the_page_size_and_the_cursor() {
+        // Both would turn "how many match" into "how many are left", which is a different
+        // question and a shrinking number.
+        let db = seeded();
+        let first = list(
+            db.conn(),
+            &ItemQuery {
+                limit: 2,
+                ..ItemQuery::default()
+            },
+        )
+        .expect("list");
+
+        let counted = count_matching(
+            db.conn(),
+            &ItemQuery {
+                limit: 2,
+                cursor: Some(Cursor::parse(&first.next_cursor.expect("more")).expect("parse")),
+                ..ItemQuery::default()
+            },
+        )
+        .expect("count");
+
+        assert_eq!(counted, 4);
     }
 
     #[test]

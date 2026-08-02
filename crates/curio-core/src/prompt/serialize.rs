@@ -14,8 +14,6 @@
 
 use std::collections::HashMap;
 
-use super::template;
-
 /// What chips resolve against.
 ///
 /// The server fills these from the database before serializing. Passing resolved data
@@ -35,29 +33,56 @@ pub struct ChipContext {
 ///
 /// Unknown node types are traversed rather than dropped: a document written by a newer
 /// editor must degrade to its text, not to a hole.
+///
+/// ## An empty section is dropped, heading and all
+///
+/// The template opens eight named sections and a user fills in three. The other five must
+/// not reach the model: a heading with nothing under it is an instruction to interpret an
+/// absence, and eight of them is a form the agent will try to answer.
+///
+/// The test is **what follows the heading**, not what the heading says. Section headings
+/// used to be synthesized here from a `section` attribute, which meant only Curio's own
+/// eight could be dropped; they are real, editable nodes now, so this rule applies equally
+/// to a heading the user wrote and left empty (R-FE-18, FR-12).
 #[must_use]
 pub fn serialize(doc: &serde_json::Value, context: &ChipContext) -> String {
     let mut out = String::new();
-    for block in doc["content"].as_array().into_iter().flatten() {
+    let blocks: Vec<&serde_json::Value> = doc["content"].as_array().into_iter().flatten().collect();
+
+    for (index, block) in blocks.iter().enumerate() {
+        if block["type"] == "heading" && !section_has_content(&blocks[index + 1..], context) {
+            continue;
+        }
         write_block(&mut out, block, context, 0);
     }
+
     collapse_blank_runs(out.trim())
+}
+
+/// Whether anything before the next heading writes text.
+///
+/// A horizontal rule counts as content on purpose — a user who put a divider under a heading
+/// meant the section to be there.
+fn section_has_content(rest: &[&serde_json::Value], context: &ChipContext) -> bool {
+    rest.iter()
+        .take_while(|block| block["type"] != "heading")
+        .any(|block| {
+            block["type"] == "horizontalRule" || {
+                let mut text = String::new();
+                write_block(&mut text, block, context, 0);
+                !text.trim().is_empty()
+            }
+        })
 }
 
 fn write_block(out: &mut String, node: &serde_json::Value, context: &ChipContext, depth: usize) {
     match node["type"].as_str().unwrap_or_default() {
         "paragraph" => {
             let text = inline_text(node, context);
+            // An untouched section contributes nothing, and the heading above it was already
+            // skipped by `serialize`.
             if text.trim().is_empty() {
-                // An untouched ghost section contributes nothing. Emitting its heading
-                // anyway would hand the model an empty instruction to interpret.
                 return;
-            }
-            if let Some(heading) = node["attrs"]["section"]
-                .as_str()
-                .and_then(template::heading_for)
-            {
-                push_block(out, &format!("## {heading}"));
             }
             push_block(out, &text);
         }
@@ -224,6 +249,7 @@ fn collapse_blank_runs(text: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use super::super::template;
     use super::*;
 
     fn context() -> ChipContext {
@@ -260,13 +286,23 @@ mod tests {
         serde_json::json!({ "type": "doc", "content": content })
     }
 
+    fn heading(level: u64, value: &str) -> serde_json::Value {
+        serde_json::json!({
+            "type": "heading",
+            "attrs": { "level": level },
+            "content": [text(value)],
+        })
+    }
+
     #[test]
-    fn a_section_with_content_gets_its_heading() {
+    fn a_section_with_content_keeps_its_heading() {
+        // The heading is a node in the document now, not something synthesized here from a
+        // `section` attribute — so what comes out is what the user can see and edit.
         let output = serialize(
-            &doc(vec![paragraph(
-                "brief",
-                serde_json::json!([text("A pricing page.")]),
-            )]),
+            &doc(vec![
+                heading(2, "Brief"),
+                paragraph("brief", serde_json::json!([text("A pricing page.")])),
+            ]),
             &context(),
         );
 
@@ -274,19 +310,116 @@ mod tests {
     }
 
     #[test]
-    fn an_untouched_ghost_section_disappears() {
-        // FR-12's sections are deletable, and an untouched one is functionally deleted.
-        // A heading with nothing under it is an empty instruction for the model to
-        // interpret.
+    fn a_renamed_heading_is_carried_verbatim() {
+        // The point of making the scaffold real: a user who retitles a section gets their
+        // own word in the prompt, not Curio's.
         let output = serialize(
             &doc(vec![
+                heading(2, "Context for the agent"),
                 paragraph("brief", serde_json::json!([text("A pricing page.")])),
+            ]),
+            &context(),
+        );
+
+        assert_eq!(output, "## Context for the agent\n\nA pricing page.");
+    }
+
+    #[test]
+    fn an_untouched_section_disappears_heading_and_all() {
+        // FR-12's sections are deletable, and an untouched one is functionally deleted. A
+        // heading with nothing under it is an empty instruction for the model to interpret,
+        // and a fresh template holds eight of them.
+        let output = serialize(
+            &doc(vec![
+                heading(2, "Brief"),
+                paragraph("brief", serde_json::json!([text("A pricing page.")])),
+                heading(2, "Never"),
                 paragraph("never", serde_json::json!([])),
             ]),
             &context(),
         );
 
-        assert!(!output.contains("Never"), "{output}");
+        assert_eq!(output, "## Brief\n\nA pricing page.");
+    }
+
+    #[test]
+    fn an_empty_heading_the_user_wrote_is_dropped_too() {
+        // The rule is about what follows a heading, not about whether Curio wrote it. A
+        // section the user added and left blank is as empty as one of ours.
+        let output = serialize(
+            &doc(vec![
+                heading(3, "My own empty section"),
+                heading(2, "Brief"),
+                paragraph("brief", serde_json::json!([text("A pricing page.")])),
+            ]),
+            &context(),
+        );
+
+        assert_eq!(output, "## Brief\n\nA pricing page.");
+    }
+
+    #[test]
+    fn a_heading_followed_by_a_list_survives() {
+        // "Content" is not only paragraphs. A section whose whole body is a list was being
+        // read as empty by an earlier draft of this rule.
+        let output = serialize(
+            &doc(vec![
+                heading(2, "Always"),
+                serde_json::json!({
+                    "type": "bulletList",
+                    "content": [{
+                        "type": "listItem",
+                        "content": [paragraph("", serde_json::json!([text("Ship it")]))],
+                    }],
+                }),
+            ]),
+            &context(),
+        );
+
+        assert!(output.contains("## Always"), "{output}");
+        assert!(output.contains("- Ship it"), "{output}");
+    }
+
+    #[test]
+    fn a_fresh_template_serializes_to_the_whole_worked_brief() {
+        // The consequence of the template being content rather than ghost text, stated so it
+        // is a decision rather than a surprise: copying an untouched new prompt hands the
+        // agent the ACME brief in full. That is the trade — the example is there to edit
+        // instead of retype, and a user who wants none of it selects all and deletes.
+        let text = serialize(&template::starter_document(), &context());
+
+        for section in template::SECTIONS {
+            assert!(
+                text.contains(&format!("## {}", section.heading)),
+                "{} lost its heading",
+                section.id
+            );
+        }
+        assert!(
+            text.contains("Build a product landing page for \"ACME\""),
+            "{text}"
+        );
+        // Each direction on its own line, not run together by a stray `\n` in a text node.
+        assert!(text.contains("Direction 1 - "), "{text}");
+        assert!(text.contains("Direction 2 - "), "{text}");
+    }
+
+    #[test]
+    fn a_section_the_user_emptied_still_drops() {
+        // The rule that used to be exercised by the fresh template, which no longer has any
+        // empty sections. Clearing a section is now how one becomes empty, and it must still
+        // take its heading with it rather than leave a bare instruction.
+        let output = serialize(
+            &doc(vec![
+                heading(2, "Brief"),
+                paragraph("brief", serde_json::json!([text("A pricing page.")])),
+                heading(2, "Guardrails — Never"),
+                paragraph("never", serde_json::json!([])),
+            ]),
+            &context(),
+        );
+
+        assert_eq!(output, "## Brief\n\nA pricing page.");
     }
 
     #[test]
@@ -423,7 +556,9 @@ mod tests {
 
     #[test]
     fn an_empty_document_serializes_to_nothing() {
-        assert_eq!(serialize(&template::empty_document(), &context()), "");
+        // A genuinely empty document — what a user has after select-all-delete. This used to
+        // pass the starter template, which no longer is one.
+        assert_eq!(serialize(&doc(vec![]), &context()), "");
     }
 
     #[test]

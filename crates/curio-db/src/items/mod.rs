@@ -20,7 +20,7 @@ use crate::{Error, Result};
 
 pub use bulk::{BulkEdit, bulk_edit};
 pub use curate::{GrayZoneDecision, apply_assessment, resolve_gray_zone};
-pub use list::{count, list, matching_ids};
+pub use list::{count, count_matching, list, matching_ids};
 pub use write::{ItemPatch, NewItem, create, delete, patch, set_media, set_status, touch};
 
 /// Read one item, with its vocabulary.

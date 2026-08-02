@@ -1,38 +1,78 @@
-/** A config snippet with a copy button that reports what actually happened. */
+/**
+ * A config snippet, with the copy control sitting on the snippet itself.
+ *
+ * The button used to live up in the header, opposite the label. That put three words of
+ * chrome between the reader and the thing they came for, and — with three of these stacked —
+ * three identical "Copy" pills in a column, each some distance from the block it belonged
+ * to. Floating it into the corner of the `pre` makes the association positional rather than
+ * something the reader has to work out, and gives the label its line back.
+ *
+ * It is a lone icon, so it owns its accessible name (`aria-label`) rather than borrowing one
+ * from a caption — the icon file's rule.
+ */
 
-import { createSignal, Show } from "solid-js";
+import { createSignal, onCleanup, Show } from "solid-js";
+import { Check, Copy } from "~/components/icons";
+
+/** How long the tick stays. Long enough to be read, short enough not to be a state. */
+const CONFIRM_MS = 1_600;
 
 export function CopyBlock(props: { label: string; hint?: string; snippet: string }) {
-  const [note, setNote] = createSignal<string | null>(null);
+  const [copied, setCopied] = createSignal(false);
+  const [problem, setProblem] = createSignal<string | null>(null);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  onCleanup(() => timer && clearTimeout(timer));
 
   async function copy() {
     try {
       await navigator.clipboard.writeText(props.snippet);
-      setNote("Copied.");
+      setCopied(true);
+      setProblem(null);
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => setCopied(false), CONFIRM_MS);
     } catch {
       // The clipboard API is permission-gated and can simply refuse. Claiming a copy that
-      // did not happen sends the user to paste nothing into a config file.
-      setNote("Your browser would not let Curio use the clipboard. Select the text and copy it.");
+      // did not happen sends the user to paste nothing into a config file. A refusal needs
+      // more than a tick can say, so it keeps the sentence below the block.
+      setCopied(false);
+      setProblem(
+        "Your browser would not let Curio use the clipboard. Select the text and copy it.",
+      );
     }
   }
 
   return (
     <div class="flex flex-col gap-2">
-      <div class="flex flex-wrap items-baseline justify-between gap-2">
-        <span class="text-sm font-medium">{props.label}</span>
-        <button type="button" class="pill pill-outline" onClick={() => void copy()}>
-          Copy
-        </button>
-      </div>
+      <span class="text-sm font-medium">{props.label}</span>
+
       <Show when={props.hint}>
         <p class="max-w-prose text-xs text-ink-faint">{props.hint}</p>
       </Show>
-      <pre class="card overflow-x-auto bg-desk p-3 font-mono text-xs select-all">
-        {props.snippet}
-      </pre>
-      <Show when={note()}>
+
+      {/* `relative` on the wrapper rather than on the `pre`: the button has to hold its
+          corner while the snippet scrolls sideways under it, and a button positioned against
+          a scrolling box travels with the content. */}
+      <div class="relative">
+        <pre class="card overflow-x-auto bg-desk py-3 pr-12 pl-3 font-mono text-xs select-all">
+          {props.snippet}
+        </pre>
+        <button
+          type="button"
+          class="pill pill-icon pill-outline absolute top-2 right-2"
+          aria-label={copied() ? `${props.label} config copied` : `Copy the ${props.label} config`}
+          title={copied() ? "Copied" : "Copy"}
+          onClick={() => void copy()}
+        >
+          <Show when={copied()} fallback={<Copy />}>
+            <Check class="text-confirm" />
+          </Show>
+        </button>
+      </div>
+
+      <Show when={problem()}>
         {(message) => (
-          <span role="status" class="text-xs text-ink-muted">
+          <span role="status" class="text-xs text-caution">
             {message()}
           </span>
         )}

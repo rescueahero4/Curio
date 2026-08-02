@@ -26,6 +26,29 @@ pub async fn list(
     Ok(Json(state.with_db(|db| items::list(db.conn(), &query))?))
 }
 
+/// What `GET /api/items/count` answers with.
+#[derive(Debug, Serialize)]
+pub struct CountReply {
+    pub count: i64,
+}
+
+/// `GET /api/items/count` — how many items a filter matches, without fetching them.
+///
+/// Takes the same facets as `list`, so a caller that can build a filter can count it. The
+/// filter row uses it for the review queue's badge: `list` reports "there is another page"
+/// rather than a total, which is right for a grid and useless for a number.
+///
+/// `limit` and `cursor` are accepted and ignored — paging has no meaning for a count, and
+/// refusing them would make the caller strip fields off a filter it already has.
+pub async fn count(
+    State(state): State<AppState>,
+    Query(raw): Query<Vec<(String, String)>>,
+) -> ApiResult<Json<CountReply>> {
+    let query = parse_query(&raw)?;
+    let count = state.with_db(|db| items::count_matching(db.conn(), &query))?;
+    Ok(Json(CountReply { count }))
+}
+
 /// `GET /api/items/:id`.
 pub async fn get(State(state): State<AppState>, Path(id): Path<String>) -> ApiResult<Json<Item>> {
     Ok(Json(state.with_db(|db| items::require(db.conn(), &id))?))
