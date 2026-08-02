@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "crates/curio-core/src/events.rs": {
-    "mtime": 1785515862.3361068,
-    "ast_hash": "6cdc46855ef588b6032fd31e384c6b33",
+    "mtime": 1785633589.3682253,
+    "ast_hash": "934cac249dfe3c2b1f032a97e72a42e4",
     "semantic_hash": ""
   },
   "crates/curio-core/src/ids.rs": {
@@ -240,8 +240,8 @@
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/mod.rs": {
-    "mtime": 1785601377.5405076,
-    "ast_hash": "dd0b9551f23e7681a0e72cd69e0919a3",
+    "mtime": 1785633599.7935302,
+    "ast_hash": "318e6ca1aaa3ab1e08d5729b9f529e19",
     "semantic_hash": ""
   },
   "crates/curio-server/src/security/mod.rs": {
@@ -385,8 +385,8 @@
     "semantic_hash": ""
   },
   "web/spa/src/lib/events.ts": {
-    "mtime": 1785517646.4826841,
-    "ast_hash": "d907b786edca518f53eab3ba8ff9c5dd",
+    "mtime": 1785633629.6983707,
+    "ast_hash": "50d51e3f2417bb0ca7a4080971d61850",
     "semantic_hash": ""
   },
   "web/spa/src/lib/session.ts": {
@@ -630,8 +630,8 @@
     "semantic_hash": ""
   },
   "web/spa/src/lib/api.ts": {
-    "mtime": 1785590610.2076852,
-    "ast_hash": "019f1fbcfca28e84f8406f8b22ad4c31",
+    "mtime": 1785633636.015561,
+    "ast_hash": "937e0388810f6f9a0c18c709b60288d2",
     "semantic_hash": ""
   },
   "web/spa/src/lib/http.ts": {
@@ -680,8 +680,8 @@
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/api/projects.rs": {
-    "mtime": 1785600968.2301264,
-    "ast_hash": "8489f33578315c6693e433adce2a1354",
+    "mtime": 1785633597.9466174,
+    "ast_hash": "1159a8a9ce253bc69fd595bb1fdf33b3",
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/api/prompts.rs": {
@@ -695,8 +695,8 @@
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/api/system.rs": {
-    "mtime": 1785551895.503345,
-    "ast_hash": "ba66089bf2b04a7119376d2392b3d4ee",
+    "mtime": 1785634004.5288393,
+    "ast_hash": "8d7d5d4530e906d048874de9ee11a771",
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/api/vocabulary.rs": {
@@ -905,13 +905,13 @@
     "semantic_hash": ""
   },
   "web/spa/src/components/projects/ProjectCard.tsx": {
-    "mtime": 1785578956.251271,
-    "ast_hash": "780740ab6854412e3815d79c8183cb19",
+    "mtime": 1785636491.9996874,
+    "ast_hash": "f70d8f364c7e1a55b00c9dbf3b44e56a",
     "semantic_hash": ""
   },
   "web/spa/src/components/projects/PromptLink.tsx": {
-    "mtime": 1785576784.2352104,
-    "ast_hash": "d10413c838dd0f6d0778e61504d0c810",
+    "mtime": 1785633728.6339724,
+    "ast_hash": "089f7498f3377aafd1cdc036f950910b",
     "semantic_hash": ""
   },
   "web/spa/src/components/projects/RegisterProject.tsx": {
@@ -920,8 +920,8 @@
     "semantic_hash": ""
   },
   "web/spa/src/components/projects/copy.ts": {
-    "mtime": 1785573980.5298717,
-    "ast_hash": "4425834667191cc9d50d8043a19234ac",
+    "mtime": 1785633648.8356855,
+    "ast_hash": "a2c382f4705973a9330bcc70175030d1",
     "semantic_hash": ""
   },
   "web/spa/src/components/settings/ApiKeySection.tsx": {
@@ -1010,8 +1010,8 @@
     "semantic_hash": ""
   },
   "web/spa/src/routes/Projects.tsx": {
-    "mtime": 1785576761.8291757,
-    "ast_hash": "df391d92a428bf7f1b878ae4b6c2450b",
+    "mtime": 1785633738.4060464,
+    "ast_hash": "50657abeeccb33a70215ca1b3e646ca4",
     "semantic_hash": ""
   },
   "web/spa/src/routes/Prompts.tsx": {
@@ -1225,8 +1225,8 @@
     "semantic_hash": ""
   },
   "web/spa/src/components/icons.tsx": {
-    "mtime": 1785599527.4361112,
-    "ast_hash": "bb82fa64899e2c5aa0632c2dbdf4d2b4",
+    "mtime": 1785633643.7675138,
+    "ast_hash": "54ed27f8abca0decfedfbd5318702568",
     "semantic_hash": ""
   },
   "web/spa/src/components/library/ItemRow.tsx": {
@@ -1300,8 +1300,8 @@
     "semantic_hash": ""
   },
   "crates/curio-server/assets/variant-switcher.js": {
-    "mtime": 1785600731.4314797,
-    "ast_hash": "fe498d3ad6c0e7c36c26314b9ff162a4",
+    "mtime": 1785633033.7430532,
+    "ast_hash": "40675289f819246a78fb76c2fb99284c",
     "semantic_hash": ""
   },
   "crates/curio-server/src/routes/switcher.rs": {

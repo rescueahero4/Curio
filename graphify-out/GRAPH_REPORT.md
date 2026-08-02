@@ -1,16 +1,16 @@
 # Graph Report - Curio  (2026-08-02)
 
 ## Corpus Check
-- 244 files · ~224,461 words
+- 244 files · ~227,104 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2647 nodes · 6335 edges · 133 communities (127 shown, 6 thin omitted)
+- 2654 nodes · 6359 edges · 135 communities (129 shown, 6 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 40 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `db9b45dc`
+- Built from commit: `6ddbcc26`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -86,6 +86,7 @@
 - [[_COMMUNITY_Community 70|Community 70]]
 - [[_COMMUNITY_Community 71|Community 71]]
 - [[_COMMUNITY_Community 72|Community 72]]
+- [[_COMMUNITY_Community 73|Community 73]]
 - [[_COMMUNITY_Community 74|Community 74]]
 - [[_COMMUNITY_Community 75|Community 75]]
 - [[_COMMUNITY_Community 76|Community 76]]
@@ -121,12 +122,16 @@
 - [[_COMMUNITY_Community 106|Community 106]]
 - [[_COMMUNITY_Community 108|Community 108]]
 - [[_COMMUNITY_Community 109|Community 109]]
+- [[_COMMUNITY_Community 110|Community 110]]
+- [[_COMMUNITY_Community 111|Community 111]]
 - [[_COMMUNITY_Community 113|Community 113]]
+- [[_COMMUNITY_Community 114|Community 114]]
 - [[_COMMUNITY_Community 115|Community 115]]
 - [[_COMMUNITY_Community 116|Community 116]]
 - [[_COMMUNITY_Community 117|Community 117]]
 - [[_COMMUNITY_Community 118|Community 118]]
 - [[_COMMUNITY_Community 119|Community 119]]
+- [[_COMMUNITY_Community 120|Community 120]]
 - [[_COMMUNITY_Community 121|Community 121]]
 - [[_COMMUNITY_Community 122|Community 122]]
 - [[_COMMUNITY_Community 123|Community 123]]
@@ -135,18 +140,16 @@
 - [[_COMMUNITY_Community 126|Community 126]]
 - [[_COMMUNITY_Community 127|Community 127]]
 - [[_COMMUNITY_Community 128|Community 128]]
-- [[_COMMUNITY_Community 129|Community 129]]
 - [[_COMMUNITY_Community 130|Community 130]]
 - [[_COMMUNITY_Community 131|Community 131]]
 - [[_COMMUNITY_Community 132|Community 132]]
 - [[_COMMUNITY_Community 133|Community 133]]
-- [[_COMMUNITY_Community 134|Community 134]]
 - [[_COMMUNITY_Community 135|Community 135]]
 - [[_COMMUNITY_Community 137|Community 137]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `AppState` - 146 edges
-2. `Option` - 117 edges
+1. `AppState` - 147 edges
+2. `Option` - 118 edges
 3. `Connection` - 92 edges
 4. `Db` - 47 edges
 5. `paused` - 34 edges
@@ -161,21 +164,21 @@
   crates/curio-core/src/prompt/template.rs → web/spa/src/components/library/OptionList.tsx
 - `Context` --references--> `Option`  [EXTRACTED]
   crates/curio-core/src/ai/prompt/mod.rs → web/spa/src/components/library/OptionList.tsx
+- `SystemBlock` --references--> `Option`  [EXTRACTED]
+  crates/curio-core/src/ai/wire.rs → web/spa/src/components/library/OptionList.tsx
 - `OutputConfig` --references--> `Option`  [EXTRACTED]
   crates/curio-core/src/ai/wire.rs → web/spa/src/components/library/OptionList.tsx
 - `MessagesRequest` --references--> `Option`  [EXTRACTED]
   crates/curio-core/src/ai/wire.rs → web/spa/src/components/library/OptionList.tsx
-- `AssessmentOutput` --references--> `Option`  [EXTRACTED]
-  crates/curio-core/src/assessment.rs → web/spa/src/components/library/OptionList.tsx
 
 ## Import Cycles
 - None detected.
 
-## Communities (133 total, 6 thin omitted)
+## Communities (135 total, 6 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.11
-Nodes (25): At a glance, Open questions, Parity obligations, The contract, At a glance, Open questions, Parity obligations, At a glance (+17 more)
+Cohesion: 0.14
+Nodes (22): At a glance, Open questions, Parity obligations, The contract, At a glance, Open questions, Parity obligations, At a glance (+14 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.13
@@ -210,8 +213,8 @@ Cohesion: 0.29
 Nodes (7): Boot sequence, Budget (strategy §8 — binding targets), Crates, Design detail, HTTP surface (delta view), Jobs worker, Middleware map (what applies where)
 
 ### Community 9 - "Community 9"
-Cohesion: 0.13
-Nodes (14): Build & embed, Data flow — nonce, session, SSE, stores, Design detail, Editor, Framework & structure, Keyboard & a11y (SHOULD — post-parity baseline), Pairing fallback, Pairing page as fallback (+6 more)
+Cohesion: 0.29
+Nodes (7): Build & embed, Data flow — nonce, session, SSE, stores, Design detail, Pairing page as fallback, React → Solid translation map (non-normative porting guidance), The editor: TipTap core over raw ProseMirror, Why SolidJS — a structural argument, not a benchmark
 
 ### Community 10 - "Community 10"
 Cohesion: 0.07
@@ -226,8 +229,8 @@ Cohesion: 0.40
 Nodes (5): CI pipeline, D0 verification-spike index (release-0) — every D0-verify item in the doc set, Design detail, Dev loop, Why the dependency rules are strict
 
 ### Community 13 - "Community 13"
-Cohesion: 0.15
-Nodes (10): app_data_dir(), app_data_is_not_inside_the_data_root(), curio_runtime_file_name(), default_data_root(), home_dir(), is_inside(), item_dir(), legacy_data_root() (+2 more)
+Cohesion: 0.16
+Nodes (12): PathBuf, app_data_dir(), app_data_is_not_inside_the_data_root(), curio_runtime_file_name(), default_data_root(), home_dir(), is_inside(), item_dir() (+4 more)
 
 ### Community 14 - "Community 14"
 Cohesion: 0.22
@@ -258,16 +261,16 @@ Cohesion: 0.18
 Nodes (10): Behavior, Goal and Architecture, Graphify, Live commentary of corrections, Project, Responsding, Scoping, Tool calling issues (+2 more)
 
 ### Community 25 - "Community 25"
-Cohesion: 0.13
-Nodes (15): ABSOLUTE, absoluteTime(), RELATIVE, relativeTime(), STEPS, ApiError, OverCap, Project (+7 more)
+Cohesion: 0.15
+Nodes (14): ABSOLUTE, absoluteTime(), RELATIVE, relativeTime(), STEPS, ApiError, Project, ProjectOrigin (+6 more)
 
 ### Community 26 - "Community 26"
-Cohesion: 0.17
-Nodes (9): Into, checkpointing_works_on_a_file_backed_library(), configure(), Db, deleting_an_item_cascades_to_its_links(), every_status_curio_core_knows_is_accepted_by_the_database(), foreign_keys_are_enforced(), item_status_is_constrained() (+1 more)
+Cohesion: 0.08
+Nodes (37): FnOnce, a_bulk_add_preserves_a_gray_zone_it_knows_nothing_about(), a_bulk_edit_does_not_claim_a_human_edited_the_fields(), a_bulk_edit_skips_an_item_that_vanished_from_under_the_selection(), add_term(), bulk_edit(), BulkEdit, family() (+29 more)
 
 ### Community 27 - "Community 27"
-Cohesion: 0.10
-Nodes (33): Body, Builder, HttpRequest, a_client_side_route_falls_back_to_the_shell(), a_paused_read_still_answers_but_a_paused_write_does_not(), an_api_path_that_does_not_exist_404s_rather_than_serving_the_shell(), app(), build() (+25 more)
+Cohesion: 0.06
+Nodes (49): Body, Builder, BrandMark(), DESTINATIONS, NavTabs(), SearchBox(), createScrolled(), TopBar() (+41 more)
 
 ### Community 28 - "Community 28"
 Cohesion: 0.14
@@ -282,8 +285,8 @@ Cohesion: 0.23
 Nodes (10): OffsetDateTime, format_millis(), format_seconds(), millisecond_precision_always_emits_three_digits(), now_iso(), now_iso_millis(), parse(), second_precision_is_fixed_width() (+2 more)
 
 ### Community 31 - "Community 31"
-Cohesion: 0.06
-Nodes (35): backoff_seconds(), recover(), Recovery, BulkEdit, JobKind, JobStatus, kind_strings_match_the_stored_values(), status_strings_match_the_check_constraint() (+27 more)
+Cohesion: 0.14
+Nodes (20): JobKind, finish_run(), summary(), a_first_run_starts_from_nothing(), apply_batch(), batched(), Mode, Progress (+12 more)
 
 ### Community 32 - "Community 32"
 Cohesion: 0.16
@@ -299,7 +302,7 @@ Nodes (23): source, assist, actions, css, parser, files, includes, formatter (+1
 
 ### Community 35 - "Community 35"
 Cohesion: 0.08
-Nodes (20): main(), JoinHandle, MenuItem, open_existing_instance(), open_url(), request_dashboard(), run_app(), run_mcp_stdio() (+12 more)
+Nodes (21): main(), JoinHandle, MenuItem, open_existing_instance(), open_url(), request_dashboard(), run_app(), run_mcp_stdio() (+13 more)
 
 ### Community 36 - "Community 36"
 Cohesion: 0.09
@@ -330,12 +333,12 @@ Cohesion: 0.15
 Nodes (12): 1. Correction, 2. Warning, 3. Temporary Ban, 4. Permanent Ban, Attribution, Contributor Covenant Code of Conduct, Enforcement, Enforcement Guidelines (+4 more)
 
 ### Community 43 - "Community 43"
-Cohesion: 0.13
-Nodes (21): Trash(), ActionOutcome, copyPrompt(), copyToClipboard(), sendPromptToClaude(), PromptActions(), Props, ghostMap() (+13 more)
+Cohesion: 0.19
+Nodes (16): Trash(), EditorSurface(), ActionOutcome, copyPrompt(), copyToClipboard(), sendPromptToClaude(), PromptActions(), Props (+8 more)
 
 ### Community 44 - "Community 44"
-Cohesion: 0.19
-Nodes (19): HashMap, Instant, a_copied_folder_is_a_different_project(), a_dotfolder_is_not_a_project(), a_folder_that_keeps_changing_never_settles(), a_manually_registered_project_is_not_reconciled_against_the_watched_root(), a_projects_root_that_is_not_there_is_not_an_error(), a_registered_project_that_vanishes_is_marked_missing_not_deleted() (+11 more)
+Cohesion: 0.20
+Nodes (18): Instant, a_copied_folder_is_a_different_project(), a_dotfolder_is_not_a_project(), a_folder_that_keeps_changing_never_settles(), a_manually_registered_project_is_not_reconciled_against_the_watched_root(), a_projects_root_that_is_not_there_is_not_an_error(), a_registered_project_that_vanishes_is_marked_missing_not_deleted(), adopt() (+10 more)
 
 ### Community 45 - "Community 45"
 Cohesion: 0.21
@@ -366,7 +369,7 @@ Cohesion: 0.14
 Nodes (19): bootstrapSession(), probeSession(), serverIsUp(), SessionState, connectStores(), buttons, CaptureReply, dot (+11 more)
 
 ### Community 52 - "Community 52"
-Cohesion: 0.18
+Cohesion: 0.16
 Nodes (13): Curio, Documentation, Environment variables, Frontend tests, License, Manual end-to-end validation, Other checks, Privacy (+5 more)
 
 ### Community 53 - "Community 53"
@@ -382,12 +385,12 @@ Cohesion: 0.33
 Nodes (5): Checklist, Rules implemented or touched, Security review (R-SEC-16), Verification, What this changes
 
 ### Community 56 - "Community 56"
-Cohesion: 0.31
-Nodes (16): a_decision_already_made_survives_the_merge(), an_item_linked_only_to_the_source_moves_across(), an_item_linked_to_both_keeps_the_better_score(), link(), merge(), merging_an_entry_into_itself_is_refused(), merging_an_unknown_entry_is_not_found(), merging_reports_the_items_whose_sidecars_must_be_rebuilt() (+8 more)
+Cohesion: 0.24
+Nodes (21): Item, finish(), sync_fts(), a_bulk_touch_does_not_claim_to_be_an_edit(), a_dashboard_edit_stamps_the_user(), a_failed_assessment_preserves_authorship(), a_new_item_is_processing_and_visible_immediately(), create() (+13 more)
 
 ### Community 57 - "Community 57"
 Cohesion: 0.07
-Nodes (64): a_confident_assessment_lands_the_item_ready(), a_gray_zone_assessment_holds_the_item_for_a_decision(), a_proposal_creates_the_family_with_its_description(), a_re_assessment_keeps_a_name_the_user_chose(), accepting_a_proposal_that_does_not_exist_is_refused(), accepting_the_nearest_family_clears_the_badge(), apply_assessment(), family() (+56 more)
+Nodes (66): a_confident_assessment_lands_the_item_ready(), a_gray_zone_assessment_holds_the_item_for_a_decision(), a_proposal_creates_the_family_with_its_description(), a_re_assessment_keeps_a_name_the_user_chose(), accepting_a_proposal_that_does_not_exist_is_refused(), accepting_the_nearest_family_clears_the_badge(), apply_assessment(), family() (+58 more)
 
 ### Community 58 - "Community 58"
 Cohesion: 0.06
@@ -402,88 +405,92 @@ Cohesion: 0.08
 Nodes (49): hideFixedElements(), measurePage(), PageMetrics, PageState, pingWatchdog(), primeLazyContent(), readTitle(), scrollToOffset() (+41 more)
 
 ### Community 61 - "Community 61"
-Cohesion: 0.09
-Nodes (26): Search(), getVocabulary(), refreshVocabulary(), CreatedBy, VocabularyKind, createSelection(), PLURAL, SINGULAR (+18 more)
+Cohesion: 0.08
+Nodes (29): ChevronRight(), Search(), getVocabulary(), mergeTerm(), refreshVocabulary(), CreatedBy, VocabularyKind, PLURAL (+21 more)
 
 ### Community 62 - "Community 62"
 Cohesion: 0.23
-Nodes (17): cancel_job(), Enqueued, get_job(), list_jobs(), open_in_os(), open_skill_file(), Outcome, publish_job() (+9 more)
+Nodes (18): cancel_job(), Enqueued, get_job(), list_jobs(), nearest_folder(), open_in_os(), open_skill_file(), Outcome (+10 more)
 
 ### Community 64 - "Community 64"
-Cohesion: 0.18
-Nodes (10): Error, From, IntoResponse, an_over_cap_refusal_carries_both_numbers(), ApiError, body_of(), every_error_carries_a_machine_readable_code(), paused_is_a_503_with_a_retry_after() (+2 more)
+Cohesion: 0.06
+Nodes (31): backoff_seconds(), recover(), Recovery, BulkEdit, Error, Error, From, IntoResponse (+23 more)
 
 ### Community 65 - "Community 65"
-Cohesion: 0.24
-Nodes (8): a_group_serializes_with_reason_first(), a_hallucinated_member_is_dropped_without_losing_the_group(), a_repeated_member_is_listed_once(), Group, Output, sanitize(), sanitized(), the_libraries_own_spelling_wins()
+Cohesion: 0.23
+Nodes (9): a_group_serializes_with_reason_first(), a_hallucinated_member_is_dropped_without_losing_the_group(), a_repeated_member_is_listed_once(), Group, known(), Output, sanitize(), sanitized() (+1 more)
 
 ### Community 67 - "Community 67"
-Cohesion: 0.10
-Nodes (21): a_finished_dedupe_does_not_block_a_new_one(), a_second_dedupe_returns_the_first_rather_than_starting_another(), a_selection_needs_ids_or_a_filter_but_not_both(), an_assessment_job_is_not_mistaken_for_a_dedupe(), announce(), dedupe(), dedupe_latest(), DedupeBody (+13 more)
+Cohesion: 0.09
+Nodes (13): Debug, Infallible, MutexGuard, stream(), authenticate(), send_state(), serve(), upgrade() (+5 more)
 
 ### Community 68 - "Community 68"
 Cohesion: 0.08
-Nodes (45): bulkEdit(), cancelJob(), clearApiKey(), clearPromptSent(), countItems(), createPrompt(), createTerm(), deleteItem() (+37 more)
+Nodes (43): loadPicker(), cancelJob(), clearApiKey(), clearPromptSent(), countItems(), createPrompt(), deleteItem(), deletePrompt() (+35 more)
 
 ### Community 69 - "Community 69"
 Cohesion: 0.05
 Nodes (40): 1.1 Open a terminal in the project folder, 1.2 Install the pieces the browser parts need, 1.3 Build the dashboard, 1.4 Start Curio, 1.5 Open a second terminal, 2.1 Build the extension, 2.2 Let your browser know about Curio's helper, 2.3 Install the extension in Chrome (+32 more)
 
 ### Community 70 - "Community 70"
-Cohesion: 0.05
-Nodes (69): Infallible, Item, ItemQuery, a_blank_search_does_not_filter_anything_out(), a_count_ignores_the_page_size_and_the_cursor(), a_filtered_count_agrees_with_the_rows_that_filter_returns(), a_status_facet_filters_on_the_stored_string(), a_tag_and_a_type_narrow_the_result() (+61 more)
+Cohesion: 0.15
+Nodes (24): ItemQuery, a_blank_search_does_not_filter_anything_out(), a_count_ignores_the_page_size_and_the_cursor(), a_filtered_count_agrees_with_the_rows_that_filter_returns(), a_status_facet_filters_on_the_stored_string(), a_tag_and_a_type_narrow_the_result(), build_where(), count() (+16 more)
 
 ### Community 71 - "Community 71"
-Cohesion: 0.11
-Nodes (20): BulkEdit, asPairs(), BulkOutcome, bulkTarget(), runBulk(), BulkBar(), explain(), Notice (+12 more)
+Cohesion: 0.07
+Nodes (31): ChevronDown(), bulkEdit(), createTerm(), resolveGrayZone(), createEscapeLayer(), vocabulary, BulkEdit, GrayZoneAction (+23 more)
 
 ### Community 72 - "Community 72"
 Cohesion: 0.19
 Nodes (13): a_family_link_carries_its_score_and_flags(), a_missing_source_url_is_null_rather_than_absent(), an_empty_image_recipe_is_treated_as_none(), an_image_recipe_appears_only_when_there_is_one(), empty_lists_are_written_as_empty_lists(), field(), frontmatter_is_delimited_and_carries_every_field(), item() (+5 more)
 
+### Community 73 - "Community 73"
+Cohesion: 0.10
+Nodes (19): CreatedItem, Family, GrayZoneDecision, Health, ItemFamily, ItemFilter, ItemQuery, JobStatus (+11 more)
+
 ### Community 74 - "Community 74"
-Cohesion: 0.07
-Nodes (35): ExternalLink(), vocabulary, CreatedItem, Family, GrayZoneAction, GrayZoneDecision, Health, Item (+27 more)
+Cohesion: 0.09
+Nodes (29): basename(), fileUrl(), itemDetailImageUrl(), itemImageUrl(), reassessItem(), Item, ItemPatch, Autosave (+21 more)
 
 ### Community 75 - "Community 75"
-Cohesion: 0.19
-Nodes (22): Project, ProjectOrigin, Row, a_copy_of_a_folder_is_a_different_project(), a_missing_folder_that_reappears_comes_back_present(), a_record_predating_marker_identity_gets_one_backfilled(), a_renamed_folder_keeps_its_identity_and_its_prompt(), a_vanished_folder_is_marked_missing_not_deleted() (+14 more)
+Cohesion: 0.18
+Nodes (26): Project, ProjectOrigin, Connection, add_column(), column_exists(), a_copy_of_a_folder_is_a_different_project(), a_missing_folder_that_reappears_comes_back_present(), a_record_predating_marker_identity_gets_one_backfilled() (+18 more)
 
 ### Community 76 - "Community 76"
-Cohesion: 0.18
-Nodes (25): Connection, a_document_round_trips_as_a_value_not_a_string(), a_fresh_claim_is_the_one_a_new_project_gets(), a_new_prompt_starts_from_the_template(), an_expired_claim_is_not_offered(), an_unsent_prompt_stakes_no_claim(), clear_sent(), create() (+17 more)
+Cohesion: 0.19
+Nodes (24): Prompt, a_document_round_trips_as_a_value_not_a_string(), a_fresh_claim_is_the_one_a_new_project_gets(), a_new_prompt_starts_from_the_template(), an_expired_claim_is_not_offered(), an_unsent_prompt_stakes_no_claim(), create(), delete() (+16 more)
 
 ### Community 77 - "Community 77"
-Cohesion: 0.30
-Nodes (12): a_bulk_add_preserves_a_gray_zone_it_knows_nothing_about(), a_bulk_edit_does_not_claim_a_human_edited_the_fields(), a_bulk_edit_skips_an_item_that_vanished_from_under_the_selection(), add_term(), bulk_edit(), BulkEdit, family(), library() (+4 more)
+Cohesion: 0.21
+Nodes (15): a_finished_dedupe_does_not_block_a_new_one(), a_second_dedupe_returns_the_first_rather_than_starting_another(), a_selection_needs_ids_or_a_filter_but_not_both(), an_assessment_job_is_not_mistaken_for_a_dedupe(), announce(), dedupe(), dedupe_latest(), DedupeBody (+7 more)
 
 ### Community 78 - "Community 78"
-Cohesion: 0.18
-Nodes (13): basename(), fileUrl(), itemDetailImageUrl(), itemImageUrl(), ItemCard(), Facet, hostOf(), ItemFacets() (+5 more)
+Cohesion: 0.15
+Nodes (13): chipExtensions, ChipSpec, label(), SPECS, text(), createPromptEditor(), PromptEditorConfig, SURFACE (+5 more)
 
 ### Community 79 - "Community 79"
-Cohesion: 0.35
-Nodes (10): a_family_the_user_keeps_holds_on_to_its_score(), editing_an_item_keeps_it_findable_under_its_new_name(), finish(), library(), new_item(), set_families(), set_terms(), setting_the_family_set_promotes_an_item_out_of_review() (+2 more)
+Cohesion: 0.54
+Nodes (7): a_family_the_user_keeps_holds_on_to_its_score(), editing_an_item_keeps_it_findable_under_its_new_name(), library(), new_item(), set_families(), setting_the_family_set_promotes_an_item_out_of_review(), tags_are_replaced_whole_and_created_on_demand()
 
 ### Community 80 - "Community 80"
-Cohesion: 0.13
-Nodes (37): chip_context(), clear_sent(), create(), delete(), get(), list(), mark_sent(), Section (+29 more)
+Cohesion: 0.14
+Nodes (35): Next, Response, a_fresh_nonce_mints_a_session(), a_replayed_nonce_is_rejected(), an_invented_nonce_is_rejected_without_setting_a_cookie(), exchange(), ExchangeRequest, logging_out_clears_the_cookie() (+27 more)
 
 ### Community 81 - "Community 81"
-Cohesion: 0.21
-Nodes (18): a_fresh_database_reaches_the_latest_version(), a_newer_database_refuses_to_open(), add_column(), at_version(), column_exists(), current_version(), fresh(), migrating_twice_is_a_no_op() (+10 more)
+Cohesion: 0.24
+Nodes (16): a_fresh_database_reaches_the_latest_version(), a_newer_database_refuses_to_open(), at_version(), current_version(), fresh(), migrating_twice_is_a_no_op(), Migration, quote_ident() (+8 more)
 
 ### Community 82 - "Community 82"
 Cohesion: 0.18
 Nodes (7): I, env_flag(), Invocation, parse(), port_override(), read_port(), usage()
 
 ### Community 83 - "Community 83"
-Cohesion: 0.12
-Nodes (19): an_unknown_parameter_does_not_break_a_bookmarked_url(), bulk_edit(), BulkResult, count(), CountReply, delete(), explicit_null(), get() (+11 more)
+Cohesion: 0.15
+Nodes (17): an_unknown_parameter_does_not_break_a_bookmarked_url(), bulk_edit(), BulkBody, BulkResult, count(), CountReply, list(), pairs() (+9 more)
 
 ### Community 84 - "Community 84"
-Cohesion: 0.22
-Nodes (5): a_blank_search_box_does_not_count_as_a_filter(), any_facet_makes_a_query_filtered(), enforce_bulk_cap(), Selection, the_bulk_cap_refuses_rather_than_trims()
+Cohesion: 0.14
+Nodes (8): a_blank_search_box_does_not_count_as_a_filter(), any_facet_makes_a_query_filtered(), Cursor, enforce_bulk_cap(), ItemQuery, Page, Selection, the_bulk_cap_refuses_rather_than_trims()
 
 ### Community 85 - "Community 85"
 Cohesion: 0.21
@@ -502,48 +509,48 @@ Cohesion: 0.24
 Nodes (10): a_page_that_prints_its_own_source_is_not_cut_in_half(), a_shouting_closing_tag_counts(), bytes_that_are_not_utf8_are_served_as_they_are(), escape_attribute(), html(), inject(), only_pages_are_rewritten(), script() (+2 more)
 
 ### Community 90 - "Community 90"
-Cohesion: 0.16
-Nodes (21): a_mask_shows_four_characters_and_no_more(), an_ephemeral_port_still_reports_a_real_number(), autostart_support(), AutostartSupport, clear_api_key(), get(), mask(), persist() (+13 more)
+Cohesion: 0.15
+Nodes (23): a_mask_shows_four_characters_and_no_more(), an_ephemeral_port_still_reports_a_real_number(), autostart_support(), AutostartSupport, clear_api_key(), get(), KeyCheck, mask() (+15 more)
 
 ### Community 91 - "Community 91"
-Cohesion: 0.24
-Nodes (8): Generator, Mutex, generate(), IdGenerator, ids_are_unique(), ids_from_one_generator_always_ascend(), parse(), Ulid
+Cohesion: 0.25
+Nodes (7): Generator, generate(), IdGenerator, ids_are_unique(), ids_from_one_generator_always_ascend(), parse(), Ulid
 
 ### Community 92 - "Community 92"
-Cohesion: 0.16
-Nodes (14): AtomicBool, NonceStore, Notify, Receiver, Sender, a_subscriber_receives_what_is_published(), clones_share_one_state(), debugging_the_state_does_not_print_the_token() (+6 more)
+Cohesion: 0.27
+Nodes (9): EventName, a_subscriber_receives_what_is_published(), clones_share_one_state(), debugging_the_state_does_not_print_the_token(), nonces_round_trip_through_the_state(), pausing_is_reversible_and_reported(), publishing_with_nobody_listening_is_fine(), state() (+1 more)
 
 ### Community 93 - "Community 93"
-Cohesion: 0.16
-Nodes (3): decode_base64(), extension_id(), sha256()
+Cohesion: 0.14
+Nodes (7): decode_base64(), extension_id(), host_is_loopback(), hostname_of(), origin_is_allowed(), sec_fetch_site_is_hostile(), sha256()
 
 ### Community 94 - "Community 94"
-Cohesion: 0.08
-Nodes (30): Bold(), BulletList(), Check(), ChevronDown(), ChevronRight(), Code(), CodeBlock(), Copy() (+22 more)
+Cohesion: 0.09
+Nodes (26): Bold(), BulletList(), Check(), Code(), CodeBlock(), Copy(), Cross(), Divider() (+18 more)
 
 ### Community 95 - "Community 95"
-Cohesion: 0.10
-Nodes (28): an_unknown_segment_says_what_was_expected(), announce(), create(), CreateBody, Created, delete(), list(), merge() (+20 more)
+Cohesion: 0.18
+Nodes (22): an_unknown_segment_says_what_was_expected(), announce(), create(), CreateBody, Created, delete(), list(), merge() (+14 more)
 
 ### Community 96 - "Community 96"
 Cohesion: 0.83
 Nodes (3): a_snapshot_carries_the_title_and_the_text(), a_snapshot_warns_that_it_is_not_read_back(), snapshot()
 
 ### Community 97 - "Community 97"
-Cohesion: 0.10
-Nodes (36): known(), SystemBlock, resolve(), RetagBody, default_name(), BulkBody, PatchBody, resolve_selection() (+28 more)
+Cohesion: 0.14
+Nodes (23): delete(), get(), chip_context(), clear_sent(), create(), CreateBody, delete(), get() (+15 more)
 
 ### Community 98 - "Community 98"
-Cohesion: 0.11
-Nodes (27): ViewComfortable(), ViewDense(), ViewList(), items, ItemStatus, createItemFeed(), createSentinel(), FilterBar() (+19 more)
+Cohesion: 0.10
+Nodes (28): ViewComfortable(), ViewDense(), ViewList(), items, setFilterActive(), setItemsPage(), ItemStatus, createItemFeed() (+20 more)
 
 ### Community 100 - "Community 100"
 Cohesion: 0.24
 Nodes (9): Drop, File, HANDLE, a_second_guard_is_refused_while_the_first_is_held(), acquiring_creates_the_parent_directory(), Error, InstanceGuard, the_lock_can_be_taken_and_released() (+1 more)
 
 ### Community 101 - "Community 101"
-Cohesion: 0.27
-Nodes (10): a_registration_only_writes_the_manifest_when_it_was_asked_to(), known_status(), list(), open(), Opened, publish(), register(), update() (+2 more)
+Cohesion: 0.19
+Nodes (18): a_registration_only_writes_the_manifest_when_it_was_asked_to(), delete(), fallback_name(), known_status(), list(), open(), Opened, publish() (+10 more)
 
 ### Community 102 - "Community 102"
 Cohesion: 0.28
@@ -554,8 +561,8 @@ Cohesion: 0.23
 Nodes (6): an_unbuilt_dashboard_explains_itself(), Assets, is_built(), is_reserved(), not_built(), serve()
 
 ### Community 104 - "Community 104"
-Cohesion: 0.19
-Nodes (17): main(), count(), Result, find_curio(), private_memory_kib(), report(), reclaim_orphans(), usage() (+9 more)
+Cohesion: 0.07
+Nodes (32): MessagesRequest, explicit_null(), main(), D, Fn, RequestBuilder, Result, Anthropic (+24 more)
 
 ### Community 105 - "Community 105"
 Cohesion: 0.50
@@ -566,24 +573,36 @@ Cohesion: 0.27
 Nodes (14): a_current_directory_segment_is_harmless(), a_jail_inside_a_dot_prefixed_directory_still_serves_its_own_files(), a_path_that_does_not_exist_still_stays_inside(), a_project_file_that_merely_shares_a_prefix_is_served(), a_target_that_cannot_be_placed_relative_to_the_jail_is_refused(), a_traversal_escapes_nothing(), an_absolute_path_is_refused(), an_ordinary_file_resolves() (+6 more)
 
 ### Community 108 - "Community 108"
-Cohesion: 0.17
-Nodes (9): an_image_block_carries_a_base64_source(), CacheControl, Content, ImageSource, Message, MessagesRequest, OutputConfig, OutputFormat (+1 more)
+Cohesion: 0.10
+Nodes (16): every_object_refuses_extra_properties(), parsed(), raw(), raw_parsing_preserves_the_written_order(), the_assessment_schema_covers_every_field_of_the_output_type(), an_image_block_carries_a_base64_source(), CacheControl, Content (+8 more)
 
 ### Community 109 - "Community 109"
-Cohesion: 0.19
-Nodes (6): ApiErrorBody, ApiErrorDetail, BatchResult, BatchResultLine, ContentBlock, every_batch_failure_shape_becomes_a_readable_reason()
+Cohesion: 0.18
+Nodes (12): collect_names(), get(), hydrate(), map_row(), parse_authorship(), parse_status(), placeholders(), require() (+4 more)
+
+### Community 110 - "Community 110"
+Cohesion: 0.30
+Nodes (14): a_prompt_snapshot_carries_the_do_not_edit_header(), an_in_memory_library_projects_nowhere(), item(), no_temporary_file_is_left_behind(), remove_item(), remove_prompt(), removing_a_prompt_snapshot_is_best_effort(), removing_an_item_takes_its_directory_with_it() (+6 more)
+
+### Community 111 - "Community 111"
+Cohesion: 0.27
+Nodes (4): Job, JobStatus, kind_strings_match_the_stored_values(), status_strings_match_the_check_constraint()
 
 ### Community 113 - "Community 113"
-Cohesion: 0.20
-Nodes (8): HeaderMap, clear_cookie(), from_cookies(), headers(), our_cookie_is_found_among_others(), set_cookie(), the_cookie_does_not_outlive_the_browser_session(), the_cookie_is_http_only_and_same_site_strict()
+Cohesion: 0.17
+Nodes (10): AsHeaderName, HeaderMap, header_str(), clear_cookie(), from_cookies(), headers(), our_cookie_is_found_among_others(), set_cookie() (+2 more)
+
+### Community 114 - "Community 114"
+Cohesion: 0.22
+Nodes (5): ALLOWED_PREFIXES, key, Run, SlashOptions, State
 
 ### Community 115 - "Community 115"
 Cohesion: 0.38
 Nodes (8): a_report_with_nothing_registered_says_so(), delete_registry_key(), register(), Report, the_windows_manifest_sits_beside_the_binary_it_names(), unregister(), windows_manifest_path(), write_registry_value()
 
 ### Community 116 - "Community 116"
-Cohesion: 0.23
-Nodes (5): Fn, RequestBuilder, Anthropic, BatchStatus, status_error()
+Cohesion: 0.29
+Nodes (7): Editor, Framework & structure, Keyboard & a11y (SHOULD — post-parity baseline), Pairing fallback, Ported UX behaviors (observable contracts, Inventory §6 + §10), State & session, The contract
 
 ### Community 117 - "Community 117"
 Cohesion: 0.10
@@ -594,52 +613,52 @@ Cohesion: 0.20
 Nodes (8): Browser, every_browser_has_a_distinct_manifest_path(), every_browser_has_a_distinct_registry_key(), manifest(), the_allowed_origin_carries_the_trailing_slash_chrome_requires(), the_host_path_is_carried_verbatim(), the_manifest_allows_exactly_one_extension(), the_manifest_names_the_stdio_transport()
 
 ### Community 119 - "Community 119"
-Cohesion: 0.24
-Nodes (5): Error, PathBuf, Service, ServiceConfig, item_directory()
+Cohesion: 0.11
+Nodes (11): AtomicBool, Error, Mutex, NonceStore, Notify, Receiver, RuntimeToken, Sender (+3 more)
+
+### Community 120 - "Community 120"
+Cohesion: 0.50
+Nodes (3): Packaging, The NM manifest stays data-driven (R-EXT-20), Uninstall is a feature (R-DEL-11)
 
 ### Community 121 - "Community 121"
 Cohesion: 0.22
 Nodes (9): 1. Install frontend dependencies (once), 2. Build the dashboard, 3. Run the app, 4. Add an Anthropic API key — optional, enables assessment, 5. Load the browser extension — optional, enables capture, 6. Enable the MCP server — optional, lets AI agents read your library, Prerequisites, Running it in development (+1 more)
 
 ### Community 122 - "Community 122"
-Cohesion: 0.25
-Nodes (4): FnOnce, MutexGuard, parse(), T
+Cohesion: 0.83
+Nodes (3): a_generated_project_gets_a_switcher_over_every_version(), a_project_with_no_manifest_still_lists_its_versions(), generated_project()
 
 ### Community 123 - "Community 123"
-Cohesion: 0.06
-Nodes (31): AddItemDialog(), AppShell(), BrandMark(), MissingKeyBanner(), DESTINATIONS, NavTabs(), PausedBanner(), SearchBox() (+23 more)
+Cohesion: 0.11
+Nodes (12): AddItemDialog(), AppShell(), MissingKeyBanner(), PausedBanner(), entries, watch, createItem(), NotFound() (+4 more)
 
 ### Community 124 - "Community 124"
 Cohesion: 0.50
 Nodes (4): Bootstrap — new primary, layered fallbacks, Capture — the sequence that must not change, Design detail, Paused state, end to end
 
 ### Community 125 - "Community 125"
-Cohesion: 0.08
-Nodes (19): EVENT_NAMES, EventName, events, EventStream, Handler, indexOf(), ItemsState, [itemsState, setItemsState] (+11 more)
+Cohesion: 0.09
+Nodes (18): getHealth(), EVENT_NAMES, EventName, events, EventStream, Handler, indexOf(), ItemsState (+10 more)
 
 ### Community 126 - "Community 126"
-Cohesion: 0.20
-Nodes (21): CreatedBy, Family, Term, a_family_carries_its_description_and_item_count(), authorship(), create(), creating_a_duplicate_name_is_refused_rather_than_ignored(), delete() (+13 more)
+Cohesion: 0.22
+Nodes (20): CreatedBy, set_terms(), a_family_carries_its_description_and_item_count(), authorship(), create(), creating_a_duplicate_name_is_refused_rather_than_ignored(), delete(), deleting_a_tag_keeps_the_items_that_carried_it() (+12 more)
 
 ### Community 127 - "Community 127"
 Cohesion: 0.06
-Nodes (64): main(), LocalSessionManager, a_chip_whose_row_is_gone_falls_back_to_its_label(), a_family_chip_carries_its_description(), a_fresh_template_serializes_to_the_whole_worked_brief(), a_heading_followed_by_a_list_survives(), a_renamed_heading_is_carried_verbatim(), a_section_the_user_emptied_still_drops() (+56 more)
+Nodes (66): main(), Prompt, LocalSessionManager, a_chip_whose_row_is_gone_falls_back_to_its_label(), a_family_chip_carries_its_description(), a_fresh_template_serializes_to_the_whole_worked_brief(), a_heading_followed_by_a_list_survives(), a_renamed_heading_is_carried_verbatim() (+58 more)
 
 ### Community 128 - "Community 128"
-Cohesion: 0.09
-Nodes (31): chipExtensions, ChipKind, ChipSpec, label(), SPECS, text(), createPromptEditor(), PromptEditorConfig (+23 more)
-
-### Community 129 - "Community 129"
-Cohesion: 0.27
-Nodes (6): every_object_refuses_extra_properties(), parsed(), raw(), raw_parsing_preserves_the_written_order(), the_assessment_schema_covers_every_field_of_the_output_type(), Box
+Cohesion: 0.22
+Nodes (15): ChipKind, Props, filterPicker(), matchPalette(), PALETTE, PaletteEntry, PaletteKind, PickerEntry (+7 more)
 
 ### Community 130 - "Community 130"
-Cohesion: 0.27
-Nodes (4): origin_strings_match_the_check_constraint(), Project, ProjectOrigin, ProjectStatus
+Cohesion: 0.21
+Nodes (5): origin_strings_match_the_check_constraint(), Project, ProjectMarker, ProjectOrigin, ProjectStatus
 
 ### Community 131 - "Community 131"
-Cohesion: 0.31
-Nodes (9): BTreeSet, Metadata, Package, PackageId, check(), find_package(), Reach, reachable_from() (+1 more)
+Cohesion: 0.27
+Nodes (10): BTreeSet, HashMap, Metadata, Package, PackageId, check(), find_package(), Reach (+2 more)
 
 ### Community 132 - "Community 132"
 Cohesion: 0.62
@@ -649,17 +668,13 @@ Nodes (6): a_real_library_opens_and_reaches_the_latest_version(), a_real_library
 Cohesion: 0.14
 Nodes (13): Brief, Design Direction, Guardrails — Always, Guardrails — Never, How the two fields are used, Important, Intent, Naming (+5 more)
 
-### Community 134 - "Community 134"
-Cohesion: 0.44
-Nodes (8): a_retag_cannot_return_a_name_or_a_family(), a_retag_shares_one_cached_block_across_the_whole_run(), a_retag_with_no_instruction_omits_the_heading(), a_utility_call_sends_no_effort_parameter_at_all(), dedupe(), ItemSummary, retag(), vocabulary()
-
 ### Community 135 - "Community 135"
 Cohesion: 0.28
 Nodes (5): Vocabulary, plural(), read_names(), run(), assess_vocabulary()
 
 ### Community 137 - "Community 137"
-Cohesion: 0.14
-Nodes (20): create(), Ingested, AsHeaderName, Multipart, Next, Response, item_file(), project_file() (+12 more)
+Cohesion: 0.29
+Nodes (5): create(), default_name(), Ingested, Multipart, StatusCode
 
 ## Knowledge Gaps
 - **481 isolated node(s):** `HERE`, `SIZES`, `source`, `Section`, `Selection` (+476 more)
@@ -669,17 +684,17 @@ Nodes (20): create(), Ingested, AsHeaderName, Multipart, Next, Response, item_fi
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Option` connect `Community 97` to `Community 130`, `Community 131`, `Community 132`, `Community 137`, `Community 26`, `Community 27`, `Community 28`, `Community 31`, `Community 32`, `Community 35`, `Community 41`, `Community 44`, `Community 47`, `Community 49`, `Community 57`, `Community 58`, `Community 67`, `Community 70`, `Community 71`, `Community 72`, `Community 75`, `Community 76`, `Community 77`, `Community 79`, `Community 80`, `Community 82`, `Community 83`, `Community 90`, `Community 95`, `Community 101`, `Community 102`, `Community 106`, `Community 108`, `Community 113`, `Community 117`, `Community 118`, `Community 119`, `Community 126`?**
-  _High betweenness centrality (0.179) - this node is a cross-community bridge._
-- **Why does `AppState` connect `Community 67` to `Community 135`, `Community 137`, `Community 26`, `Community 27`, `Community 29`, `Community 31`, `Community 44`, `Community 58`, `Community 62`, `Community 70`, `Community 80`, `Community 83`, `Community 86`, `Community 90`, `Community 92`, `Community 95`, `Community 97`, `Community 101`, `Community 106`, `Community 119`, `Community 122`, `Community 127`?**
-  _High betweenness centrality (0.096) - this node is a cross-community bridge._
+- **Why does `Option` connect `Community 56` to `Community 130`, `Community 131`, `Community 132`, `Community 137`, `Community 26`, `Community 27`, `Community 28`, `Community 31`, `Community 32`, `Community 35`, `Community 41`, `Community 44`, `Community 47`, `Community 49`, `Community 57`, `Community 58`, `Community 62`, `Community 71`, `Community 72`, `Community 75`, `Community 76`, `Community 77`, `Community 80`, `Community 82`, `Community 83`, `Community 84`, `Community 90`, `Community 93`, `Community 95`, `Community 97`, `Community 101`, `Community 102`, `Community 104`, `Community 106`, `Community 108`, `Community 109`, `Community 110`, `Community 111`, `Community 113`, `Community 117`, `Community 118`, `Community 119`, `Community 122`, `Community 126`, `Community 127`?**
+  _High betweenness centrality (0.190) - this node is a cross-community bridge._
+- **Why does `AppState` connect `Community 67` to `Community 135`, `Community 137`, `Community 26`, `Community 27`, `Community 29`, `Community 31`, `Community 44`, `Community 58`, `Community 62`, `Community 77`, `Community 80`, `Community 83`, `Community 86`, `Community 90`, `Community 92`, `Community 95`, `Community 97`, `Community 101`, `Community 106`, `Community 119`, `Community 127`?**
+  _High betweenness centrality (0.078) - this node is a cross-community bridge._
 - **What connects `HERE`, `SIZES`, `source` to the rest of the system?**
   _481 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.10931174089068826 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.13636363636363635 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
-- **Should `Community 9` be split into smaller, more focused modules?**
-  _Cohesion score 0.13186813186813187 - nodes in this community are weakly interconnected._
 - **Should `Community 10` be split into smaller, more focused modules?**
   _Cohesion score 0.07407407407407407 - nodes in this community are weakly interconnected._
+- **Should `Community 26` be split into smaller, more focused modules?**
+  _Cohesion score 0.08245981830887492 - nodes in this community are weakly interconnected._
