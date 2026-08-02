@@ -42,8 +42,21 @@ jobs:
           cache: npm
           cache-dependency-path: web/site/package-lock.json
 
+      # `npm install`, not `npm ci`, and not by preference.
+      #
+      # Astro 7 pulls rolldown and satteri, which ship wasm32 fallbacks whose own
+      # dependencies (@emnapi/core, @emnapi/runtime) npm never resolves on Windows, where
+      # this lockfile is written — those variants are not installable there, so they get no
+      # entry. On a Linux runner npm does resolve them, finds them absent from the lock, and
+      # `npm ci` refuses the whole install. Regenerating the lockfile locally cannot fix it:
+      # it comes back byte-identical, including with --os=linux --cpu=x64.
+      #
+      # `npm install` still honours the lockfile for everything in it and fills only that
+      # platform gap. The cost is that a transitive patch release can differ between runs,
+      # which for a static marketing page is a smaller problem than a deploy that cannot run
+      # at all. Revisit if the lockfile is ever generated on Linux.
       - name: Install
-        run: npm --prefix web/site ci
+        run: npm --prefix web/site install --no-audit --no-fund
 
       # Injects the base path Pages serves from. Without this the build hardcodes
       # whatever is in astro.config.mjs, which is right today and wrong the moment a
