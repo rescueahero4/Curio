@@ -110,6 +110,15 @@ jobs:
         continue-on-error: true
         run: cargo xtask footprint > footprint-${{ matrix.target }}.txt || true
 
+      # Two artifacts rather than one, and the split is load-bearing. upload-artifact roots
+      # the archive at the **least common ancestor** of everything it matches, so listing the
+      # footprint report — which sits at the repo root — alongside the binaries moved that
+      # ancestor up to the root and buried the binaries at
+      # `target/<triple>/release/` inside the archive. Every consumer below expects them
+      # flat, and the resulting `cp: cannot stat 'artifact/curio.exe'` names a path that
+      # never appears in the workflow, which is what made it puzzling.
+      #
+      # Keeping the paths in one directory keeps the ancestor there too.
       - uses: actions/upload-artifact@v4
         with:
           name: curio-${{ matrix.target }}
@@ -118,7 +127,14 @@ jobs:
             target/${{ matrix.target }}/release/curio.exe
             target/${{ matrix.target }}/release/curio-nmh
             target/${{ matrix.target }}/release/curio-nmh.exe
-            footprint-${{ matrix.target }}.txt
+          # `error`, not `warn`: an empty binaries artifact is the one failure that stays
+          # silent until packaging trips over it two jobs later.
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: footprint-${{ matrix.target }}
+          path: footprint-${{ matrix.target }}.txt
           if-no-files-found: warn
 
   # --- packaging (R-DEL-8, R-DEL-9) -------------------------------------------------------
@@ -243,9 +259,12 @@ jobs:
           path: installers
           merge-multiple: true
 
+      # `footprint-*`, not `curio-*`: the latter now names the binaries artifact, and
+      # attaching raw executables beside the installers would give users a download that
+      # cannot register the native-messaging host.
       - uses: actions/download-artifact@v4
         with:
-          pattern: curio-*
+          pattern: footprint-*
           path: reports
           merge-multiple: true
 
