@@ -10,7 +10,10 @@
 //! Release CI archives the output rather than failing on it (R-DEL-7): CI runners measure
 //! memory noisily, so a regression blocks release by human judgement.
 
-use anyhow::{Context as _, bail};
+// `bail!` is qualified at its one call site rather than imported: that site is inside a
+// `cfg(windows)` function, so a plain import is an unused-import error on macOS — which
+// `-D warnings` turns into a failed gate on half the release targets.
+use anyhow::Context as _;
 
 pub fn report() -> anyhow::Result<()> {
     let pid = find_curio()?;
@@ -68,7 +71,7 @@ fn find_curio() -> anyhow::Result<u32> {
             return Ok(pid);
         }
     }
-    bail!("curio is not running — start it with `cargo run`, then measure")
+    anyhow::bail!("curio is not running — start it with `cargo run`, then measure")
 }
 
 #[cfg(not(windows))]
