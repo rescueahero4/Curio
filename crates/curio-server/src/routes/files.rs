@@ -226,8 +226,21 @@ mod tests {
     fn an_absolute_path_is_refused() {
         let (_dir, jail) = jail();
 
+        // Refused on both platforms: a leading separator parses as `RootDir` everywhere.
         assert!(resolve(&jail, "/etc/passwd").is_none());
-        assert!(resolve(&jail, "C:\\Windows\\System32\\config\\SAM").is_none());
+
+        // A drive letter is a `Prefix` component only on Windows. On Unix the backslash is
+        // not a separator, so the whole thing is one perfectly legal filename — and the
+        // property worth asserting there is not "refused" but "did not escape", which is
+        // what the jail actually exists to guarantee.
+        let drive = "C:\\Windows\\System32\\config\\SAM";
+        #[cfg(windows)]
+        assert!(resolve(&jail, drive).is_none());
+        #[cfg(not(windows))]
+        assert!(
+            resolve(&jail, drive).is_some_and(|path| path.starts_with(&jail)),
+            "a Windows-shaped path is a filename on Unix; it must stay inside the jail"
+        );
     }
 
     #[test]
