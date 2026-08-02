@@ -33,3 +33,10 @@ Thumbs.db
 
 # graphify: regenerable AST extraction cache
 graphify-out/cache/
+
+# standard 
+.vscode/
+.idea/
+*.log
+*.pem
+*.p12
