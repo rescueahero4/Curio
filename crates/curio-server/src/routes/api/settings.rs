@@ -408,10 +408,24 @@ mod tests {
 
     #[test]
     fn the_key_is_reported_as_a_boolean_and_a_mask() {
+        // `project` reads the real OS keychain, not `state`, so whether a key exists is a
+        // property of the machine running the test. Asserting "no key" therefore passed on
+        // clean CI runners and failed on every developer who had configured one — a test
+        // that reports the environment rather than the code.
+        //
+        // What must hold either way is that the two fields agree, which is the defect worth
+        // guarding: a boolean saying "configured" beside an absent mask, or a mask beside a
+        // false boolean, is what would mislead the settings page.
         let settings = project(&state());
 
-        assert!(!settings.api_key_set);
-        assert!(settings.api_key_masked.is_none());
+        assert_eq!(settings.api_key_set, settings.api_key_masked.is_some());
+
+        if let Some(masked) = &settings.api_key_masked {
+            // Whatever the machine holds, the projection must never surface it whole
+            // (Inventory §10.5).
+            assert!(masked.starts_with("sk-ant-…"), "{masked}");
+            assert!(masked.len() <= "sk-ant-…".len() + 4, "{masked}");
+        }
     }
 
     #[test]
