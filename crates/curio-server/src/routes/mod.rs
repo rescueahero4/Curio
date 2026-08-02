@@ -171,6 +171,7 @@ fn mutating_routes(state: &AppState) -> Router<AppState> {
         .route("/api/prompts/{id}/sent", delete(api::prompts::clear_sent))
         .route("/api/projects", post(api::projects::register))
         .route("/api/projects/{id}", patch(api::projects::update))
+        .route("/api/projects/{id}", delete(api::projects::delete))
         .route("/api/projects/{id}/open", post(api::projects::open))
         .route("/api/jobs/{id}/cancel", post(api::system::cancel_job))
         .route("/api/settings", put(api::settings::put))

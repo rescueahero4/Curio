@@ -197,6 +197,11 @@ export function openProject(id: string): Promise<OpenedProject> {
   return post<OpenedProject>(`/api/projects/${encodeURIComponent(id)}/open`);
 }
 
+/** Forget the record. The folder on disk is never touched — there may not be one left. */
+export function forgetProject(id: string): Promise<void> {
+  return del<void>(`/api/projects/${encodeURIComponent(id)}`);
+}
+
 /* -- settings ----------------------------------------------------------------------- */
 
 export function getSettings(): Promise<Settings> {
@@ -219,8 +224,15 @@ export function verifyApiKey(body: { api_key?: string } = {}): Promise<{ ok: boo
 
 /* -- system ------------------------------------------------------------------------- */
 
-export function revealPath(path: string): Promise<LaunchOutcome> {
-  return post<LaunchOutcome>("/api/system/reveal", { path });
+/**
+ * Show a path in the OS file manager.
+ *
+ * `nearest` is for a path that may be gone: it opens the closest folder above it that still
+ * exists, and says so. Off by default, because for a file that should be there "it is not on
+ * disk" is the answer the caller wants, not its parent opened in its place.
+ */
+export function revealPath(path: string, nearest = false): Promise<LaunchOutcome> {
+  return post<LaunchOutcome>("/api/system/reveal", { path, nearest });
 }
 
 export function openSkillFile(): Promise<LaunchOutcome> {

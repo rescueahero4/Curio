@@ -5,15 +5,15 @@
  * FR-19 keeps a `missing` record rather than deleting it — so the control stays usable on a
  * missing project too.
  *
- * It shows only what the current state needs. Linked, it is the prompt's name and a way to
- * undo; unlinked, it is an offer to link; with no prompts written yet, it is nothing at all.
- * The previous version rendered a populated `<select>` on every card in every state, which
- * put a form control on a catalogue tile to express a fact that is usually already settled.
+ * It shows only what the current state needs, and only when there is a link to show: the
+ * prompt's name with a way to undo, or a note that the prompt it pointed at is gone. An
+ * unlinked project renders nothing here — the watcher's attribution is right often enough
+ * that offering to correct it on every card put a form control on a catalogue tile to
+ * express a fact that is usually already settled.
  */
 
 import { A } from "@solidjs/router";
-import { createSignal, For, Show } from "solid-js";
-import { Popover } from "~/components/library/Popover";
+import { createSignal, Show } from "solid-js";
 import { PAUSED_REASON } from "~/components/projects/copy";
 import { updateProject } from "~/lib/api";
 import { ApiError, paused } from "~/lib/http";
@@ -69,37 +69,6 @@ export function PromptLink(props: {
             </button>
           </span>
         )}
-      </Show>
-
-      {/* The watcher's attribution is a heuristic — an agent can take a detour, and a folder
-          can appear for reasons that have nothing to do with a prompt. So an unlinked
-          project always offers the correction, but only once there is something to link to. */}
-      <Show when={!props.project.prompt_id && props.prompts.length > 0}>
-        <Popover
-          label={<span class="text-xs">Link a prompt</span>}
-          title="Link the prompt this came from"
-          blocked={paused() ? PAUSED_REASON : undefined}
-          width="18rem"
-        >
-          {(close) => (
-            <div class="flex max-h-64 flex-col overflow-y-auto">
-              <For each={props.prompts}>
-                {(prompt) => (
-                  <button
-                    type="button"
-                    class="truncate rounded-lg px-2.5 py-1.5 text-left text-sm hover:bg-desk"
-                    onClick={() => {
-                      void relink(prompt.id);
-                      close();
-                    }}
-                  >
-                    {prompt.title || "Untitled prompt"}
-                  </button>
-                )}
-              </For>
-            </div>
-          )}
-        </Popover>
       </Show>
 
       {/* A record pointing at a prompt that is no longer in the list: say so, and offer the

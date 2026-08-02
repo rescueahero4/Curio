@@ -221,6 +221,21 @@ export function Trash(props: IconProps) {
   );
 }
 
+/**
+ * A folder on disk — the tab, then the body.
+ *
+ * Drawn slightly narrower than the 16px box because it is set beside 11px monospace type,
+ * where a full-width glyph would out-weigh the path it sits next to.
+ */
+export function Folder(props: IconProps) {
+  return (
+    <Line
+      class={props.class}
+      d="M2.5 12.25v-8a.75.75 0 0 1 .75-.75h2.6l1.4 1.75h5.5a.75.75 0 0 1 .75.75v6.25a.75.75 0 0 1-.75.75h-9.5a.75.75 0 0 1-.75-.75Z"
+    />
+  );
+}
+
 /** A row: the thumbnail cell, then the line of text it labels. */
 export function ViewList(props: IconProps) {
   return (

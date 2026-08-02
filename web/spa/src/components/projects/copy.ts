@@ -9,11 +9,12 @@
 export const PAUSED_REASON = "Curio is paused. Resume from the tray icon.";
 
 /**
- * FR-19. A missing folder is greyed, never removed: the record carries the prompt link, and
- * nothing left on disk can rebuild that.
+ * FR-19. Curio still never removes a missing folder's record on its own — the record carries
+ * the prompt link, and nothing left on disk can rebuild it. What changed is who gets to
+ * decide: the card now says the short version and offers the two ways out, rather than
+ * spending a paragraph arguing for a record the user may have meant to be rid of.
  */
-export const MISSING_EXPLANATION =
-  "This folder is no longer on disk. Curio keeps the record because it holds the prompt link — that connection lives here and nowhere else, so deleting the record would lose it for good. Put the folder back at this path and it comes back on the next visit.";
+export const MISSING_TITLE = "Can't find project folder";
 
 export const NO_FRONT_DOOR =
   "There is no index.html here, or in a v1/v2/… subfolder, so there is no page to launch. Open the folder to see what the tool actually wrote.";

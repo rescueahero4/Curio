@@ -28,7 +28,11 @@ export function Projects() {
   const [registering, setRegistering] = createSignal(false);
 
   onMount(() => {
-    const offs = [events.on("project.detected", land), events.on("project.updated", land)];
+    const offs = [
+      events.on("project.detected", land),
+      events.on("project.updated", land),
+      events.on("project.removed", gone),
+    ];
     onCleanup(() => {
       for (const off of offs) off();
     });
@@ -37,6 +41,12 @@ export function Projects() {
   function land(payload: unknown) {
     const project = payload as Project;
     if (project?.id) merge(project);
+  }
+
+  /** `project.removed` carries an id and nothing else — the record it named is gone. */
+  function gone(payload: unknown) {
+    const id = (payload as { id?: string })?.id;
+    if (id) drop(id);
   }
 
   function merge(project: Project) {
@@ -48,6 +58,10 @@ export function Projects() {
       next[index] = project;
       return next;
     });
+  }
+
+  function drop(id: string) {
+    mutate((list) => (list ?? []).filter((known) => known.id !== id));
   }
 
   return (
@@ -95,7 +109,12 @@ export function Projects() {
       <div class="grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <For each={projects() ?? []}>
           {(project) => (
-            <ProjectCard project={project} prompts={prompts() ?? []} onChanged={merge} />
+            <ProjectCard
+              project={project}
+              prompts={prompts() ?? []}
+              onChanged={merge}
+              onRemoved={drop}
+            />
           )}
         </For>
       </div>

@@ -34,6 +34,11 @@ pub enum EventName {
     ProjectDetected,
     /// A project's record changed — including going `missing`, which never deletes it.
     ProjectUpdated,
+    /// A project record is gone, because the user asked for it. Payload: `{id}` only.
+    ///
+    /// The watcher never publishes this. A folder that vanishes goes `missing` and stays in
+    /// the list; only an explicit "Remove" throws the record away.
+    ProjectRemoved,
     /// A job was enqueued, started, progressed, or finished.
     ///
     /// Fires at every one of those boundaries, and may be partial (see module docs).
@@ -53,6 +58,7 @@ impl EventName {
             EventName::ItemDeleted => "item.deleted",
             EventName::ProjectDetected => "project.detected",
             EventName::ProjectUpdated => "project.updated",
+            EventName::ProjectRemoved => "project.removed",
             EventName::JobUpdated => "job.updated",
             EventName::VocabularyUpdated => "vocabulary.updated",
         }
@@ -60,13 +66,14 @@ impl EventName {
 
     /// Every event name, for exhaustiveness in tests and handler registries.
     #[must_use]
-    pub const fn all() -> [EventName; 7] {
+    pub const fn all() -> [EventName; 8] {
         [
             EventName::ItemCreated,
             EventName::ItemUpdated,
             EventName::ItemDeleted,
             EventName::ProjectDetected,
             EventName::ProjectUpdated,
+            EventName::ProjectRemoved,
             EventName::JobUpdated,
             EventName::VocabularyUpdated,
         ]
@@ -102,6 +109,12 @@ impl Event {
         Self::new(EventName::ItemDeleted, serde_json::json!({ "id": id }))
     }
 
+    /// `project.removed` carries only an id, for the same reason `item.deleted` does.
+    #[must_use]
+    pub fn project_removed(id: &str) -> Self {
+        Self::new(EventName::ProjectRemoved, serde_json::json!({ "id": id }))
+    }
+
     /// `vocabulary.updated` carries an empty object by contract; consumers refetch.
     #[must_use]
     pub fn vocabulary_updated() -> Self {
@@ -124,6 +137,7 @@ mod tests {
             "item.deleted",
             "project.detected",
             "project.updated",
+            "project.removed",
             "job.updated",
             "vocabulary.updated",
         ];

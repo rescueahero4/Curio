@@ -28,6 +28,7 @@ export type EventName =
   | "item.deleted"
   | "project.detected"
   | "project.updated"
+  | "project.removed"
   | "job.updated"
   | "vocabulary.updated";
 
@@ -37,6 +38,7 @@ export const EVENT_NAMES: readonly EventName[] = [
   "item.deleted",
   "project.detected",
   "project.updated",
+  "project.removed",
   "job.updated",
   "vocabulary.updated",
 ] as const;

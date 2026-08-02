@@ -163,6 +163,21 @@ pub async fn update(
     Ok(Json(project))
 }
 
+/// `DELETE /api/projects/:id` — forget a project record. The folder is never touched.
+///
+/// FR-19 keeps a `missing` folder's record on its own, because the record carries the prompt
+/// link and nothing on disk can rebuild that. This route is the user overriding that: a
+/// folder they deleted on purpose should not have to stay in the list forever. Reconciliation
+/// only ever *marks* missing (never deletes), so removal stays a decision the user makes.
+pub async fn delete(State(state): State<AppState>, Path(id): Path<String>) -> ApiResult<Json<()>> {
+    // `require` first, so removing something already gone answers 404 rather than 200 —
+    // a silent success would look like it worked on a stale id.
+    state.with_db(|db| projects::require(db.conn(), &id))?;
+    state.with_db(|db| projects::forget(db.conn(), &id))?;
+    state.publish(Event::project_removed(&id));
+    Ok(Json(()))
+}
+
 #[derive(Debug, Serialize)]
 pub struct Opened {
     /// The local URL to open. Served through the jail, never as a `file://` path — a
