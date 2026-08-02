@@ -15,11 +15,13 @@
 //! stack in that order, and [`session`] owns the cookie the exchange mints. The route-group
 //! table that says which layer applies where lives in ARCH-01 §Middleware map.
 
+pub mod cors;
 pub mod guard;
 pub mod origin;
 pub mod session;
 pub mod token;
 
+pub use cors::grant;
 pub use guard::{Access, authenticate, authenticate_quit, identity, refuse_while_paused};
 pub use origin::{
     EXTENSION_ORIGIN, host_is_loopback, origin_is_allowed, sec_fetch_site_is_hostile,
