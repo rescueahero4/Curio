@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Curio Capture",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Capture the current page into your Curio design inspiration library.",
   "minimum_chrome_version": "116",
   "icons": {
