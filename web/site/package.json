@@ -1,6 +1,6 @@
 {
   "name": "curio-site",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "description": "The Curio landing page. Astro, deployed to GitHub Pages. Never shipped in the binary.",
