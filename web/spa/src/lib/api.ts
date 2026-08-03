@@ -234,15 +234,6 @@ export function openSkillFile(): Promise<LaunchOutcome> {
   return post("/api/system/open-skill-file");
 }
 
-/**
- * Best-effort handoff. Answers 200 with the outcome in the body even when the launch
- * failed, because "asked Claude Code to open" is the only claim we can honestly make
- * (§10.22) — the caller reads the body rather than the status.
- */
-export function sendToClaude(text: string): Promise<LaunchOutcome> {
-  return post<LaunchOutcome>("/api/system/send-to-claude", { text });
-}
-
 /* -- files -------------------------------------------------------------------------- */
 
 /** A screenshot or thumbnail URL. Jailed and cookie-authed like everything else. */

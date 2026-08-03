@@ -55,7 +55,7 @@ parity_reference: "Curiol (Bun/React implementation) + its PRD FR-1..FR-27"
 - **R-FE-12** — BulkBar lifecycle: picks up an in-flight `bulk_retag` on mount; merges partial `job.updated` payloads by id (Inventory §10.30); running = progress + Cancel; finished = summary / "Cancelled after N" / error + Dismiss; after bulk delete clears the selection, a `notice` keeps the bar mounted (Inventory §10.26). Vocab edits keep selection; delete clears it.
 - **R-FE-13** — ItemDetail autosave: PATCHes coalesced at **600 ms**; a pending-patch guard MUST suppress SSE overwrites of fields with in-flight edits (Inventory §6).
 - **R-FE-14** — Gray-zone decision UI: Keep nearest / Accept proposal (only when an `ai_proposed` link exists) / Move-to select; a human-picked family scores 1.0; families are edited whole-set (retained links keep score, new links = 1.0). Resolving clears the badge (FR-7, Inventory §10.13).
-- **R-FE-15** — Prompt actions: Copy Prompt = serialize (server) → clipboard → mark sent. Send to Claude = serialize → copy → claim → launch; clipboard failure **aborts** the launch; UI says "Asked X to open", never "opened" (Inventory §10.22).
+- **R-FE-15** — Prompt actions: Copy Prompt = serialize (server) → clipboard → mark sent, and it is the **only** handoff. A clipboard failure **aborts** before the claim is staked, so a prompt is never marked sent against a clipboard the user cannot paste from. Send to Claude is gone; it never sent anything (Inventory §10.22, and §10.22's GONE note).
 - **R-FE-15a** — Vocabulary page / ConsistencyPass: the latest dedupe result MUST survive a page reload (re-fetched from the server, not held only in memory); merges are applied client-side by calling the merge endpoints per group, with per-group **Merge** / **Keep both**; results are suggestions only — nothing auto-applies (Inventory §6, §10.8).
 - **R-FE-15b** — ItemDetail auxiliary panels are part of parity: Copy Brief, Copy Image Prompt, Re-assess, Delete, the "Waiting for an API key" panel when no key is configured, and the agent-path copy block (Inventory §6).
 
@@ -135,7 +135,7 @@ Under the native-messaging bootstrap ([ARCH-04](04-extension-architecture.md)), 
 | Every field editable, autosave, `last_edited_by=user` stamping surfaced | FR-8; Inventory §10.12 |
 | Gray-zone badge + decision UI, resolution clears badge | FR-6, FR-7; Inventory §10.13 |
 | Editor template, slash-commands, chip insertion, path-carrying references | FR-12, FR-13, FR-14; Inventory §6 |
-| Copy Prompt / Send to Claude semantics and ordering | FR-15; Inventory §10.22 |
+| Copy Prompt semantics and ordering | FR-15; Inventory §10.22 |
 | Prompts autosave + list/reopen | FR-16 |
 | Route map, lazy editor, eager pair, NotFound | Inventory §6 |
 | SSE client shape (single EventSource, 2 s reconnect, per-name handlers) | Inventory §3 |

@@ -218,8 +218,6 @@ export interface Models {
   utility: string;
 }
 
-export type SendToClaudeTarget = "claude-code" | "claude-desktop" | "clipboard";
-
 /**
  * Settings as the server publishes them.
  *
@@ -245,7 +243,6 @@ export interface Settings {
   thresholds: Thresholds;
   models: Models;
   mcp_enabled: boolean;
-  send_to_claude_target: SendToClaudeTarget;
   launch_at_login: boolean;
   /** The OS is the authority; `reason` says why when it cannot be honoured. */
   launch_at_login_support: { supported: boolean; reason: string | null };
@@ -268,15 +265,7 @@ export interface Settings {
  * it, so offering the control would be a dead one (ARCH-08 break #9).
  */
 export type SettingsPatch = Partial<
-  Pick<
-    Settings,
-    | "projects_root"
-    | "thresholds"
-    | "models"
-    | "mcp_enabled"
-    | "send_to_claude_target"
-    | "launch_at_login"
-  >
+  Pick<Settings, "projects_root" | "thresholds" | "models" | "mcp_enabled" | "launch_at_login">
 > & { api_key?: string };
 
 /** The gold-standard prompt scaffold, owned by the server so no client re-derives it. */

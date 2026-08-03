@@ -1,18 +1,20 @@
 /**
- * Copy Prompt and Send to Claude — an ordering, not two buttons (R-FE-15, Inventory §10.22).
+ * Copy Prompt — serialize → clipboard → mark sent (R-FE-15, Inventory §10.22).
  *
- * Copy Prompt: serialize → clipboard → mark sent.
- * Send to Claude: serialize → copy → claim → launch.
+ * There used to be a second button here called Send to Claude, and Curio never sent
+ * anything. It copied the same text to the same clipboard and then spawned a local `claude`
+ * binary with no arguments and stdin nulled — the prompt was never transmitted, on argv or
+ * otherwise. The handoff was the user pressing Ctrl+V either way, so the button named a
+ * channel that did not exist. What its removal costs is one process spawn.
  *
- * The step that matters is the one that does **not** happen. If the clipboard refuses, the
- * launch is abandoned: an agent that opens with nothing to paste has consumed the user's
- * attention and produced a window they now have to close, and it did so while reporting
- * success. So a clipboard failure ends the sequence, and the claim is never staked.
+ * The step that matters is still the one that does **not** happen: if the clipboard
+ * refuses, the claim is never staked. A prompt marked sent against an empty clipboard would
+ * arm the project watcher for work the user cannot start.
  *
  * Serialization is the server's throughout. This file sends ids and forwards sentences.
  */
 
-import { markPromptSent, sendToClaude, serializePrompt } from "~/lib/api";
+import { markPromptSent, serializePrompt } from "~/lib/api";
 import type { Prompt } from "~/lib/types";
 
 export interface ActionOutcome {
@@ -22,7 +24,7 @@ export interface ActionOutcome {
   prompt: Prompt | null;
 }
 
-const REFUSED = "The clipboard refused. Nothing was copied and nothing was sent.";
+const REFUSED = "The clipboard refused. Nothing was copied and the prompt is unclaimed.";
 
 export async function copyPrompt(id: string): Promise<ActionOutcome> {
   const { text } = await serializePrompt(id);
@@ -34,25 +36,6 @@ export async function copyPrompt(id: string): Promise<ActionOutcome> {
     tone: "confirm",
     prompt,
   };
-}
-
-export async function sendPromptToClaude(id: string): Promise<ActionOutcome> {
-  const { text } = await serializePrompt(id);
-  if (!(await copyToClipboard(text))) {
-    return {
-      message: `${REFUSED} Nothing was launched — an agent with an empty clipboard is worse than no agent.`,
-      tone: "caution",
-      prompt: null,
-    };
-  }
-
-  const prompt = await markPromptSent(id);
-
-  // The server's sentence, verbatim. It is the one that says "Asked Claude Code to open —
-  // paste there" rather than "opened", and paraphrasing it here would put the single claim
-  // this system cannot honestly make back into the UI (Inventory §10.22).
-  const outcome = await sendToClaude(text);
-  return { message: outcome.message, tone: outcome.asked ? "confirm" : "caution", prompt };
 }
 
 async function copyToClipboard(text: string): Promise<boolean> {

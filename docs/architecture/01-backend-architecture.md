@@ -90,7 +90,7 @@ flowchart TB
 
 **Settings, config, crates, budget**
 
-- R-BE-28: `config.json` (user-editable, rewritten on boot/save): `dataRoot`, `projectsRoot`, `thresholds{lower,upper}` (default 0.4/0.5, reject lower>upper), `models{vision,utility}`, `mcpEnabled` (default false), `sendToClaudeTarget`, `launchAtLogin` (OS is authority), and optional `port` (absent by default = ephemeral; precedence per R-BE-6). GONE vs Inventory §5: `pairingToken` (replaced by the runtime token). Env/flags: `CURIO_PORT` (R-BE-6), `CURIO_DATA_ROOT` (R-BE-29), and `CURIO_NO_OPEN=1` / `--no-open`, which suppresses the browser-open at boot (Inventory §5 parity). `runtime.json` is a SEPARATE, machine-written, owner-only file — never user-edited, never merged into config, deleted on quit.
+- R-BE-28: `config.json` (user-editable, rewritten on boot/save): `dataRoot`, `projectsRoot`, `thresholds{lower,upper}` (default 0.4/0.5, reject lower>upper), `models{vision,utility}`, `mcpEnabled` (default false), `launchAtLogin` (OS is authority), and optional `port` (absent by default = ephemeral; precedence per R-BE-6). GONE vs Inventory §5: `pairingToken` (replaced by the runtime token), `sendToClaudeTarget` (the feature it configured is gone — an existing key is ignored on read and dropped by the next self-documenting rewrite). Env/flags: `CURIO_PORT` (R-BE-6), `CURIO_DATA_ROOT` (R-BE-29), and `CURIO_NO_OPEN=1` / `--no-open`, which suppresses the browser-open at boot (Inventory §5 parity). `runtime.json` is a SEPARATE, machine-written, owner-only file — never user-edited, never merged into config, deleted on quit.
 - R-BE-29: Data-root resolution and legacy compat preserved: `CURIO_DATA_ROOT` → deprecated `CURIOL_DATA_ROOT` (warn) → one-time `~/Curiol`→`~/Curio` migration before target mkdir (Inventory §5, §10.18); seed `skills/visual-assessment.md` once, never overwrite.
 - R-BE-30: Crate layout and dependency direction MUST follow the table in Design detail §"Crates". `curio-db` is the ONLY crate that sees SQL; dependencies point inward to `curio-core`; `curio-nmh` depends on no workspace crate that pulls tokio/axum — its one permitted workspace dependency is `curio-runtime` (D27), which is serde-only by construction.
 - R-BE-31: The resource budget table (Design detail §"Budget") is binding: numbers are targets validated in D0/P7, and regressions block release until measured and consciously re-budgeted.
@@ -147,7 +147,7 @@ Rationale, header rules, and jail semantics are owned by [ARCH-06](06-security-a
 
 ### HTTP surface (delta view)
 
-Everything in Inventory §1 carries over 1:1 — items CRUD + keyset pagination + facets, reassess, resolve-grayzone with its PATCH auto-promote rule, bulk retag/edit/dedupe, vocabulary CRUD + merge with in-transaction FTS/sidecar rebuild, prompts CRUD + serialize + sent-claim, projects register/open/static, settings GET/PUT with its side-effect list, system open-skill-file / send-to-claude / reveal / quit. Deltas only:
+Everything in Inventory §1 carries over 1:1 — items CRUD + keyset pagination + facets, reassess, resolve-grayzone with its PATCH auto-promote rule, bulk retag/edit/dedupe, vocabulary CRUD + merge with in-transaction FTS/sidecar rebuild, prompts CRUD + serialize + sent-claim, projects register/open/static, settings GET/PUT with its side-effect list, system open-skill-file / reveal / quit. Deltas only:
 
 | Change | Old (Bun) | New (curio) |
 |---|---|---|

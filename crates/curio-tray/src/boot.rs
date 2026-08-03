@@ -268,7 +268,7 @@ mod tests {
             "thresholds",
             "models",
             "mcpEnabled",
-            "sendToClaudeTarget",
+            "launchAtLogin",
         ] {
             assert!(body.contains(key), "{key} missing from {body}");
         }

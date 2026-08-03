@@ -1,15 +1,16 @@
 /**
- * The three things that happen to a whole document: copy it, send it, destroy it.
+ * The two things that happen to a whole document: copy it, destroy it.
  *
- * Copy and Send are disabled together while either is running: they share a serialize step
- * and a clipboard, and two of them racing would leave the user unable to say which text they
- * are holding. The disabled state carries its reason, per PRD §5 — no dead clicks.
+ * Copy is the handoff (R-FE-15). It is disabled while it runs — it serializes, writes the
+ * clipboard and stakes the claim, and a second press mid-sequence would leave the user
+ * unable to say which text they are holding. The disabled state carries its reason, per
+ * PRD §5 — no dead clicks.
  *
- * Whatever the launch answers is shown **verbatim**, and by the route rather than here. The
- * server is the only party that knows what it managed to ask for, and its phrasing is
- * deliberate: "Asked Claude Code to open — paste there", never "opened" (R-FE-15). These
- * buttons sit in a rail that has no room for a sentence, so the outcome is handed up to the
- * page, which has.
+ * There used to be a Send to Claude beside it, taking the primary treatment this button now
+ * has. It sent nothing; see `handoff.ts` for what it actually did.
+ *
+ * The outcome is shown **verbatim** and by the page rather than here: these buttons sit in
+ * a rail with no room for a sentence, so it is handed up to somewhere that has.
  *
  * Delete is a two-step disarm rather than a `confirm()`, for the reason the prompt list
  * records: a native dialog steals the whole window for a question about something it is
@@ -20,7 +21,7 @@
 import { useNavigate } from "@solidjs/router";
 import { createSignal, onCleanup, Show } from "solid-js";
 import type { ActionOutcome } from "~/components/editor/handoff";
-import { copyPrompt, sendPromptToClaude } from "~/components/editor/handoff";
+import { copyPrompt } from "~/components/editor/handoff";
 import { Trash } from "~/components/icons";
 import { deletePrompt } from "~/lib/api";
 import { createEscapeLayer } from "~/lib/keyboard";
@@ -99,21 +100,12 @@ export function PromptActions(props: Props) {
     <>
       <button
         type="button"
-        class="tool-btn px-2 text-sm"
+        class="pill pill-ink"
         disabled={busy()}
         title={reason() ?? "Serialize, copy, and start watching for a project folder"}
         onClick={() => void run(copyPrompt)}
       >
-        Copy
-      </button>
-      <button
-        type="button"
-        class="pill pill-ink"
-        disabled={busy()}
-        title={reason() ?? "Copy first, then ask the configured tool to open"}
-        onClick={() => void run(sendPromptToClaude)}
-      >
-        Send to Claude
+        Copy Prompt
       </button>
 
       <Show

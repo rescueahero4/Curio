@@ -80,16 +80,6 @@ impl Default for Models {
     }
 }
 
-/// Where "Send to Claude" sends.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum SendToClaudeTarget {
-    #[default]
-    ClaudeCode,
-    ClaudeDesktop,
-    Clipboard,
-}
-
 /// The whole of `config.json`.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
@@ -106,7 +96,6 @@ pub struct Config {
     /// Defaults to off: an MCP server that appears without the user asking is a surface
     /// they did not choose.
     pub mcp_enabled: bool,
-    pub send_to_claude_target: SendToClaudeTarget,
     /// Stored, but the OS is the authority — this is a cache of what the OS reports, and
     /// a disagreement is resolved in the OS's favour (R-BE-28).
     pub launch_at_login: bool,
@@ -208,14 +197,29 @@ mod tests {
         let json = serde_json::to_string(&Config::default()).unwrap();
         assert!(json.contains("mcpEnabled"), "{json}");
         assert!(json.contains("projectsRoot"), "{json}");
-        assert!(json.contains("sendToClaudeTarget"), "{json}");
     }
 
     #[test]
-    fn send_to_claude_targets_serialize_kebab_case() {
-        assert_eq!(
-            serde_json::to_string(&SendToClaudeTarget::ClaudeCode).unwrap(),
-            "\"claude-code\""
-        );
+    fn a_config_written_before_send_to_claude_was_removed_still_loads() {
+        // Every installed copy of 0.1.0 has `sendToClaudeTarget` in its config.json. The
+        // struct no longer has the field, so loading has to ignore it rather than fail —
+        // a config that refuses to parse takes the whole app down at boot, and the setting
+        // it is complaining about no longer does anything.
+        //
+        // `#[serde(default)]` plus no `deny_unknown_fields` is what makes that true; this
+        // pins it against the specific key rather than against the general rule.
+        let parsed: Result<Config, _> =
+            serde_json::from_str(r#"{"mcpEnabled": true, "sendToClaudeTarget": "claude-desktop"}"#);
+
+        assert!(parsed.is_ok(), "{parsed:?}");
+        assert!(parsed.unwrap().mcp_enabled);
+    }
+
+    #[test]
+    fn the_removed_key_does_not_come_back_on_the_next_write() {
+        // R-BE-28's self-documenting rewrite: the file is re-serialized from the struct, so
+        // a key the struct no longer has is dropped the first time anything saves.
+        let json = serde_json::to_string(&Config::default()).unwrap();
+        assert!(!json.contains("sendToClaude"), "{json}");
     }
 }
