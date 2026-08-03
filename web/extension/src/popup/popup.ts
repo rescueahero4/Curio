@@ -16,6 +16,15 @@
  * and the extension **never launches it** (FR-22): a capture tool starting an app behind
  * the user's back is a surprise, not a convenience.
  *
+ * ## Reconnect is a button, not a secret
+ *
+ * `status` deliberately does not probe (R-EXT-8b), so a popup that once decided Curio was
+ * gone keeps saying so however many times it is reopened. Only `refresh` clears the stored
+ * connection and re-runs the discovery ladder. That recovery used to be reachable solely by
+ * clicking the unlabelled status row, which nothing on screen suggested was clickable and
+ * no keyboard could reach — so the one action that fixes a dropped connection was invisible
+ * while the hint told the user to "try again", meaning the thing that does not work.
+ *
  * The Open Projects and New Project buttons request a **one-time nonce** using the held
  * token and open `…?t=<nonce>`, so the tab lands authenticated instead of on the
  * no-session screen (R-EXT-19, R-FE-6a).
@@ -33,6 +42,7 @@ const buttons = {
   full: document.getElementById("capture-full") as HTMLButtonElement | null,
   projects: document.getElementById("open-projects") as HTMLButtonElement | null,
   newProject: document.getElementById("new-project") as HTMLButtonElement | null,
+  reconnect: document.getElementById("reconnect") as HTMLButtonElement | null,
 };
 
 /** How long "Added ✓" stays before the popup closes itself (R-EXT-18). */
@@ -49,6 +59,19 @@ function setOpenersEnabled(enabled: boolean): void {
   if (buttons.newProject) buttons.newProject.disabled = !enabled;
 }
 
+/**
+ * Show the recovery, or take it away entirely.
+ *
+ * Hidden and disabled move together on purpose. Hiding alone would leave a button that
+ * still answers to a keyboard; disabling alone would leave a dead control on screen in the
+ * running state, where there is nothing to recover from.
+ */
+function setReconnectShown(shown: boolean): void {
+  if (!buttons.reconnect) return;
+  buttons.reconnect.hidden = !shown;
+  buttons.reconnect.disabled = !shown;
+}
+
 function say(message: string): void {
   if (hint) hint.textContent = message;
 }
@@ -60,10 +83,12 @@ function render(connection: Connection | null): void {
 
   if (!connection || state === "stale") {
     if (text) text.textContent = "Curio isn't running";
-    // FR-22: say so; never start it.
-    say("Launch Curio, then try again.");
+    // Two different situations wear this one label, and the old hint only named the first.
+    // FR-22 holds either way: the extension says to launch Curio and never launches it.
+    say("Launch Curio if it's closed, or press Reconnect if it's already open.");
     setCaptureEnabled(false);
     setOpenersEnabled(false);
+    setReconnectShown(true);
     return;
   }
 
@@ -74,6 +99,9 @@ function render(connection: Connection | null): void {
     setCaptureEnabled(false);
     // Reads still work while paused (D25), so the openers stay live.
     setOpenersEnabled(Boolean(connection.token));
+    // Paused is not lost: the connection is good and re-running the ladder would not
+    // unpause anything.
+    setReconnectShown(false);
     return;
   }
 
@@ -81,9 +109,12 @@ function render(connection: Connection | null): void {
     // Found by the probe, but with no credential: the address is known and the token is
     // not (R-EXT-8b).
     if (text) text.textContent = "Curio needs pairing";
-    say("Open Curio's Settings and use the pairing page.");
+    // The same dead end one state over: pairing happens in Curio, and nothing here notices
+    // it happened. Reconnect is how the popup asks again.
+    say("Open Curio's Settings and use the pairing page, then press Reconnect.");
     setCaptureEnabled(false);
     setOpenersEnabled(false);
+    setReconnectShown(true);
     return;
   }
 
@@ -91,6 +122,7 @@ function render(connection: Connection | null): void {
   say("");
   setCaptureEnabled(true);
   setOpenersEnabled(true);
+  setReconnectShown(false);
 }
 
 /** What the worker replies to a capture request. */
@@ -124,6 +156,30 @@ async function runCapture(mode: "fold" | "full"): Promise<void> {
   setCaptureEnabled(true);
 }
 
+/** Clear the stored connection and re-run the discovery ladder. */
+async function reconnect(): Promise<void> {
+  // Down for the duration. `refresh` clears the connection before it rebuilds one, so a
+  // second press would restart the ladder on top of the first and race it.
+  if (buttons.reconnect) buttons.reconnect.disabled = true;
+  say("Looking for Curio…");
+
+  try {
+    const reply = (await chrome.runtime.sendMessage({ type: "refresh" })) as
+      | { connection?: Connection | null }
+      | undefined;
+
+    // `render` decides the button's state along with everything else, which is what leaves
+    // it pressable again when Curio is still down.
+    render(reply?.connection ?? null);
+  } catch {
+    // The worker never answered. Fall back to the offline state rather than leaving a
+    // disabled button under a "Looking for Curio…" that never resolves — a dead control
+    // below a message that never settles is the exact failure this button was added to
+    // remove, and it would be unrecoverable without closing the popup.
+    render(null);
+  }
+}
+
 async function open(target: "projects" | "new-project"): Promise<void> {
   setOpenersEnabled(false);
   const reply = (await chrome.runtime.sendMessage({ type: "open", target })) as
@@ -150,17 +206,12 @@ buttons.fold?.addEventListener("click", () => void runCapture("fold"));
 buttons.full?.addEventListener("click", () => void runCapture("full"));
 buttons.projects?.addEventListener("click", () => void open("projects"));
 buttons.newProject?.addEventListener("click", () => void open("new-project"));
+buttons.reconnect?.addEventListener("click", () => void reconnect());
 
-// Clicking the status line re-runs the discovery ladder — the recovery for "I just started
-// Curio and the popup still says it isn't running".
-document.querySelector(".row")?.addEventListener("click", () => {
-  say("Looking for Curio…");
-  void chrome.runtime
-    .sendMessage({ type: "refresh" })
-    .then((reply: { connection?: Connection | null } | undefined) =>
-      render(reply?.connection ?? null),
-    );
-});
+// The listener that used to live on `.row` is gone rather than kept as a shortcut. It fired
+// in every state, so clicking the status line of a perfectly healthy popup threw away a
+// working connection to rebuild an identical one. Once the recovery is a labelled button,
+// an invisible second copy of it is a hazard and not a convenience.
 
 void chrome.runtime
   .sendMessage({ type: "status" })

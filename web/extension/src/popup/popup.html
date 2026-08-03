@@ -15,6 +15,12 @@
       .dot[data-state="running"] { background: #22c55e; }
       .dot[data-state="paused"] { background: #f59e0b; }
       button { display: block; width: 100%; margin-top: 6px; padding: 6px 8px; }
+      /*
+        Not redundant with the `hidden` attribute. `[hidden] { display: none }` lives in the
+        UA stylesheet, and the author rule above beats it on cascade origin — without this,
+        a hidden button paints exactly like a visible one.
+      */
+      button[hidden] { display: none; }
       .muted { color: #6b7280; }
     </style>
   </head>
@@ -23,6 +29,15 @@
       <span class="dot" id="status-dot"></span>
       <span id="status-text">Checking…</span>
     </div>
+
+    <!--
+      The recovery for a connection that dropped, which used to exist only as an unlabelled
+      click handler on the status row above — working, and impossible to find.
+
+      Hidden as well as disabled: `render` reveals it only when Curio is unreachable, and a
+      button that is merely disabled is still read out and tabbed to.
+    -->
+    <button type="button" id="reconnect" disabled hidden>Reconnect</button>
 
     <!--
       Disabled in HTML, not by later JavaScript (R-EXT-17). The popup script may not have
