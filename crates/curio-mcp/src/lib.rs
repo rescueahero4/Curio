@@ -126,6 +126,13 @@ pub enum Refusal {
     /// A clean error rather than a hang, and never a direct database open — a second
     /// process opening the library would fork the single-writer invariant (D24, R-MCP-5).
     NotRunning,
+    /// The instance answered a frame that expected a reply with an empty body.
+    ///
+    /// Distinct from [`Refusal::NotRunning`] on purpose: Curio *is* running, so telling the
+    /// user to start it would be both wrong and unactionable. This is the truncated-response
+    /// case, and it exists so that an empty body against a frame carrying an `id` becomes an
+    /// error the client can correlate rather than a silence it waits on forever.
+    EmptyReply,
 }
 
 impl Refusal {
@@ -136,6 +143,7 @@ impl Refusal {
             Refusal::McpDisabled => "mcp_disabled",
             Refusal::Paused => "paused",
             Refusal::NotRunning => "not_running",
+            Refusal::EmptyReply => "empty_reply",
         }
     }
 
@@ -150,6 +158,10 @@ impl Refusal {
                 "Curio is paused, so it is not accepting changes. Reading the library still works."
             }
             Refusal::NotRunning => "Curio isn't running. Start Curio and try again.",
+            Refusal::EmptyReply => {
+                "Curio accepted the request but answered with nothing. Try again, and \
+                 restart Curio if it keeps happening."
+            }
         }
     }
 
