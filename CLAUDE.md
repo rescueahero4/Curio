@@ -35,6 +35,8 @@ When you use a tool, you may say a brief sentence first. If no tool can express 
 ## Graphify
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
 
+**It is generated locally and not committed.** A fresh checkout has no graph until you run `graphify update .` — AST-only, no API cost, a few seconds. Every rule below is written to degrade gracefully when it is absent, so an ungenerated graph slows orientation rather than breaking anything. It is ignored rather than tracked for the same reason item sidecars and prompt snapshots are projections (R-DA-4): a committed copy of derived data is a second source of truth that can silently disagree with the code it describes.
+
 Rules:
 - For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
