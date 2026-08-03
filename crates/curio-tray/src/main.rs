@@ -82,24 +82,32 @@ fn main() -> anyhow::Result<()> {
 ///
 /// Its own tiny runtime, not the service's: this mode starts no service. One
 /// `current_thread` runtime for one forwarding loop is the whole of it.
+///
+/// ## A live instance is deliberately not required to start
+///
+/// There is no discovery pre-check here, and its absence is the design. Clients spawn their
+/// MCP servers when *they* start, which for Claude Desktop is at login — routinely before a
+/// tray app the user opens when they want it. Refusing to start in that window exits the
+/// process before it has read a single frame, and nothing respawns it: starting Curio
+/// afterwards cannot help, because the proxy is already gone. The connector stays failed
+/// until the client itself is restarted, which is not a fix a user can be expected to guess.
+///
+/// So every invocation goes straight to the proxy, which is built for precisely this. It
+/// re-reads `runtime.json` **per frame**, so it picks up an instance that appears later — or
+/// one that restarted on a new port — without being told. Until then it answers requests
+/// with a correlatable `NotRunning` error frame and notifications with nothing at all, which
+/// is the contract a client can actually act on (R-MCP-5, and the framing rule from #8).
+///
+/// Still no database and still no tray: D24 holds because the proxy forwards over HTTP and
+/// opens nothing itself.
 fn run_mcp_stdio() -> anyhow::Result<()> {
     let path = curio_core::paths::runtime_file()?;
-    match RuntimeFile::discover(&path) {
-        // A live instance is not required to *start* — Curio may be launched after the
-        // client. The proxy re-reads the file per frame, so it recovers on its own; this
-        // branch only skips the "there is nothing here at all" message below.
-        Discovery::Live(_) => {
-            let runtime = tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()?;
-            runtime.block_on(curio_mcp::proxy::run(&path))?;
-            Ok(())
-        }
-        // Never a hang, and never a direct database open (R-MCP-5).
-        Discovery::Stale | Discovery::Absent => {
-            anyhow::bail!("Curio isn't running. Start Curio and try again.");
-        }
-    }
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()?;
+
+    runtime.block_on(curio_mcp::proxy::run(&path))?;
+    Ok(())
 }
 
 fn run_app(open_browser: bool) -> anyhow::Result<()> {
