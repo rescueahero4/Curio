@@ -246,6 +246,47 @@ jobs:
           path: dist/*.dmg
           if-no-files-found: error
 
+  # The extension is not on any web store (E10), so before this job the only way to get it
+  # was to clone the repo, install a Node toolchain and build it. That put the capture half
+  # of Curio out of reach of everyone who is not already a contributor — and meant a fix to
+  # it shipped to nobody, however green the release was.
+  #
+  # One runner, no matrix: the output is JavaScript and identical on every platform.
+  package-extension:
+    needs: [version, gate]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/extension/package-lock.json
+
+      - name: Install dependencies
+        run: npm --prefix web/extension ci
+
+      # `npm run build`, not `npm run gate`: the gate job has already typechecked and linted
+      # this exact tree on all three platforms, and restating its steps is what R-DEL-6
+      # forbids.
+      - name: Build the extension
+        run: npm --prefix web/extension run build
+
+      # Zipped from *inside* dist/, so manifest.json sits at the archive root. Chrome's Load
+      # unpacked wants the directory that holds the manifest; a wrapper folder is the
+      # difference between it working and an error that names nothing useful.
+      - name: Zip the unpacked extension
+        run: cd web/extension/dist && zip -qr "$GITHUB_WORKSPACE/curio-extension.zip" .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          # `installer-` prefix so the publish job's `pattern: installer-*` picks it up with
+          # the other two.
+          name: installer-extension
+          path: curio-extension.zip
+          if-no-files-found: error
+
   # --- publish ----------------------------------------------------------------------------
   #
   # Drafted, not published. ARCH-07's pipeline diagram routes the footprint report through
@@ -254,7 +295,7 @@ jobs:
   # asks for.
 
   publish:
-    needs: [version, package-windows, package-macos]
+    needs: [version, package-windows, package-macos, package-extension]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
@@ -274,12 +315,13 @@ jobs:
           draft: true
           generate_release_notes: true
           name: Curio ${{ needs.version.outputs.version }}
-          # Literal names, not globs. The landing page links these two paths under
+          # Literal names, not globs. The landing page links these paths under
           # /releases/latest/download/, so a rename must fail the release loudly here rather
           # than silently 404 a button nobody tests until a user complains (D36).
           files: |
             installers/curio-windows-x64-setup.exe
             installers/curio-macos-universal.dmg
+            installers/curio-extension.zip
           body: |
             ## Install
 
@@ -287,6 +329,20 @@ jobs:
             `%LOCALAPPDATA%\Programs\Curio`, no admin prompt.
 
             **macOS** — download the `.dmg`, open it, drag Curio to Applications.
+
+            ### The browser extension
+
+            `curio-extension.zip` is the capture extension — it screenshots a page into your
+            library. It is optional; Curio works without it.
+
+            It is not on the Chrome Web Store, so it installs unpacked:
+
+            1. Unzip it somewhere you are happy to leave it — Chrome loads it from that
+               folder every launch, so a Downloads folder you periodically empty is a poor
+               choice.
+            2. Open `chrome://extensions` and turn on **Developer mode**.
+            3. Choose **Load unpacked** and select the unzipped folder.
+            4. Open Curio's Settings and use the pairing page to connect the two.
 
             ### Both platforms will warn you about this download
 
