@@ -436,7 +436,7 @@ dependencies = [
 
 [[package]]
 name = "curio-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -448,7 +448,7 @@ dependencies = [
 
 [[package]]
 name = "curio-db"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "curio-core",
  "rusqlite",
@@ -460,7 +460,7 @@ dependencies = [
 
 [[package]]
 name = "curio-mcp"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "axum",
  "curio-core",
@@ -476,7 +476,7 @@ dependencies = [
 
 [[package]]
 name = "curio-nmh"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "curio-core",
  "curio-runtime",
@@ -485,7 +485,7 @@ dependencies = [
 
 [[package]]
 name = "curio-runtime"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "libc",
  "serde",
@@ -496,7 +496,7 @@ dependencies = [
 
 [[package]]
 name = "curio-server"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "axum",
@@ -528,7 +528,7 @@ dependencies = [
 
 [[package]]
 name = "curio-tray"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "curio-core",
@@ -3992,7 +3992,7 @@ dependencies = [
 
 [[package]]
 name = "xtask"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "cargo_metadata",
