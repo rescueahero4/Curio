@@ -300,8 +300,9 @@ impl curio_mcp::Library for ServerLibrary {
         // The same context builder the REST route uses, so `prompt_get` and
         // `POST /api/prompts/:id/serialize` cannot render the same prompt differently.
         let root = self.root();
+        let projects_root = self.state.config().projects_root.clone();
         let text = self.state.with_db(|db| {
-            let context = super::api::prompts::chip_context(db, &root)?;
+            let context = super::api::prompts::chip_context(db, &root, &projects_root)?;
             Ok::<_, curio_db::Error>(curio_core::prompt::serialize(&prompt.doc_json, &context))
         })?;
 

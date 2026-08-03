@@ -82,7 +82,7 @@ Numbering continues the Curiol PRD (FR-1..27 retained; **Δ** = amended here; FR
 **Prompt Helper**
 - FR-12 Editor loads the gold-standard template (Brief → Intent → Guardrails Always/Never → Design Direction → Important → Output) as deletable ghost sections.
 - FR-13 **Δ** `/aesthetic`, `/style`, `/type`, `/item` slash-commands open live multi-select pickers; insertions become chips.
-- FR-14 **Δ** Item chips serialize to absolute directory paths; family chips to name + full description. Serialization is server-side and authoritative; a `prompts/{id}.md` snapshot is written on save.
+- FR-14 **Δ** Item chips serialize to absolute directory paths; family chips to name + full description **plus up to three exemplar items** (id *and* absolute directory), stated as a visual sense to calibrate against rather than a template to reproduce. A family with no non-gray-zone items degrades to name + description. Every prompt ends with a **write-back footer** naming the watched projects root and asking for a single `project_register` call when the build lands elsewhere — an instruction to a connected agent, never a prerequisite. Serialization is server-side and authoritative; a `prompts/{id}.md` snapshot is written on save.
 - FR-15 **Δ** Copy Prompt places serialized text on the clipboard and stakes the claim. The former Send to Claude button is **gone**: it copied to the same clipboard and then spawned a local `claude` binary with no arguments and stdin nulled, so the prompt was never transmitted and the handoff was the user pasting either way.
 - FR-16 Prompts autosave and are listed/reopenable; a sent prompt claims the next detected project (6 h window).
 
