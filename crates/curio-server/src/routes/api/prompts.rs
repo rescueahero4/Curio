@@ -12,7 +12,7 @@ use axum::response::{IntoResponse, Response};
 use serde::{Deserialize, Serialize};
 
 use curio_core::domain::{Prompt, VocabularyKind};
-use curio_core::prompt::ChipContext;
+use curio_core::prompt::{ChipContext, FamilySample, MAX_SAMPLES};
 use curio_db::{prompts, vocabulary};
 
 use crate::routes::error::ApiResult;
@@ -119,10 +119,11 @@ pub async fn serialize(
     Path(id): Path<String>,
 ) -> ApiResult<Json<Serialized>> {
     let root = state.data_root().to_path_buf();
+    let projects_root = state.config().projects_root.clone();
 
     let (text, prompt) = state.with_db(|db| {
         let prompt = prompts::require(db.conn(), &id)?;
-        let context = chip_context(db, &root)?;
+        let context = chip_context(db, &root, &projects_root)?;
         Ok::<_, curio_db::Error>((
             curio_core::prompt::serialize(&prompt.doc_json, &context),
             prompt,
@@ -163,13 +164,21 @@ pub async fn clear_sent(
 /// Everything the chips in any prompt could refer to.
 ///
 /// Loaded whole rather than looked up per chip: a prompt cites a handful of entities out of
-/// a library of thousands, but the whole vocabulary is three small queries while per-chip
-/// lookups are N round trips through a mutex the worker also wants.
+/// a library of thousands, but the whole vocabulary is a few small queries while per-chip
+/// lookups are N round trips through a mutex the worker also wants. The exemplars keep that
+/// property — one windowed query for every family at once, not one query per family.
 pub(crate) fn chip_context(
     db: &curio_db::Db,
     root: &std::path::Path,
+    projects_root: &str,
 ) -> Result<ChipContext, curio_db::Error> {
-    let mut context = ChipContext::default();
+    let mut context = ChipContext {
+        // The watched root the write-back footer names. Empty is a legitimate value — the
+        // footer degrades to its register-anywhere half rather than printing a path that is
+        // not there.
+        projects_root: projects_root.to_owned(),
+        ..ChipContext::default()
+    };
 
     for family in vocabulary::list_families(db.conn())? {
         context
@@ -193,7 +202,59 @@ pub(crate) fn chip_context(
         context.items.insert(id, (name, directory));
     }
 
+    context.family_samples = family_samples(db, &context.items)?;
+
     Ok(context)
+}
+
+/// The exemplars each family chip offers, ranked and capped.
+///
+/// One windowed query for every family at once. Loading exemplars per cited family would
+/// undo the "a few small queries" property this whole function is built on, and the window
+/// bounds the result to `MAX_SAMPLES` rows per family rather than every link in the library.
+///
+/// `gray_zone = 0` because a gray-zone item is by definition one the assessment could not
+/// confidently place in the family — the worst possible thing to calibrate against.
+///
+/// The ordering is explicit and **total**: `score` first, then `item_id` to break ties.
+/// Without the tiebreak, two items with equal scores could come back in either order and the
+/// `prompts/{id}.md` snapshot would be rewritten on saves that changed nothing.
+fn family_samples(
+    db: &curio_db::Db,
+    items: &std::collections::HashMap<String, (String, String)>,
+) -> Result<std::collections::HashMap<String, Vec<FamilySample>>, curio_db::Error> {
+    let mut statement = db.conn().prepare(
+        "SELECT family_id, item_id FROM (
+             SELECT family_id, item_id,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY family_id ORDER BY score DESC, item_id ASC
+                    ) AS position
+             FROM item_families
+             WHERE gray_zone = 0
+         )
+         WHERE position <= ?1",
+    )?;
+
+    let mut samples: std::collections::HashMap<String, Vec<FamilySample>> =
+        std::collections::HashMap::new();
+
+    let mut rows = statement.query([i64::try_from(MAX_SAMPLES).unwrap_or(3)])?;
+    while let Some(row) = rows.next()? {
+        let family_id: String = row.get(0)?;
+        let item_id: String = row.get(1)?;
+
+        // Resolved from the map built above rather than joined in SQL: every item's name and
+        // absolute directory is already in memory, and a join would read them twice.
+        if let Some((name, directory)) = items.get(&item_id) {
+            samples.entry(family_id).or_default().push(FamilySample {
+                id: item_id,
+                name: name.clone(),
+                directory: directory.clone(),
+            });
+        }
+    }
+
+    Ok(samples)
 }
 
 #[cfg(test)]

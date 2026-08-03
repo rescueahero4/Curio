@@ -554,7 +554,13 @@ mod tests {
         let upgraded = upgrade_document(&old).expect("needs upgrading");
         let text = super::super::serialize(&upgraded, &super::super::ChipContext::default());
 
-        assert_eq!(text, "## Brief\n\nA pricing page.");
+        // The document half, not the whole output: every prompt now ends with the write-back
+        // footer, which is appended after the user's content and is not what this migration
+        // is about.
+        assert!(
+            text.starts_with("## Brief\n\nA pricing page."),
+            "the upgrade changed how a prompt reads: {text}"
+        );
     }
 
     #[test]

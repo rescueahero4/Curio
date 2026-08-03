@@ -10,7 +10,7 @@ pub mod serialize;
 pub mod template;
 pub mod title;
 
-pub use serialize::{ChipContext, serialize};
+pub use serialize::{ChipContext, FamilySample, MAX_SAMPLES, serialize};
 pub use template::{SECTIONS, Section, UNTITLED, heading_for, starter_document};
 pub use title::title_from;
 
