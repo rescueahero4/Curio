@@ -116,6 +116,16 @@ const description =
 					</a>
 				</div>
 
+				{/*
+					Not in the Figma frame. Both installers are unsigned — Apple gates Developer ID
+					behind a paid membership with no open-source exemption (D34) — so the first thing
+					that happens after either button is a SmartScreen or Gatekeeper warning. Saying so
+					here, next to the buttons, is what stops that reading as a broken download.
+				*/}
+				<p class="unsigned">
+					Unsigned free builds, see <a href={downloads.installGuide}>install guide</a>
+				</p>
+
 				<section class="clone">
 					<h2 class="clone__label">
 						<span class="icon icon--20" set:html={terminalIcon} />
@@ -339,6 +349,22 @@ const description =
 		flex-wrap: wrap;
 		gap: 14px;
 		margin-top: 29px;
+	}
+
+	/* Tight to the buttons, because it is a caption for them rather than a section of its
+	   own — the design's 30px to Clone then still reads as the break. This is new content,
+	   so everything below it moves down by its height; nothing there is positioned
+	   absolutely, so that is the whole consequence. */
+	.unsigned {
+		margin: 10px 0 0;
+		font-size: 14px;
+		color: var(--muted);
+	}
+
+	.unsigned a {
+		color: var(--ink);
+		text-decoration: underline;
+		text-underline-position: from-font;
 	}
 
 	/* ---- clone ---- */
