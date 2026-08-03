@@ -38,6 +38,16 @@ export const downloads = {
 	releases: `${REPO}/releases`,
 
 	/**
+	 * The install guide — how to get past SmartScreen and Gatekeeper on an unsigned build.
+	 *
+	 * It lives in the newest release's notes, so this is `/releases/latest` rather than a
+	 * `/releases/tag/v0.1.0` link: GitHub redirects it to the current tag page (today,
+	 * exactly `tag/v0.1.0`), and a pinned tag would still be showing v0.1.0's instructions
+	 * long after the buttons above had moved on. Same reasoning as the asset URLs (D36).
+	 */
+	installGuide: `${REPO}/releases/latest`,
+
+	/**
 	 * The extension is not on any web store yet (E10), so this points at its source rather
 	 * than a listing that does not exist. When the Chrome Web Store item is live, this line
 	 * is the only thing that changes.
