@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Curio Capture",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Capture the current page into your Curio design inspiration library.",
   "minimum_chrome_version": "116",
   "icons": {
@@ -32,5 +32,5 @@
       "run_at": "document_idle"
     }
   ],
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA18tkHEiUMV9TAQ5JRUFDOU8QRPscQNd62WjYncdz4yrNPwiY7/CoKOJ9clecW6KsoL5n2KWDsV6ns5QbO01UhB8PnRLctRm/2WlNwoR6jgn6Np5GX4GVi3abLBV3DNwoe3geRy55C384Hl6FmmG5yl4ymyZlPEh/iK1UQMmm1eaSL/en0JX4pMImFEjJvEZxBwCVJSA4Xgc9juDs4SkATMgIB3TeqzQD4DwYh5JrsU0b9JrglrOLkGWr7SlSb/gVnLioEkmWpZBdQzQm0ZdtXIMG5oMKEyve04Inn5RoBFqX/5eVV05C+vKxXxJ7ctEYJFZkoXET6fOSDx050gvG0wIDAQAB"
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwHIwyIsZbOQjQZvCCQeaq88GtcyvhwpIkeYee2+g5Z7tepk1+nRwf5XOle96mK6j+XhfMahcU5j6nNE32kx6HAXkNRWegnznP/gwcYLx7yZfF2O1u3OMZIp6KFcEIm23H3fTnPFp6jRBGLNGfB0c/UsZMH+r4VY5KorSUsf7atFVfjz3gmh2W32QSQlA+RziU6zegE+9x9YjSguFXMYaJT7cQ9u5N94Wy1C5L42POoDtq7npV7jaI85N5VkT1SnoPBCqZS0C9jCnf2lf1yM7+unv3E0QFdFdohiDlfYy0OPKG1S+chyQzYfGpMjTVThJ5MFSn4G5C4V0hAf37fGxvwIDAQAB"
 }

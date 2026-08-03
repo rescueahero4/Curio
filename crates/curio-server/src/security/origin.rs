@@ -210,26 +210,38 @@ mod tests {
         assert!(sec_fetch_site_is_hostile(Some("cross-site")));
     }
 
+    /// The extension manifest itself, embedded at compile time.
+    ///
+    /// Read rather than copied, and that is the whole point. This test used to hold its own
+    /// transcription of the key, so it only ever compared two constants that were both edited
+    /// by hand — it could not notice the manifest changing underneath them. When the Chrome
+    /// Web Store assigned the published item its own key, the manifest moved, both constants
+    /// stayed put, and this test stayed green while capture died in production.
+    const MANIFEST: &str = include_str!("../../../../web/extension/manifest.json");
+
     #[test]
     fn the_pinned_origin_is_the_one_chrome_derives_from_the_manifest_key() {
-        // R-EXT-2 / Inventory §10.1 — one fact in two files, verified rather than
-        // asserted in a comment. Chrome derives an extension id by taking SHA-256 of the
-        // DER public key and mapping the first 16 bytes' nibbles onto 'a'..'p'.
+        // R-EXT-2 / Inventory §10.1 — one fact in two files, verified rather than asserted
+        // in a comment. Chrome derives an extension id by taking SHA-256 of the DER public
+        // key and mapping the first 16 bytes' nibbles onto 'a'..'p'.
         //
-        // The manifest's key lives in web/extension/manifest.json. If someone regenerates
-        // it without updating this constant, capture breaks with a 403 that looks like a
-        // pairing bug; this test names the real cause.
-        const MANIFEST_KEY: &str = concat!(
-            "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA18tkHEiUMV9TAQ5JRUFDOU8QRPscQNd6",
-            "2WjYncdz4yrNPwiY7/CoKOJ9clecW6KsoL5n2KWDsV6ns5QbO01UhB8PnRLctRm/2WlNwoR6jgn6",
-            "Np5GX4GVi3abLBV3DNwoe3geRy55C384Hl6FmmG5yl4ymyZlPEh/iK1UQMmm1eaSL/en0JX4pMIm",
-            "FEjJvEZxBwCVJSA4Xgc9juDs4SkATMgIB3TeqzQD4DwYh5JrsU0b9JrglrOLkGWr7SlSb/gVnLio",
-            "EkmWpZBdQzQm0ZdtXIMG5oMKEyve04Inn5RoBFqX/5eVV05C+vKxXxJ7ctEYJFZkoXET6fOSDx05",
-            "0gvG0wIDAQAB"
-        );
+        // Change the key in web/extension/manifest.json without changing EXTENSION_ORIGIN
+        // and this fails here, rather than in a user's browser as a 403 that looks like a
+        // pairing bug.
+        let manifest: serde_json::Value = serde_json::from_str(MANIFEST).expect("manifest");
+        let key = manifest["key"].as_str().expect("manifest carries a key");
 
-        let expected = format!("chrome-extension://{}", extension_id(MANIFEST_KEY));
+        let expected = format!("chrome-extension://{}", extension_id(key));
         assert_eq!(EXTENSION_ORIGIN, expected);
+    }
+
+    #[test]
+    fn the_extension_and_the_workspace_ship_the_same_version() {
+        // They are version-coupled now: the Web Store build and the app must agree about the
+        // extension id, so a user pairing a store extension with an older Curio gets nothing.
+        // Letting the two version numbers drift would hide which pairs are compatible.
+        let manifest: serde_json::Value = serde_json::from_str(MANIFEST).expect("manifest");
+        assert_eq!(manifest["version"].as_str(), Some(curio_core::VERSION));
     }
 
     /// Chrome's extension-id derivation, implemented only for the test above.

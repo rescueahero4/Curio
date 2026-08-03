@@ -29,7 +29,7 @@ pub const HOST_NAME: &str = "com.curio.nmh";
 /// One fact, two readers: this pins `allowed_origins` in the native-messaging manifest, and
 /// the server's origin check pins the same value for CORS (Inventory §10.1). A test in
 /// `curio-server` derives it from the manifest key so the two cannot drift apart silently.
-pub const EXTENSION_ORIGIN: &str = "chrome-extension://oehjmjhhelijpkojhpichkfcgbdejhfa";
+pub const EXTENSION_ORIGIN: &str = "chrome-extension://fclkgbgdifbddhlhnlhcfnijhcepdhke";
 
 /// A Chromium-family browser that might have the extension installed.
 ///
