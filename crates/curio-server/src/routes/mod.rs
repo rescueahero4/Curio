@@ -192,10 +192,6 @@ fn mutating_routes(state: &AppState) -> Router<AppState> {
             "/api/system/open-skill-file",
             post(api::system::open_skill_file),
         )
-        .route(
-            "/api/system/send-to-claude",
-            post(api::system::send_to_claude),
-        )
         .layer(DefaultBodyLimit::max(MAX_BODY_BYTES))
         .layer(from_fn_with_state(state.clone(), guard::authenticate))
         .layer(from_fn_with_state(

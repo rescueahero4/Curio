@@ -13,7 +13,7 @@ use axum::Json;
 use axum::extract::State;
 use serde::{Deserialize, Serialize};
 
-use curio_core::config::{Config, Models, SendToClaudeTarget, Thresholds};
+use curio_core::config::{Config, Models, Thresholds};
 
 use crate::routes::error::{ApiError, ApiResult};
 use crate::state::AppState;
@@ -26,7 +26,6 @@ pub struct PublicSettings {
     pub thresholds: Thresholds,
     pub models: Models,
     pub mcp_enabled: bool,
-    pub send_to_claude_target: SendToClaudeTarget,
     pub launch_at_login: bool,
     /// Whether this platform can honour the setting at all, and why not when it cannot.
     ///
@@ -114,7 +113,6 @@ pub struct SettingsPatch {
     pub thresholds: Option<Thresholds>,
     pub models: Option<Models>,
     pub mcp_enabled: Option<bool>,
-    pub send_to_claude_target: Option<SendToClaudeTarget>,
     pub launch_at_login: Option<bool>,
     /// Write-only. Accepted here, never returned anywhere.
     pub api_key: Option<String>,
@@ -147,9 +145,6 @@ pub async fn put(
     }
     if let Some(enabled) = patch.mcp_enabled {
         config.mcp_enabled = enabled;
-    }
-    if let Some(target) = patch.send_to_claude_target {
-        config.send_to_claude_target = target;
     }
     if let Some(launch) = patch.launch_at_login {
         config.launch_at_login = launch;
@@ -232,7 +227,6 @@ fn project(state: &AppState) -> PublicSettings {
         thresholds: config.thresholds,
         models: config.models,
         mcp_enabled: config.mcp_enabled,
-        send_to_claude_target: config.send_to_claude_target,
         launch_at_login: config.launch_at_login,
         launch_at_login_support: autostart_support(),
         port: config.port,

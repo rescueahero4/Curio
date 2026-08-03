@@ -61,7 +61,7 @@ const MIGRATIONS: &[Migration] = &[
             // `prompts.sent_at` is an outstanding claim on the next project folder. A
             // project card should link back to the prompt that produced it, but the
             // watcher only ever sees a directory appear — nothing in it names a prompt.
-            // Send to Claude is the one moment both are known, so it records the intent
+            // Copying a prompt is the one moment both are known, so it records the intent
             // and the watcher spends it.
             add_column(conn, "prompts", "sent_at", "TEXT")?;
 

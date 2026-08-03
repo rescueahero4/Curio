@@ -335,13 +335,13 @@ Open two or three assessed cards.
 > ✅ **Check 31** — the inserted references appear as distinct blocks (chips), not as plain
 > typed text.
 
-### 6.2 Send it to your AI tool
+### 6.2 Copy it to your AI tool
 
-Click **Send to Claude**.
+Click **Copy Prompt**.
 
-> ✅ **Check 32** — Curio says it copied the prompt and "asked to open" your tool. Note the
-> careful wording: Curio cannot know whether the app really opened, and shouldn't claim it
-> did.
+> ✅ **Check 32** — Curio says it copied the prompt and is watching for the next project
+> folder. The copy is the whole handoff: paste it into your AI tool yourself. Curio has no
+> channel into that tool and does not claim one.
 >
 > ✅ **Check 33** — paste into a text editor. The chips have expanded into **real folder
 > paths** and instructions, not `[chip]` placeholders. An AI tool receiving this should be

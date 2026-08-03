@@ -15,7 +15,6 @@ import type { Commit } from "~/components/settings/model";
 import { PairingSection } from "~/components/settings/PairingSection";
 import { PathsSection } from "~/components/settings/PathsSection";
 import { RubricSection } from "~/components/settings/RubricSection";
-import { SendToClaudeSection } from "~/components/settings/SendToClaudeSection";
 import { StartupSection } from "~/components/settings/StartupSection";
 import { ThresholdsSection } from "~/components/settings/ThresholdsSection";
 import { getSettings, saveSettings } from "~/lib/api";
@@ -38,7 +37,6 @@ const SECTION_NAV = [
       { id: "paths", label: "Paths" },
       { id: "browser-extension", label: "Browser extension" },
       { id: "startup", label: "Startup" },
-      { id: "send-to-claude", label: "Send to Claude" },
     ],
   },
   {
@@ -101,7 +99,6 @@ export function Settings() {
               <PathsSection settings={current()} commit={commit} />
               <PairingSection />
               <StartupSection settings={current()} commit={commit} />
-              <SendToClaudeSection settings={current()} commit={commit} />
               <ApiKeySection settings={current()} commit={commit} refresh={refresh} />
               <ModelsSection settings={current()} commit={commit} />
               <RubricSection settings={current()} />

@@ -83,7 +83,7 @@ Numbering continues the Curiol PRD (FR-1..27 retained; **Δ** = amended here; FR
 - FR-12 Editor loads the gold-standard template (Brief → Intent → Guardrails Always/Never → Design Direction → Important → Output) as deletable ghost sections.
 - FR-13 **Δ** `/aesthetic`, `/style`, `/type`, `/item` slash-commands open live multi-select pickers; insertions become chips.
 - FR-14 **Δ** Item chips serialize to absolute directory paths; family chips to name + full description. Serialization is server-side and authoritative; a `prompts/{id}.md` snapshot is written on save.
-- FR-15 Copy Prompt places serialized text on the clipboard; Send to Claude copies first, then best-effort launches the configured target ("asked to open", never "opened").
+- FR-15 **Δ** Copy Prompt places serialized text on the clipboard and stakes the claim. The former Send to Claude button is **gone**: it copied to the same clipboard and then spawned a local `claude` binary with no arguments and stdin nulled, so the prompt was never transmitted and the handoff was the user pasting either way.
 - FR-16 Prompts autosave and are listed/reopenable; a sent prompt claims the next detected project (6 h window).
 
 **Projects**
@@ -213,7 +213,7 @@ E0 → E1 → E2 ∥ E3 → E7 → E4 · E5 · E6 (parallel) → E8 · E9 → E1
 **E5 — Prompt Helper (P3)** · risk: High (editor) · depends E2, E3
 - S5.1 Editor core: · TipTap headless in Solid · template ghost sections · toolbar (markdown-serializable formatting only).
 - S5.2 Slash flow: · palette + entity picker (shared keyboard hook) · four chip nodes with label fallback.
-- S5.3 Serialize & send: · server serializer parity · Copy/Send-to-Claude ordering invariant (§10.22) · sent-claim + "watching" banner.
+- S5.3 Serialize & copy: · server serializer parity · Copy ordering invariant (§10.22) · sent-claim + "watching" banner.
 - S5.4 Prompts list page: · rows with reuse/delete (disarm guard) · empty state naming the template.
 
 **E6 — Projects (P3)** · risk: Low · depends E2, E3
@@ -247,7 +247,7 @@ Unchecked ones name what they are still waiting on — none is merely unverified
 - [x] Machine with a Bun-app-created `~/Curio` (schema v4): the rewrite opens it intact and round-trips losslessly (NFR-6). *(`cargo test -p curio-db --test real_library`, plus a live boot that stepped a fresh library 0 → 4)*
 - [x] Chrome: install extension → it pairs itself → fold-capture a page → card appears processing → assessed with family/score badges ≤ 30 s. *(headed Playwright, real Chromium, extension loaded unpacked with its pinned id: the native-messaging handshake supplies port and token unprompted, a fold capture of an http fixture lands as a `processing` card with a first-fold thumbnail, and the page is left exactly as found. The assessment half is covered separately by `assessment_pipeline.rs` against a stub API — no real key was spent. **One caveat**: `activeTab` is granted only by a real click on the browser action, which Playwright cannot perform, so the run used a test copy of the extension with a broader host permission; the shipped manifest is unchanged.)*
 - [x] Kill the API key: capture still lands, card says "Queued — needs an API key"; add key in Settings; queue drains unprompted. *(E7: a missing key parks the job on a 30 s timer without charging an attempt, and the item stays `processing` rather than failing — FR-26)*
-- [x] Compose a prompt with `/aesthetic` + `/item` chips → Send to Claude → paste into Claude Code → it reads the referenced folders; resulting project folder appears in Curio ≤ 5 s and launches. *(chips serialize to an absolute path plus reading instructions; a sent prompt claimed the next folder the watcher saw, within the 5 s budget)*
+- [x] Compose a prompt with `/aesthetic` + `/item` chips → Copy Prompt → paste into Claude Code → it reads the referenced folders; resulting project folder appears in Curio ≤ 5 s and launches. *(chips serialize to an absolute path plus reading instructions; a sent prompt claimed the next folder the watcher saw, within the 5 s budget)*
 - [x] Tray Pause: captures refuse politely, browsing and MCP reads still work; Resume is instant. *(mutations return `503 + Retry-After`, reads and SSE continue — D25; the MCP half waits on E9)*
 - [◐] MCP Inspector + Claude Desktop (MCPB): all 7 tools answer; disabled toggle returns the clean 503. *(E9: `tools/list` returns all seven over rmcp 3.1, `library_search` returns the item the extension had just captured with absolute paths, and a disabled surface answers JSON-RPC rather than SPA HTML. **Two gaps**: the MCPB bundle is not built, and a disabled `GET /mcp` answers `405` rather than `503` — rmcp serves that verb itself in stateless mode. The property that mattered, never HTML, holds.)*
 - [x] `git clone` → one documented command → green gate; no source file > 500 lines (files > 400 carry a PR justification); idle RSS measured ≤ 25 MB. *(`cargo gate` green; largest source file 444 lines; 2.2 MB private commit with the full server running)*

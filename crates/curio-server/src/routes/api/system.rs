@@ -2,9 +2,9 @@
 //! Curio runs on can do.
 //!
 //! The system routes all follow one copy rule (PRD §5): they report what was **asked for**,
-//! never what happened. Launching an external tool is a request to the OS, and the OS
-//! answers later or not at all — so "Asked Claude Code to open" is the truth and "Opened
-//! Claude Code" is a guess that is wrong often enough to matter (Inventory §10.22).
+//! never what happened. Opening a path is a request to the OS, and the OS answers later or
+//! not at all — so "Asked your editor to open" is the truth and "Opened your editor" is a
+//! guess that is wrong often enough to matter (Inventory §10.22).
 
 use axum::Json;
 use axum::extract::{Path, State};
@@ -164,61 +164,6 @@ pub async fn open_skill_file(State(state): State<AppState>) -> Json<Outcome> {
         .data_root()
         .join(curio_core::paths::SKILL_FILE_RELATIVE);
     Json(open_in_os(&path, "Asked your editor to open"))
-}
-
-#[derive(Debug, Deserialize)]
-pub struct SendBody {
-    /// The serialized prompt. Sent from the client because it has already put this exact
-    /// text on the clipboard — the ordering invariant is serialize → copy → claim → launch,
-    /// and the launch must carry what was copied, not a fresh serialization that could
-    /// differ (Inventory §10.22).
-    pub text: String,
-}
-
-/// `POST /api/system/send-to-claude` — best-effort launch of the configured target.
-pub async fn send_to_claude(
-    State(state): State<AppState>,
-    Json(body): Json<SendBody>,
-) -> Json<Outcome> {
-    use curio_core::config::SendToClaudeTarget;
-
-    let target = state.config().send_to_claude_target;
-    let (command, label) = match target {
-        SendToClaudeTarget::ClaudeCode => ("claude", "Claude Code"),
-        SendToClaudeTarget::ClaudeDesktop => ("claude-desktop", "Claude Desktop"),
-        // Not a degraded mode — a deliberate choice for users who paste into something
-        // Curio has never heard of. The clipboard already holds the prompt.
-        SendToClaudeTarget::Clipboard => {
-            return Json(Outcome {
-                asked: true,
-                message: format!(
-                    "Copied {} characters. Paste them wherever you're working.",
-                    body.text.chars().count()
-                ),
-            });
-        }
-    };
-
-    let launched = std::process::Command::new(command)
-        .stdin(std::process::Stdio::null())
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
-        .spawn();
-
-    Json(match launched {
-        Ok(_) => Outcome {
-            asked: true,
-            message: format!("Asked {label} to open — paste there."),
-        },
-        Err(_) => Outcome {
-            asked: false,
-            // Honest and actionable: the prompt is already on the clipboard, so the user
-            // has lost nothing and the next step is one they can take.
-            message: format!(
-                "Couldn't start {label}, but the prompt is on your clipboard — paste it there."
-            ),
-        },
-    })
 }
 
 /// Ask the OS to open a path, without waiting to find out whether it did.

@@ -47,7 +47,7 @@ parity_reference: "Curiol (Bun/React implementation) + its PRD FR-1..FR-27"
 | FR-9 | Re-assess on demand | [ARCH-01](01-backend-architecture.md) | |
 | FR-10 | Facet filters + FTS search | [ARCH-01](01-backend-architecture.md) (primary: API; [ARCH-02](02-data-architecture.md) R-DA-10 FTS facet) | LIKE fallback retired (break #6) |
 | FR-11 | Bulk ops, cancellable, Batch API | [ARCH-01](01-backend-architecture.md) jobs contract | Freeze-at-enqueue, refunds, ≥8 batch; incl. vocabulary mgmt + dedupe pass (PRD-01 FR-11 Δ) |
-| FR-12..16 | Prompt Helper (template, slash menus, paths, copy/send, autosave) | [ARCH-03](03-frontend-architecture.md) (primary: editor; [ARCH-01](01-backend-architecture.md) serializer/launch facet) | Send-to-Claude ordering §10.22 |
+| FR-12..16 | Prompt Helper (template, slash menus, paths, copy, autosave) | [ARCH-03](03-frontend-architecture.md) (primary: editor; [ARCH-01](01-backend-architecture.md) serializer facet) | Copy ordering §10.22 |
 | FR-17..19 | Projects watch/launch/missing | [ARCH-01](01-backend-architecture.md) watcher contract | Marker-file identity §10.17 |
 | FR-20 | Popup status via /health | [ARCH-04](04-extension-architecture.md) | /health fields are a contract (§10.29) |
 | FR-21 | Fold/full capture, restore always | [ARCH-04](04-extension-architecture.md) | Pipeline invariants §10.23–24 verbatim |
@@ -83,7 +83,7 @@ parity_reference: "Curiol (Bun/React implementation) + its PRD FR-1..FR-27"
 | 19 | Sidecars write-only, DB wins | [ARCH-02](02-data-architecture.md) R-DA-4 |
 | 20 | Thumb-404 fallback; sharp-equivalent optional | [ARCH-01](01-backend-architecture.md) images |
 | 21 | Pairing handoff DOM contract | [ARCH-03](03-frontend-architecture.md) (primary: page contract; [ARCH-04](04-extension-architecture.md) pickup-gates facet) — fallback path per break #2 |
-| 22 | Send-to-Claude ordering; "asked to open" phrasing | [ARCH-01](01-backend-architecture.md) (primary: ordering/serializer rules; [ARCH-03](03-frontend-architecture.md) UI facet) |
+| 22 | **GONE** — Send-to-Claude ordering; "asked to open" phrasing. Copy Prompt keeps the surviving half | [ARCH-01](01-backend-architecture.md) (primary: ordering/serializer rules; [ARCH-03](03-frontend-architecture.md) UI facet) |
 | 23 | Popup listener/disable discipline | [ARCH-04](04-extension-architecture.md) |
 | 24 | Capture ordering + unconditional teardown | [ARCH-04](04-extension-architecture.md) |
 | 25 | item.created ignored under active filter | [ARCH-03](03-frontend-architecture.md) |
