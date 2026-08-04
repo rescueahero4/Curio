@@ -26,7 +26,7 @@
 
 <div align="center">
 
-**⭐ Leave me a star if you find this usedul, [star the repo](https://github.com/rescueahero4/Curio) **
+**⭐ Leave me a star if you find this usedul **
 
 </div>
 
