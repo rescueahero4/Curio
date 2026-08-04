@@ -32,11 +32,13 @@ import {
   writeConnection,
 } from "../shared/storage";
 import {
+  askNativeHost,
   authedFetch,
   bootstrap,
   ensureConnection,
   NotRunningError,
   PausedError,
+  probePort,
 } from "./connection";
 import { connect } from "./socket";
 
@@ -98,13 +100,51 @@ chrome.runtime.onMessage.addListener((message: Request, _sender, respond) => {
   }
 });
 
-/** The popup's first question. Cheap: reads storage, does not probe. */
+/**
+ * The popup's first question — answered by checking, not by remembering.
+ *
+ * This used to read storage and return, which made it fast and wrong. A stored record is
+ * where Curio *was*; the popup presents it as where Curio *is*, and the gap between those
+ * is every restart. The symptom was a green "Curio is running" against a closed app, with
+ * the Reconnect button hidden precisely because the popup believed there was nothing to
+ * reconnect to — the one state in which a user needs that button most.
+ *
+ * So: one `/health` probe against the port we hold. It costs a loopback round trip on popup
+ * open, bounded by `PROBE_TIMEOUT_MS`, and it is the difference between a popup that
+ * reports and a popup that guesses.
+ *
+ * A dead port then asks the native host where Curio moved to, so the ordinary restart heals
+ * itself before the user has read the sentence telling them it broke.
+ *
+ * **Only that rung**, not the whole ladder. `bootstrap` would go on to walk eleven probe
+ * ports at 800 ms each, and an ephemeral port is undiscoverable by design (D10, R-EXT-8) —
+ * so on the install where native messaging is missing, which is exactly the install that
+ * reaches this line, those nine seconds buy nothing and are spent with the popup showing
+ * nothing. The full ladder still runs behind Reconnect, which says "Looking for Curio…"
+ * while it works.
+ */
 async function status(): Promise<{ connection: Connection | null }> {
-  const connection = await readConnection();
-  // Opening the popup is a good moment to make sure the socket is up: the worker may have
-  // been killed at any point since the last one.
-  if (connection?.token) void connect();
-  return { connection };
+  const stored = await readConnection();
+  if (!stored) return { connection: null };
+
+  if (await probePort(stored.port)) {
+    // Opening the popup is a good moment to make sure the socket is up: the worker may have
+    // been killed at any point since the last one.
+    if (stored.token) void connect();
+    return { connection: stored };
+  }
+
+  // Nothing is listening where we last saw it. Written down before the retry, so a failure
+  // below leaves "stale" on screen rather than the "running" we now know to be false.
+  const stale: Connection = { ...stored, state: "stale" };
+  await writeConnection(stale);
+
+  const relocated = await askNativeHost();
+  if (!relocated?.token) return { connection: stale };
+
+  await writeConnection(relocated);
+  void connect();
+  return { connection: relocated };
 }
 
 /** Re-run the ladder because the user asked. */

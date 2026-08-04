@@ -179,7 +179,19 @@ export class PausedError extends Error {
 }
 
 /**
- * Call Curio, re-handshaking once if the token turns out to be stale.
+ * Call Curio, re-handshaking once if the stored connection turns out to be stale.
+ *
+ * ## A dead port and a dead token are the same event
+ *
+ * The retry originally fired on `401` alone, which quietly assumed the app would come back
+ * on the port it left. It does not: the port is ephemeral and a restart binds a new one
+ * (D10), so the usual failure is not a `401` but `fetch` **throwing** — there is nothing
+ * listening to answer with a status at all. Unhandled, that threw straight past the recovery
+ * on the next line and surfaced as "Failed to fetch", with the stored connection left
+ * intact so every retry afterwards failed the same way.
+ *
+ * So both are treated as one condition: the record we hold is no longer good. Clear it,
+ * bootstrap, try once more.
  *
  * The retry is deliberately **once**. A loop would turn "the app is gone" into an
  * indefinite spin, and the second failure is genuine information: the ladder ran and still
@@ -199,16 +211,27 @@ export async function authedFetch(
       headers: { ...(init.headers ?? {}), Authorization: `Bearer ${using.token}` },
     });
 
-  let response = await send(connection);
-  if (response.status !== 401) return response;
+  // `null` means the port did not answer. Distinct from a response we can read a status
+  // from, and handled identically to a 401 below.
+  const attempt = async (using: Connection): Promise<Response | null> => {
+    try {
+      return await send(using);
+    } catch {
+      return null;
+    }
+  };
 
-  // R-EXT-18a. Not a pairing failure — the app restarted and minted a new token (D21).
+  const response = await attempt(connection);
+  if (response && response.status !== 401) return response;
+
+  // R-EXT-18a. Not a pairing failure — the app restarted, minting a new token and taking a
+  // new port with it (D21).
   onRetry?.();
   await clearConnection();
   const fresh = await bootstrap();
   if (!fresh?.token) throw new NotRunningError();
 
-  response = await send(fresh);
-  if (response.status === 401) throw new NotRunningError();
-  return response;
+  const retried = await attempt(fresh);
+  if (!retried || retried.status === 401) throw new NotRunningError();
+  return retried;
 }
