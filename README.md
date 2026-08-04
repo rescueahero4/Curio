@@ -26,7 +26,7 @@
 
 <div align="center">
 
-**⭐ If this looks useful, [star the repo](https://github.com/rescueahero4/Curio) — it's the entire marketing budget.**
+**⭐ Leave me a star if you find this usedul, [star the repo](https://github.com/rescueahero4/Curio) **
 
 </div>
 
