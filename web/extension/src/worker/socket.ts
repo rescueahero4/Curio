@@ -82,6 +82,7 @@ export async function connect(): Promise<void> {
   try {
     opened = new WebSocket(`ws://127.0.0.1:${connection.port}/ws`);
   } catch {
+    void markStale();
     scheduleReconnect();
     return;
   }
@@ -102,6 +103,11 @@ export async function connect(): Promise<void> {
 
   opened.addEventListener("close", () => {
     teardown();
+    // The socket dropping is the earliest and cheapest evidence that Curio is gone, and
+    // until this was written down it was evidence nobody kept: the last state ever recorded
+    // was `running`, so the popup went on saying so with the app closed and hid Reconnect
+    // because it believed there was nothing to reconnect to.
+    void markStale();
     scheduleReconnect();
   });
 
@@ -114,6 +120,24 @@ export async function connect(): Promise<void> {
       /* already closing */
     }
   });
+}
+
+/**
+ * Record that the connection is no longer live.
+ *
+ * The counterpart to [`handleFrame`], and the half that was missing. A frame can only ever
+ * move the state between `running` and `paused`, because both arrive *over* the socket —
+ * so the one transition the server can never announce is the socket going away. Left to
+ * `handleFrame` alone the stored state was write-once-optimistic: `running`, forever.
+ *
+ * Kept idempotent and non-destructive. The port and token stay put because they are still
+ * the best guess at where Curio was, and a reconnect that finds the app still there should
+ * cost nothing.
+ */
+async function markStale(): Promise<void> {
+  const connection = await readConnection();
+  if (!connection || connection.state === "stale") return;
+  await writeConnection({ ...connection, state: "stale" });
 }
 
 /**
