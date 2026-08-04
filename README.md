@@ -1,177 +1,291 @@
-# Curio
+<div align="center">
 
-A local-first personal design inspiration library for AI-assisted design work.
+<h1><img src="assets/brand/curio-bird-white.svg" alt="" height="32" align="center">&nbsp;Curio</h1>
 
-Capture design references from the browser, let a vision model describe and organize
-them in your own vocabulary, compose design prompts from that vocabulary, and catalog
-the projects your AI tools produce. Everything runs on your machine: the browser is the
-screen, the tray is the switch, one SQLite file is the memory.
+**Your own Pinterest-style inspiration board — running on your computer, not someone's cloud.**
 
-> **Status: E0–E9 complete, E10 (packaging) in progress.** The app runs, captures,
-> assesses, and answers MCP. The release pipeline that builds the installers exists but has
-> not yet cut a tag, so for now it is run from source — see
-> [Running it in development](#running-it-in-development). Epic-by-epic status lives in
-> [the PRD](docs/PRD-01-Foundations.md); what lands when is in the
-> [phase plan](docs/architecture/07-delivery-open-source.md).
+[![Star this repo](https://img.shields.io/github/stars/rescueahero4/Curio?style=for-the-badge&logo=github&label=Star&color=f5c518)](https://github.com/rescueahero4/Curio)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+[![Windows + macOS](https://img.shields.io/badge/Windows-%7C%20macOS-black?style=for-the-badge)](#setup)
 
-## Install
+</div>
 
-Once a release is tagged, installers are attached to it on the
-[Releases page](https://github.com/rescueahero4/Curio/releases).
+| | | |
+|:--:|:--:|:--:|
+| <img src="web/site/src/assets/screenshots/library-grid.png" alt="Your library"> | <img src="web/site/src/assets/screenshots/item-detail.png" alt="An item, described by AI"> | <img src="web/site/src/assets/screenshots/prompt-composer.png" alt="Prompt composer"> |
+| Your library | Described automatically | Turned into prompts |
 
-| Platform | File | What it does |
-|---|---|---|
-| Windows 10/11 | `curio-windows-x64-setup.exe` | Per-user install, no admin prompt. Registers the browser helper. |
-| macOS 11+ | `curio-macos-universal.dmg` | Universal (Intel + Apple Silicon). Drag to Applications. |
+## What you can do
 
-The filenames carry no version so the site can link the newest build directly (D36); the
-release page states the version, and so does the installed app under `--version`.
+- 📌 **Build a design library that's actually yours.** Images, screenshots, references — saved to a folder on your own machine.
+- 🧩 **Clip any website in one click.** The browser extension grabs what you're looking at and files it away.
+- 🤖 **Let AI do the tagging.** Add your Anthropic API key and Curio looks at everything you save, then describes and organizes it in your own vocabulary.
+- 🔌 **Feed it to your AI tools.** A built-in MCP server and prompt builder plug your library straight into Claude, Cursor, or any agent you use to design.
 
-### Both platforms will warn you about the download
+> **Nothing leaves your machine.** No telemetry, no analytics, no accounts, no phone-home. The only network calls Curio ever makes are the AI ones you trigger with your own key — and that key lives in your OS keychain, never in a file in this repo.
 
-These builds are **not signed with a paid certificate**, so Windows SmartScreen and macOS
-Gatekeeper flag them. That is what an unsigned build looks like, not a sign that something
-is wrong with the file — and there is no free way around it on macOS, where Apple gates
-signing behind a $99/year membership with no open-source exemption
-([D34](docs/architecture/00-architecture-overview.md)).
+<div align="center">
 
-- **Windows** — "Windows protected your PC" → **More info** → **Run anyway**.
-- **macOS** — the app is blocked on first launch. **System Settings → Privacy & Security**,
-  scroll to the message about Curio, **Open Anyway**.
+**⭐ If this looks useful, [star the repo](https://github.com/rescueahero4/Curio) — it's the entire marketing budget.**
 
-If you would rather not take our word for it, everything here builds from source in two
-commands — that path is below, and it is the same one CI runs.
-
-## Shape
-
-One small binary — tray app, local HTTP server, SQLite — plus a SolidJS dashboard served
-from inside that binary and a Chrome extension for capture.
-
-```
-curio (single binary)
-  tray (main thread) ──mpsc──▶ service thread (tokio)
-                                 ├─ /api + SSE      → the dashboard
-                                 ├─ /ws             → the extension
-                                 ├─ /mcp            → AI agents
-                                 └─ SQLite (WAL)    → the library
-```
-
-- **One process.** The tray owns the main thread; everything real runs on one service thread.
-- **One database file.** `library.db` in your data root is the whole backup story.
-- **One origin.** The app serves its own UI at `http://127.0.0.1:<ephemeral port>` — no CORS, no bundled webview.
-- **One token.** A per-run bearer token in `runtime.json`, handed to the extension by a
-  native-messaging helper and to the dashboard by a one-time nonce.
-
-## Privacy
-
-**No telemetry.** Curio makes no network calls except the AI model calls you trigger with
-your own API key. There is no analytics, no crash reporting, no update ping, no phone-home
-of any kind. Adding one would require a major-version bump and an owner decision recorded
-in the [decision register](docs/architecture/00-architecture-overview.md). Your API key
-lives in the OS keychain — never in the database, the config file, the logs, or this repo.
+</div>
 
 ---
 
-# Running it in development
+## Contents
 
-Run these in order. Steps 0–3 are required; steps 4–6 add optional capabilities and can be
-done in any order afterwards.
+- [Setup](#setup) — get it running, ~5 minutes
+- [Things to know](#things-to-know) — checking your build, how the code is laid out, making it yours
+- [Reference](#reference) — file locations, settings, troubleshooting
 
-## Prerequisites
+---
 
-| Tool | Version | Notes |
-|---|---|---|
-| [Rust](https://rustup.rs) | 1.95 | Pinned in `rust-toolchain.toml`; `rustup` picks it up automatically. |
-| [Node](https://nodejs.org) | 20+ | Builds the dashboard and the extension. |
-| C toolchain | — | Needed to link the binary. Xcode CLT on macOS, MSVC build tools on Windows. |
-| Chrome / Edge / Brave | 116+ | Only for browser capture. That floor is where WebSocket traffic starts resetting the MV3 idle timer. |
+# Setup
 
-No database to install and no services to start — SQLite is compiled in.
+Prebuilt installers for Windows and macOS arrive with the first tagged release. Until then you run it from source, which is four steps.
 
-## 0. Install the toolchain (once)
+> **Heads up on the first build:** it downloads the Rust toolchain and compiles everything from scratch — several minutes and roughly 1–2 GB, once. Every run after that takes seconds.
 
-Skip whatever you already have. To check:
+## Step 1 — Install Rust and Node
+
+You need two things. Check whether you already have them:
 
 ```sh
 rustc --version    # want 1.95 or newer
 node --version     # want v20 or newer
 ```
 
-`command not found` means it is not installed — install it below.
+If either says `command not found`, install it below.
 
-### macOS
+<details>
+<summary><b>macOS instructions</b></summary>
 
 ```sh
-xcode-select --install                                      # C toolchain and linker
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh   # Rust — choose option 1
-source "$HOME/.cargo/env"                                   # or just open a new terminal
+xcode-select --install                                            # compiler tools
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh    # Rust — choose option 1
+source "$HOME/.cargo/env"
 ```
 
-Then install [Node 20+](https://nodejs.org) with the macOS installer from that page.
+Then grab the macOS installer for [Node 20+](https://nodejs.org).
 
-### Windows
+</details>
 
-Install [Rust](https://rustup.rs) with `rustup-init.exe` and [Node 20+](https://nodejs.org)
-with the Windows installer. When `rustup-init.exe` offers to install the Visual Studio C++
-build tools, accept — Rust cannot link without them.
+<details>
+<summary><b>Windows instructions</b></summary>
 
-### Verify
+1. Download and run `rustup-init.exe` from [rustup.rs](https://rustup.rs).
+2. When it offers to install the **Visual Studio C++ build tools**, say yes. Rust cannot build without them.
+3. Download and run the Windows installer for [Node 20+](https://nodejs.org).
 
-Close and reopen your terminal, then:
+</details>
 
-```sh
-rustc --version
-node --version
-```
+**Then close your terminal, open a new one, and run both `--version` commands again.** Both must print a version. If `rustc` still isn't found, it's the old terminal — open a fresh window rather than reusing one.
 
-Both must print a version. If `rustc` still is not found, your shell did not pick up the new
-`PATH` — open a new terminal window rather than reusing the old one.
-
-> **First build is slow.** `rust-toolchain.toml` pins Rust 1.95 and declares three
-> compilation targets, so the first `cargo` command inside this repo downloads all of them
-> before compiling anything. Several minutes and roughly 1–2 GB, once.
-
-## 1. Install frontend dependencies (once)
+## Step 2 — Get the code
 
 ```sh
+git clone https://github.com/rescueahero4/Curio.git
+cd Curio
 npm --prefix web/spa install
-npm --prefix web/extension install
 ```
 
-## 2. Build the dashboard
-
-**Do this before the first run.** The dashboard is served from inside the binary
-and there is no Vite dev proxy yet, so an unbuilt dashboard means the app boots and serves
-nothing.
+## Step 3 — Build the dashboard
 
 ```sh
 npm --prefix web/spa run build
 ```
 
-> **Frontend iteration:** debug builds read `web/spa/dist` from disk rather than baking it
-> into the executable, so re-running the build above and refreshing the browser is enough —
-> no Rust rebuild needed.
+<details>
+<summary>Why this step exists</summary>
 
-## 3. Run the app
+Curio serves its own interface from inside the app. If the dashboard hasn't been built, the app starts up and serves a blank page. Do this once before the first run.
 
-```sh
-cargo run --bin curio                       # terminal 1 — leave it running
-npm --prefix web/spa run build -- --watch   # terminal 2 — rebuilds dist on save
+</details>
 
-```
-
-`--bin curio` is not optional: the workspace builds two binaries — the app itself and the
-native-messaging helper — so a bare `cargo run` cannot tell which one you meant and stops
-with `could not determine which binary to run`.
-
-This starts the tray icon, binds an ephemeral loopback port, migrates the database, and
-opens your browser at the dashboard. To skip the browser-open:
+## Step 4 — Run it
 
 ```sh
-cargo run --bin curio -- --no-open
+cargo run --bin curio
 ```
 
-**Where things land:**
+That's it. A tray icon appears and your browser opens on the dashboard.
+
+<details>
+<summary>Things you'll notice on the first run</summary>
+
+- **`--bin curio` isn't optional.** This project builds two programs, so a bare `cargo run` doesn't know which you meant and stops with `could not determine which binary to run`.
+- **A black console window opens.** That's the log output, and it's intentional in a development build. A real release build shows no console. Want to see it? `cargo build --release --bin curio`, then run `target/release/curio.exe` (macOS: `target/release/curio`) directly.
+- **To quit properly**, use the tray icon's Quit item. It shuts everything down in the right order and cleans up.
+- **`reclaiming a stale runtime.json from a previous run`** in the log means the last session was killed rather than quit. It fixes itself and is safe to ignore.
+- **Working on the interface?** Run `npm --prefix web/spa run build -- --watch` in a second terminal. Save, refresh the browser, done — no Rust rebuild needed.
+
+</details>
+
+---
+
+## Optional add-ons
+
+Each of these is independent. Do them in any order, or skip them.
+
+### 🤖 Let AI describe your library
+
+Without a key, everything you save still lands and stays browsable — it just sits marked "Queued — needs an API key," and the queue drains itself the moment you add one.
+
+Open **Settings → API key** in the dashboard and paste in an [Anthropic API key](https://console.anthropic.com). It goes into your OS keychain (DPAPI on Windows, Keychain on macOS) — never into the database, a config file, or a log.
+
+<details>
+<summary>Prefer an environment variable?</summary>
+
+```sh
+export ANTHROPIC_API_KEY=sk-ant-...       # macOS
+$env:ANTHROPIC_API_KEY = "sk-ant-..."     # Windows PowerShell
+```
+
+</details>
+
+### 🧩 Clip websites with the browser extension
+
+Needs Chrome, Edge, or Brave 116+.
+
+```sh
+npm --prefix web/extension install
+npm --prefix web/extension run build
+cargo run --bin curio-nmh -- --register
+```
+
+Then in Chrome: **`chrome://extensions`** → turn on **Developer mode** → **Load unpacked** → pick the `web/extension/dist` folder.
+
+There's no pairing step and no token to copy — the extension finds Curio by itself. Click its toolbar icon and you should see a green dot and "Curio is running."
+
+<details>
+<summary>Removing it later</summary>
+
+```sh
+cargo run --bin curio-nmh -- --unregister
+```
+
+</details>
+
+### 🔌 Connect your AI agents (MCP)
+
+Off by default. Turn it on in **Settings → MCP**, then point your agent at it. For Claude Code it's one line:
+
+```sh
+claude mcp add --scope user curio -- <path-to-curio> --mcp-stdio
+```
+
+**Copy the real line from Settings → MCP rather than typing this one.** Settings fills in the actual path to your executable, which is the part that makes it work — a bare `curio` resolves for nobody, and the registration will be accepted and then fail on every connection. Re-copy it if you move or reinstall Curio.
+
+<details>
+<summary>The two transports underneath, for other clients</summary>
+
+- **stdio** — `curio --mcp-stdio`. It forwards to the running app rather than opening the database itself, so Curio must already be running. It re-reads `runtime.json` per frame, which is why it survives restarts on an ephemeral port. Claude Desktop uses this one, as JSON in `claude_desktop_config.json`; Settings shows the snippet.
+- **HTTP** — `http://127.0.0.1:<port>/mcp`. The port is in `runtime.json` and Settings shows the command. Curio takes a new port each run unless you pin one in `config.json`, so a registration made this way goes stale at the next restart.
+
+</details>
+
+---
+
+# Things to know
+
+## Check your build
+
+One command tells you whether everything is healthy:
+
+```sh
+cargo gate
+```
+
+Eight steps, cheapest first: formatting → linting → Rust tests → dashboard typecheck/lint/build → extension typecheck/build → licences and security advisories → file length → dependency direction. **This is exactly what CI runs.** If it passes on your machine, it passes there.
+
+```sh
+cargo gate -- --rust-only     # skip the two npm builds
+cargo gate -- --web-only      # only the dashboard and the extension
+```
+
+<details>
+<summary>Running narrower tests while you work</summary>
+
+```sh
+cargo test --workspace                                   # everything
+cargo test -p curio-core                                 # domain rules: thresholds, prompts, retry policy
+cargo test -p curio-db                                   # storage, migrations, search, sidecars
+cargo test -p curio-server                               # routes, middleware, worker, images
+cargo test -p curio-server --test assessment_pipeline    # capture → assessed, against a stub API
+```
+
+Run `assessment_pipeline` whenever you touch the AI path. It boots the whole service against a stubbed Anthropic API and asserts a capture reaches `ready` with tags, a family and a sidecar — plus that the request Curio *built* had the right shape.
+
+Frontend only:
+
+```sh
+npm --prefix web/spa run gate            # typecheck + lint + build
+npm --prefix web/extension run gate
+npm --prefix web/spa run format          # auto-fix lint and formatting
+```
+
+Some things a test can't do — spend a real API key, click a browser toolbar button, use the tray menu. For those, follow [the manual test guide](docs/tests/manual-e2e-test-guide.md), written to need no technical background.
+
+</details>
+
+## How the code is organized
+
+One small program — tray icon, a local web server, and a SQLite database — plus a dashboard and a browser extension.
+
+```
+curio (single binary)
+  tray (main thread) ──▶ service thread
+                          ├─ /api + SSE      → the dashboard
+                          ├─ /ws             → the extension
+                          ├─ /mcp            → AI agents
+                          └─ SQLite (WAL)    → the library
+```
+
+**One process. One database file. One origin. One token.** `library.db` in your data folder is the entire backup story.
+
+| Folder | What's in it |
+|---|---|
+| `crates/curio-core` | The rules of the product. No database, no networking. |
+| `crates/curio-db` | The only place that touches SQL. |
+| `crates/curio-server` | The web server, background worker, and AI calls. |
+| `crates/curio-mcp` | The agent-facing tools. |
+| `crates/curio-tray` | The tray icon and app startup. Builds the `curio` program. |
+| `web/spa` | The dashboard — SolidJS + Vite + Tailwind. |
+| `web/extension` | The Chrome extension — plain TypeScript. |
+| `docs/architecture` | The contract this code implements. Read this before changing anything structural. |
+
+<details>
+<summary>The rest of the tree</summary>
+
+| Folder | What's in it |
+|---|---|
+| `crates/curio-nmh` | Tiny helper that lets the browser find the app. |
+| `crates/curio-runtime` | Shared shape of `runtime.json`. |
+| `crates/xtask` | The gate script and measurement tooling. |
+| `web/site` | The public landing page (Astro). Never ships inside the app. |
+| `packaging/` | macOS `.app`, Windows installer, MCP bundle. |
+| `docs/tests` | Manual test guides. |
+
+</details>
+
+## Make it your own
+
+Curio is MIT licensed — fork it, rename it, rip parts out, sell it. No permission needed.
+
+Good places to start:
+
+- **Change how things look** — everything visual lives in `web/spa`. Build, refresh, done; no Rust knowledge required.
+- **Change what the AI says about your images** — the prompts live in `crates/curio-core`.
+- **Add your own agent tools** — `crates/curio-mcp` defines what AI agents can see and do.
+
+Before a structural change, read [ARCH-00 Architecture Overview](docs/architecture/00-architecture-overview.md) — it maps every part of the system to the document that governs it. For what the product is *for*, read [the PRD](docs/PRD-01-Foundations.md). To contribute back, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+# Reference
+
+<details>
+<summary><b>Where your files live</b></summary>
 
 | What | Windows | macOS |
 |---|---|---|
@@ -179,212 +293,59 @@ cargo run --bin curio -- --no-open
 | `runtime.json` — port and per-run token | `%LOCALAPPDATA%\Curio` | `~/Library/Application Support/Curio` |
 | `curio.lock` — quit token | `%LOCALAPPDATA%\Curio` | `~/Library/Application Support/Curio` |
 
-`runtime.json` is deleted when Curio quits. Its absence is how everything else knows the
-app is not running.
+`runtime.json` is deleted when Curio quits. Its absence is how everything else knows the app isn't running.
 
-**To quit:** use the tray icon's Quit item, which runs the full shutdown sequence — worker,
-then listener, then WAL checkpoint, then the token is destroyed.
+</details>
 
-### The console window is a debug-build feature, not a bug
-
-A debug build opens a terminal window alongside the tray icon, printing lines like:
-
-```
-INFO curio_server: library opened schema=4
-INFO curio_server: listening on 127.0.0.1 port=51693
-```
-
-That window **is** the log output, which is the point of a debug build. A release build sets
-the Windows GUI subsystem and shows no console at all (R-DEL-9) — so if you want the
-experience a user would get:
-
-```sh
-cargo build --release --bin curio
-```
-
-Then run `target/release/curio.exe` (macOS: `target/release/curio`) directly. It is also
-about six times smaller, because the release profile optimises for size and strips symbols.
-
-One log line is worth recognising: **`reclaiming a stale runtime.json from a previous run`**
-means the last instance did not shut down cleanly — usually because it was killed rather
-than quit from the tray. It is self-healing and safe to ignore; Curio holds the
-single-instance lock, so any `runtime.json` it finds must belong to a dead process. Seeing
-it after every clean Quit would be a real problem.
-
-## 4. Add an Anthropic API key — optional, enables assessment
-
-Without a key, captures still land and stay browsable. They sit at "Queued — needs an API
-key" and the queue drains by itself the moment you add one. Two ways:
-
-```sh
-export ANTHROPIC_API_KEY=sk-ant-...       # macOS / Linux
-$env:ANTHROPIC_API_KEY = "sk-ant-..."     # Windows PowerShell
-```
-
-Or paste it into **Settings → API key** in the dashboard, which stores it in the OS
-keychain (DPAPI on Windows, Keychain on macOS). It is never written to the database, the
-config file, or any log.
-
-## 5. Load the browser extension — optional, enables capture
-
-```sh
-npm --prefix web/extension run build          # produces web/extension/dist
-cargo run --bin curio-nmh -- --register       # tells the browser the helper exists
-```
-
-Then in Chrome: **`chrome://extensions`** → turn on **Developer mode** → **Load unpacked**
-→ choose `web/extension/dist`.
-
-The extension finds Curio by itself — no pairing step and no token to copy. Click its
-toolbar icon; the popup should show a green dot and "Curio is running".
-
-To undo the registration later:
-
-```sh
-cargo run --bin curio-nmh -- --unregister
-```
-
-## 6. Enable the MCP server — optional, lets AI agents read your library
-
-Off by default. Turn it on in **Settings → MCP**, then point a client at it.
-
-For Claude Code, one line does the whole registration:
-
-```sh
-claude mcp add --scope user curio -- <path-to-curio> --mcp-stdio
-```
-
-**Copy the real line from Settings → MCP** rather than typing this one. Nothing installs
-`curio` onto your `PATH`, and Claude Code spawns the command without a shell, so a bare
-`curio` resolves for nobody — the registration is accepted and then every connection dies
-with "connection closed". Settings fills in the running executable's absolute path, which is
-what makes the command work. Re-copy it if you move or reinstall Curio.
-
-`--scope user` registers Curio for every project rather than the folder you ran it in, and
-everything after `--` is the command Claude Code spawns.
-
-The two transports underneath, for anything else:
-
-- **stdio** — `curio --mcp-stdio`. It forwards to the running app rather than opening the
-  database itself, so Curio must already be running. It re-reads `runtime.json` per frame,
-  which is why it keeps working across restarts on an ephemeral port. Claude Desktop uses
-  this one, as JSON in `claude_desktop_config.json`; Settings shows the snippet.
-- **HTTP** — `http://127.0.0.1:<port>/mcp`. The port is in `runtime.json`, and Settings
-  shows the command. Curio takes a new port each run unless you pin one in `config.json`,
-  so a registration made this way goes stale at the next restart.
-
----
-
-# Testing
-
-## The gate — the only definition of "green"
-
-```sh
-cargo gate
-```
-
-Eight steps, fail-fast and cheapest-first: format → clippy → Rust tests → dashboard
-typecheck/lint/build → extension typecheck/build → licences and advisories → file length →
-dependency direction. **This is exactly what CI runs**; nothing is restated there, so if it
-passes here it passes there.
-
-Subsets while iterating:
-
-```sh
-cargo gate -- --rust-only     # skip the two npm builds
-cargo gate -- --web-only      # only the dashboard and the extension
-```
-
-The licence and advisory step skips itself rather than installing tools behind your back.
-To enable it once:
-
-```sh
-cargo install cargo-deny
-```
-
-## Rust tests
-
-```sh
-cargo test --workspace                                   # everything
-cargo test -p curio-core                                 # domain rules: thresholds, prompts, retry policy
-cargo test -p curio-db                                   # storage, migrations, FTS, sidecars
-cargo test -p curio-server                               # routes, middleware, worker, images
-cargo test -p curio-db --test real_library               # opens a real shipped library (NFR-6)
-cargo test -p curio-server --test assessment_pipeline    # capture → assessed, against a stub API
-```
-
-Run `assessment_pipeline` whenever you touch the AI path. It boots the whole service
-against a stubbed Anthropic API and asserts a capture reaches `ready` with tags, a family
-and a sidecar — plus that the request Curio *built* had the right shape: two cache
-breakpoints, the documented token budget, and a downscaled image.
-
-## Frontend tests
-
-```sh
-npm --prefix web/spa run gate            # typecheck + lint + build
-npm --prefix web/extension run gate      # typecheck + lint + build
-npm --prefix web/spa run format          # auto-fix lint and formatting
-```
-
-## Other checks
-
-```sh
-cargo xtask files        # file-length budget: 500 hard, over 400 needs a PR justification
-cargo xtask deps         # crate boundaries — enforced, not advisory
-cargo xtask footprint    # idle memory against the 25 MB budget
-```
-
-## Manual end-to-end validation
-
-The automated suite cannot spend a real API key, click a browser toolbar button, or use the
-tray menu. For those, follow
-**[docs/tests/manual-e2e-test-guide.md](docs/tests/manual-e2e-test-guide.md)** — a
-step-by-step guide written to need no technical background.
-
----
-
-## Environment variables
+<details>
+<summary><b>Environment variables</b></summary>
 
 | Variable | Effect |
 |---|---|
 | `ANTHROPIC_API_KEY` | The model key. Overrides the keychain. |
 | `CURIO_DATA_ROOT` | Use a different library folder — handy for testing against a scratch library. |
-| `CURIO_PORT` | Pin the port instead of using an ephemeral one. Needed only for the extension's legacy probe fallback. |
+| `CURIO_PORT` | Pin the port instead of using an ephemeral one. |
 | `CURIO_NO_OPEN=1` | Don't open the browser at boot; same as `--no-open`. |
 | `RUST_LOG` | Log level, e.g. `RUST_LOG=debug`. Logs go to stderr. |
 
-## Repository layout
+</details>
 
-| Path | What lives there |
-|---|---|
-| `crates/curio-core` | Domain types and rules. Sees no SQL, no HTTP, no MCP. |
-| `crates/curio-db` | rusqlite, migrations, FTS5. The **only** crate that sees SQL. |
-| `crates/curio-server` | axum router, middleware, SSE/WS, SPA embed, jobs worker, watcher, Anthropic transport. |
-| `crates/curio-mcp` | MCP tool surface and the stdio proxy. |
-| `crates/curio-tray` | `main.rs` — native loop, tray menu, service thread. Builds the `curio` binary. |
-| `crates/curio-nmh` | Native-messaging micro-binary. Reads `runtime.json`, replies, exits. |
-| `crates/curio-runtime` | The `runtime.json` shape, shared by the server and the NM host. |
-| `crates/xtask` | The gate script and measurement tooling. |
-| `web/spa` | SolidJS + Vite + Tailwind 4 dashboard. |
-| `web/extension` | MV3 capture extension, plain TypeScript. |
-| `web/site` | The public landing page (Astro). Deployed to GitHub Pages; never shipped in the binary. |
-| `packaging/` | macOS `.app`, Windows installer, MCPB bundle. |
-| `docs/architecture` | ARCH-00..08 — the contract these crates implement. |
-| `docs/tests` | Manual test guides. |
+<details>
+<summary><b>When installers arrive, your browser will warn you about them</b></summary>
 
-## Documentation
+The builds are **not signed with a paid certificate**, so Windows SmartScreen and macOS Gatekeeper flag them. That's what an unsigned build looks like — not a sign something is wrong with the file. There's no free way around it on macOS, where Apple gates signing behind a $99/year membership with no open-source exemption.
 
-Documentation lives here in `docs/` and is read on GitHub — the landing page at
-**https://rescueahero4.github.io/Curio/** publishes none of it, so this tree is the only
-copy.
+- **Windows** — "Windows protected your PC" → **More info** → **Run anyway**.
+- **macOS** — **System Settings → Privacy & Security**, scroll to the message about Curio, **Open Anyway**.
 
-The architecture documents are **contract-level**: they state interfaces, invariants and
-budgets, and code must conform to their numbered rules. Start at
-[ARCH-00 Architecture Overview](docs/architecture/00-architecture-overview.md), which maps
-every domain to its owning document, then read the document for whatever you're changing.
+If you'd rather not take our word for it, everything here builds from source in four steps — that path is above, and it's the same one CI runs.
 
-For what the product is meant to do, read [the PRD](docs/PRD-01-Foundations.md).
+</details>
 
-## License
+<details>
+<summary><b>Project status</b></summary>
 
-MIT — see [LICENSE](LICENSE).
+E0–E9 complete, E10 (packaging) in progress. The app runs, captures, assesses, and answers MCP. The release pipeline that builds the installers exists but hasn't cut a tag yet, which is why running from source is the path today.
+
+Epic-by-epic status lives in [the PRD](docs/PRD-01-Foundations.md); what lands when is in the [phase plan](docs/architecture/07-delivery-open-source.md).
+
+</details>
+
+<details>
+<summary><b>Where the documentation lives</b></summary>
+
+Everything is in `docs/` and read on GitHub — the landing page at [rescueahero4.github.io/Curio](https://rescueahero4.github.io/Curio/) publishes none of it, so this tree is the only copy.
+
+The architecture documents are **contract-level**: they state interfaces, invariants and budgets, and the code must conform to their numbered rules. Start at [ARCH-00 Architecture Overview](docs/architecture/00-architecture-overview.md), which maps every domain to its owning document, then read the one covering whatever you're changing.
+
+</details>
+
+---
+
+<div align="center">
+
+**Found this useful? [⭐ Star it](https://github.com/rescueahero4/Curio) or share it with someone who hoards screenshots.**
+
+MIT licensed — see [LICENSE](LICENSE).
+
+</div>

@@ -48,9 +48,10 @@ export const downloads = {
 	installGuide: `${REPO}/releases/latest`,
 
 	/**
-	 * The extension is not on any web store yet (E10), so this points at its source rather
-	 * than a listing that does not exist. When the Chrome Web Store item is live, this line
-	 * is the only thing that changes.
+	 * The Chrome Web Store listing, now that one exists (it previously pointed at the
+	 * extension's source under E10). The trailing `?utm_source=item-share-cb` the store's
+	 * share button appends is dropped: it tags every install as coming from a copied link,
+	 * which is not where these arrive from, and the id alone resolves the listing.
 	 */
-	extension: `${REPO}/tree/master/web/extension`,
+	extension: "https://chromewebstore.google.com/detail/fclkgbgdifbddhlhnlhcfnijhcepdhke",
 } as const;

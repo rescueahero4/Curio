@@ -34,6 +34,8 @@ import forkIcon from "@tabler/icons/outline/grill-fork.svg?raw";
 import githubIcon from "@tabler/icons/outline/brand-github.svg?raw";
 import grainIcon from "@tabler/icons/outline/grain.svg?raw";
 import puzzleIcon from "@tabler/icons/outline/puzzle.svg?raw";
+import shareIcon from "@tabler/icons/outline/share.svg?raw";
+import starIcon from "@tabler/icons/outline/star.svg?raw";
 import terminalIcon from "@tabler/icons/outline/terminal-2.svg?raw";
 import windowsIcon from "@tabler/icons/outline/brand-windows.svg?raw";
 
@@ -45,8 +47,19 @@ import mcpIcon from "../assets/icons/mcp.svg?raw";
 // published extension listing is a one-line change there rather than a hunt through markup.
 import { REPO, downloads } from "../data/downloads";
 
+// Read at build, refreshed in the browser by the script at the foot of this file. See
+// `repo-stats.ts` for why it is done twice.
+import { fetchCounts, formatCount } from "../data/repo-stats";
+
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const CLONE_URL = "https://github.com/rescueahero4/Curio.git";
+
+// What the Share button hands over. Built from the config rather than read from
+// `location.href` in the browser, so a link arriving with a tracking query or a fragment
+// does not get passed along to whoever it is shared with.
+const SHARE_URL = new URL(`${BASE}/`, Astro.site).href;
+
+const counts = await fetchCounts();
 
 /** The Collect → Connect → Produce flow. Labels only; the arrows are decoration. */
 const flow = [
@@ -79,10 +92,34 @@ const description =
 				<div class="lockup">
 					<span class="lockup__bird" set:html={birdIcon} />
 					<span class="lockup__word">Curio</span>
+					{/*
+						The count groups are always in the markup, hidden when there is no number, so
+						the browser has something to fill in even when the build-time fetch came back
+						empty — and if both fetches fail the pill reads exactly as it did before the
+						count existed rather than showing a divider with nothing after it.
+
+						The glyph is decorative and the unit is a hidden word, so this reads as
+						"GitHub, 128 stars" rather than as an icon a screen reader has to name.
+					*/}
 					<a class="pill lockup__gh" href={REPO}>
 						<span class="icon icon--24" set:html={githubIcon} />
 						GitHub
+						<span class="pill__count" hidden={counts.stars === null}>
+							<span class="icon icon--16" aria-hidden="true" set:html={starIcon} />
+							<span data-count="stars">{counts.stars === null ? "" : formatCount(counts.stars)}</span>
+							<span class="sr-only"> stars</span>
+						</span>
 					</a>
+
+					{/*
+						A button, not a link: it has no destination of its own. Its own label is what
+						confirms a copy — a toast under the lockup, the way the clone field does it,
+						would land on the headline, which starts 17px below.
+					*/}
+					<button class="pill lockup__share" type="button" data-share={SHARE_URL} data-share-title={title}>
+						<span class="icon icon--24" set:html={shareIcon} />
+						<span class="pill__label" aria-live="polite">Share</span>
+					</button>
 				</div>
 
 				<h1 class="headline">Free opensource personal local-first design inspiration library.</h1>
@@ -110,9 +147,20 @@ const description =
 						<span class="icon icon--24" set:html={puzzleIcon} />
 						Get Browser Extension
 					</a>
+					{/*
+						The fork glyph sits with the count rather than in the leading position the
+						other three buttons use — it labels the number, not the button, whose own
+						wording already says what it does. Alone among the four, this pill carries no
+						leading icon; that is deliberate, and it is why the group hides whole when
+						the count is unknown rather than leaving a lone glyph behind a divider.
+					*/}
 					<a class="pill pill--fork" href={`${REPO}/fork`}>
-						<span class="icon icon--24" set:html={forkIcon} />
 						Fork from Github
+						<span class="pill__count" hidden={counts.forks === null}>
+							<span class="icon icon--16" aria-hidden="true" set:html={forkIcon} />
+							<span data-count="forks">{counts.forks === null ? "" : formatCount(counts.forks)}</span>
+							<span class="sr-only"> forks</span>
+						</span>
 					</a>
 				</div>
 
@@ -208,6 +256,13 @@ const description =
 		height: 100%;
 	}
 
+	/* Only the count glyphs. 24 is the button size; beside 13px digits it would outweigh
+	   them, and the pair has to read as one unit. */
+	.icon--16 {
+		width: 16px;
+		height: 16px;
+	}
+
 	.icon--20 {
 		width: 20px;
 		height: 20px;
@@ -277,11 +332,20 @@ const description =
 		line-height: 1;
 	}
 
-	.lockup__gh {
+	.lockup__gh,
+	.lockup__share {
 		/* The design drops the pill below the wordmark's optical centre, level with the
 		   x-height rather than the full line box. */
 		align-self: flex-end;
 		margin-bottom: 1px;
+	}
+
+	/* "Share" and "Copied" are a character apart, and the pill is centred, so letting it
+	   resize would shift its own label under the pointer mid-click. Holding the wider of
+	   the two keeps the row still. */
+	.pill__label {
+		min-width: 6ch;
+		text-align: center;
 	}
 
 	/* ---- pills ---- */
@@ -314,6 +378,40 @@ const description =
 	   alternative to downloading, not a fourth download. */
 	.pill--fork {
 		color: var(--fork-ink);
+	}
+
+	/* Not in the Figma frame. A hairline in the pill's own colour — so it inverts with the
+	   rest on hover — separates the count from the label, and the mono face at a step down
+	   keeps it reading as metadata rather than as part of the button's name. Tabular figures
+	   stop the pill twitching when the live count replaces the built one. */
+	.pill__count {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		padding-left: 8px;
+		border-left: 1px solid currentColor;
+		font-family: "IBM Plex Mono", ui-monospace, monospace;
+		font-weight: 500;
+		font-size: 13px;
+		font-variant-numeric: tabular-nums;
+		opacity: 0.7;
+	}
+
+	/* `hidden` alone loses to `display: inline-flex` above. */
+	.pill__count[hidden] {
+		display: none;
+	}
+
+	/* Carries the unit — "stars", "forks" — to a screen reader without putting the word in
+	   the pill, where the icon already says it. Clipped rather than `display: none`, which
+	   would take it out of the accessibility tree along with the layout. */
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
 	}
 
 	.pill:hover {
@@ -517,7 +615,8 @@ const description =
 			gap: 10px;
 		}
 
-		.lockup__gh {
+		.lockup__gh,
+		.lockup__share {
 			align-self: center;
 			margin-bottom: 0;
 		}
@@ -525,6 +624,87 @@ const description =
 </style>
 
 <script>
+	import { REPO_API, formatCount } from "../data/repo-stats";
+
+	// The numbers in the markup are as old as the last Pages deploy. One request brings them
+	// up to date; if it fails — offline, rate-limited, GitHub down — the built-in counts stay
+	// exactly as rendered, which is the whole reason they are rendered at all.
+	const slots = document.querySelectorAll<HTMLElement>("[data-count]");
+
+	if (slots.length) {
+		fetch(REPO_API, { headers: { accept: "application/vnd.github+json" } })
+			.then((response) => (response.ok ? response.json() : null))
+			.then((body) => {
+				if (!body) return;
+
+				const live: Record<string, unknown> = {
+					stars: body.stargazers_count,
+					forks: body.forks_count,
+				};
+
+				for (const slot of slots) {
+					const value = live[slot.dataset.count ?? ""];
+					if (typeof value !== "number") continue;
+					// The slot holds only the digits; the icon and the screen-reader unit are its
+					// siblings, so the group — not the slot — is what carries `hidden`.
+					slot.textContent = formatCount(value);
+					const group = slot.closest<HTMLElement>(".pill__count");
+					if (group) group.hidden = false;
+				}
+			})
+			.catch(() => {
+				/* Keep the build-time counts. */
+			});
+	}
+
+	const share = document.querySelector<HTMLButtonElement>("[data-share]");
+
+	if (share) {
+		const label = share.querySelector<HTMLElement>(".pill__label");
+		const idle = label?.textContent ?? "Share";
+		let restore: ReturnType<typeof setTimeout> | undefined;
+
+		const flash = (message: string) => {
+			if (!label) return;
+			label.textContent = message;
+			clearTimeout(restore);
+			restore = setTimeout(() => {
+				label.textContent = idle;
+			}, 2500);
+		};
+
+		share.addEventListener("click", async () => {
+			const url = share.dataset.share ?? "";
+			const title = share.dataset.shareTitle ?? document.title;
+
+			// Where the OS has a share sheet, that sheet is the whole interaction and the
+			// button says nothing — Firefox and desktop Safari have no `navigator.share`, and
+			// fall through to the clipboard.
+			if (navigator.share) {
+				try {
+					await navigator.share({ title, url });
+					return;
+				} catch (error) {
+					// Dismissing the sheet rejects with AbortError. That is a finished
+					// interaction, not a failure, so it must not fall through and copy a link
+					// the person just decided not to share.
+					if (error instanceof DOMException && error.name === "AbortError") return;
+				}
+			}
+
+			try {
+				await navigator.clipboard.writeText(url);
+				flash("Copied");
+			} catch {
+				// Same constraint as the clone field: the clipboard needs a secure context and
+				// permission. There is no text node to fall back to selecting here, so the
+				// button says what happened rather than offering a keystroke that would copy
+				// whatever the person had selected instead.
+				flash("Blocked");
+			}
+		});
+	}
+
 	const button = document.querySelector<HTMLButtonElement>("[data-clone]");
 	const status = document.querySelector<HTMLElement>(".clone__status");
 
