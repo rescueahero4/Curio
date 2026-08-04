@@ -162,14 +162,6 @@ export function serializePrompt(id: string): Promise<SerializedPrompt> {
   return post<SerializedPrompt>(`/api/prompts/${encodeURIComponent(id)}/serialize`);
 }
 
-export function markPromptSent(id: string): Promise<Prompt> {
-  return post<Prompt>(`/api/prompts/${encodeURIComponent(id)}/sent`);
-}
-
-export function clearPromptSent(id: string): Promise<Prompt> {
-  return del<Prompt>(`/api/prompts/${encodeURIComponent(id)}/sent`);
-}
-
 /* -- projects ----------------------------------------------------------------------- */
 
 /** Repairs as it reads: this call reconciles missing and relocated folders (§10.28). */

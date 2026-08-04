@@ -1,10 +1,9 @@
 /**
  * The two things that happen to a whole document: copy it, destroy it.
  *
- * Copy is the handoff (R-FE-15). It is disabled while it runs — it serializes, writes the
- * clipboard and stakes the claim, and a second press mid-sequence would leave the user
- * unable to say which text they are holding. The disabled state carries its reason, per
- * PRD §5 — no dead clicks.
+ * Copy is the handoff (R-FE-15). It is disabled while it runs — it serializes and writes the
+ * clipboard, and a second press mid-sequence would leave the user unable to say which text
+ * they are holding. The disabled state carries its reason, per PRD §5 — no dead clicks.
  *
  * There used to be a Send to Claude beside it, taking the primary treatment this button now
  * has. It sent nothing; see `handoff.ts` for what it actually did.
@@ -25,7 +24,6 @@ import { copyPrompt } from "~/components/editor/handoff";
 import { Trash } from "~/components/icons";
 import { deletePrompt } from "~/lib/api";
 import { createEscapeLayer } from "~/lib/keyboard";
-import type { Prompt } from "~/lib/types";
 
 /** How long a delete stays armed before it forgets it was asked. Matches the prompt list. */
 const DISARM_MS = 5_000;
@@ -34,7 +32,6 @@ interface Props {
   id: string;
   /** Flushes any unsaved edit, so the server serializes what is on screen. */
   beforeSend: () => Promise<void>;
-  onSent: (prompt: Prompt) => void;
   onOutcome: (outcome: ActionOutcome | null) => void;
 }
 
@@ -72,11 +69,9 @@ export function PromptActions(props: Props) {
     props.onOutcome(null);
     try {
       await props.beforeSend();
-      const result = await action(props.id);
-      props.onOutcome(result);
-      if (result.prompt) props.onSent(result.prompt);
+      props.onOutcome(await action(props.id));
     } catch (error) {
-      props.onOutcome({ message: message(error), tone: "caution", prompt: null });
+      props.onOutcome({ message: message(error), tone: "caution" });
     } finally {
       setBusy(false);
     }
@@ -89,7 +84,7 @@ export function PromptActions(props: Props) {
       await deletePrompt(props.id);
       navigate("/prompts");
     } catch (error) {
-      props.onOutcome({ message: message(error), tone: "caution", prompt: null });
+      props.onOutcome({ message: message(error), tone: "caution" });
       setBusy(false);
     }
   };
@@ -102,7 +97,7 @@ export function PromptActions(props: Props) {
         type="button"
         class="pill pill-ink"
         disabled={busy()}
-        title={reason() ?? "Serialize, copy, and start watching for a project folder"}
+        title={reason() ?? "Serialize this prompt and copy it to the clipboard"}
         onClick={() => void run(copyPrompt)}
       >
         Copy Prompt
