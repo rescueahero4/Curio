@@ -74,7 +74,7 @@ lives in the OS keychain — never in the database, the config file, the logs, o
 
 # Running it in development
 
-Run these in order. Steps 1–3 are required; steps 4–6 add optional capabilities and can be
+Run these in order. Steps 0–3 are required; steps 4–6 add optional capabilities and can be
 done in any order afterwards.
 
 ## Prerequisites
@@ -83,9 +83,53 @@ done in any order afterwards.
 |---|---|---|
 | [Rust](https://rustup.rs) | 1.95 | Pinned in `rust-toolchain.toml`; `rustup` picks it up automatically. |
 | [Node](https://nodejs.org) | 20+ | Builds the dashboard and the extension. |
+| C toolchain | — | Needed to link the binary. Xcode CLT on macOS, MSVC build tools on Windows. |
 | Chrome / Edge / Brave | 116+ | Only for browser capture. That floor is where WebSocket traffic starts resetting the MV3 idle timer. |
 
 No database to install and no services to start — SQLite is compiled in.
+
+## 0. Install the toolchain (once)
+
+Skip whatever you already have. To check:
+
+```sh
+rustc --version    # want 1.95 or newer
+node --version     # want v20 or newer
+```
+
+`command not found` means it is not installed — install it below.
+
+### macOS
+
+```sh
+xcode-select --install                                      # C toolchain and linker
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh   # Rust — choose option 1
+source "$HOME/.cargo/env"                                   # or just open a new terminal
+```
+
+Then install [Node 20+](https://nodejs.org) with the macOS installer from that page.
+
+### Windows
+
+Install [Rust](https://rustup.rs) with `rustup-init.exe` and [Node 20+](https://nodejs.org)
+with the Windows installer. When `rustup-init.exe` offers to install the Visual Studio C++
+build tools, accept — Rust cannot link without them.
+
+### Verify
+
+Close and reopen your terminal, then:
+
+```sh
+rustc --version
+node --version
+```
+
+Both must print a version. If `rustc` still is not found, your shell did not pick up the new
+`PATH` — open a new terminal window rather than reusing the old one.
+
+> **First build is slow.** `rust-toolchain.toml` pins Rust 1.95 and declares three
+> compilation targets, so the first `cargo` command inside this repo downloads all of them
+> before compiling anything. Several minutes and roughly 1–2 GB, once.
 
 ## 1. Install frontend dependencies (once)
 
