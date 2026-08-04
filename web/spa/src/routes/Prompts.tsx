@@ -14,7 +14,6 @@ import { A, useNavigate } from "@solidjs/router";
 import { createResource, createSignal, For, onCleanup, Show } from "solid-js";
 import { createPrompt, deletePrompt, getPromptTemplate, listPrompts } from "~/lib/api";
 import { createEscapeLayer } from "~/lib/keyboard";
-import type { Prompt } from "~/lib/types";
 
 /** How long a delete stays armed before it forgets it was asked. */
 const DISARM_MS = 5_000;
@@ -117,7 +116,6 @@ export function Prompts() {
                   </A>
                   <span class="text-2xs text-ink-faint">
                     Edited {WHEN.format(new Date(prompt.updated_at))}
-                    {sentNote(prompt)}
                   </span>
                 </div>
 
@@ -162,10 +160,6 @@ export function Prompts() {
       </Show>
     </section>
   );
-}
-
-function sentNote(prompt: Prompt): string {
-  return prompt.sent_at ? ` · sent ${WHEN.format(new Date(prompt.sent_at))}` : "";
 }
 
 /**

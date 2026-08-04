@@ -20,21 +20,14 @@
 
 import { useParams } from "@solidjs/router";
 import type { Editor } from "@tiptap/core";
-import { createEffect, createResource, createSignal, on, onCleanup, Show } from "solid-js";
+import { createResource, createSignal, onCleanup, Show } from "solid-js";
 import { EditorSurface } from "~/components/editor/EditorSurface";
 import type { ActionOutcome } from "~/components/editor/handoff";
+import { OutcomeToast } from "~/components/editor/OutcomeToast";
 import { PromptActions } from "~/components/editor/PromptActions";
-import { SentBanner } from "~/components/editor/SentBanner";
 import { ghostMap } from "~/components/editor/sections";
 import { Toolbar } from "~/components/editor/Toolbar";
-import {
-  clearPromptSent,
-  getPrompt,
-  getPromptTemplate,
-  serializePrompt,
-  updatePrompt,
-} from "~/lib/api";
-import type { Prompt } from "~/lib/types";
+import { getPrompt, getPromptTemplate, serializePrompt, updatePrompt } from "~/lib/api";
 
 /** The same coalescing window the item detail uses (R-FE-13). One habit, one number. */
 const AUTOSAVE_MS = 600;
@@ -50,22 +43,13 @@ export default function PromptEditor() {
   const [template] = createResource(getPromptTemplate);
 
   const [editor, setEditor] = createSignal<Editor | null>(null);
-  const [sentAt, setSentAt] = createSignal<string | null>(null);
   const [saving, setSaving] = createSignal(false);
   const [problem, setProblem] = createSignal<string | null>(null);
   const [outcome, setOutcome] = createSignal<ActionOutcome | null>(null);
-  const [withdrawing, setWithdrawing] = createSignal(false);
 
   /** The server's serialized text, or null while it is being cut. Non-null means show it. */
   const [source, setSource] = createSignal<string | null>(null);
   const [showingSource, setShowingSource] = createSignal(false);
-
-  createEffect(
-    on(prompt, (loaded) => {
-      if (!loaded) return;
-      setSentAt(loaded.sent_at);
-    }),
-  );
 
   let timer: ReturnType<typeof setTimeout> | undefined;
   let draft: Draft = {};
@@ -118,20 +102,6 @@ export default function PromptEditor() {
     }
   };
 
-  const withdraw = async () => {
-    setWithdrawing(true);
-    try {
-      await clearPromptSent(params.id);
-      setSentAt(null);
-    } catch (error) {
-      setProblem(error instanceof Error ? error.message : "The claim could not be withdrawn.");
-    } finally {
-      setWithdrawing(false);
-    }
-  };
-
-  const onSent = (updated: Prompt) => setSentAt(updated.sent_at);
-
   const ready = () => {
     const loaded = prompt();
     const scaffold = template();
@@ -147,14 +117,7 @@ export default function PromptEditor() {
             saving={saving()}
             source={showingSource()}
             onSource={(next) => void toggleSource(next)}
-            trailing={
-              <PromptActions
-                id={params.id}
-                beforeSend={flush}
-                onSent={onSent}
-                onOutcome={setOutcome}
-              />
-            }
+            trailing={<PromptActions id={params.id} beforeSend={flush} onOutcome={setOutcome} />}
           />
         )}
       </Show>
@@ -164,26 +127,6 @@ export default function PromptEditor() {
       <div class="mx-auto flex max-w-5xl flex-col gap-4 px-6 pt-6 pb-24">
         <Show when={problem()}>
           {(text) => <output class="banner tint-caution">{text()}</output>}
-        </Show>
-
-        <Show when={outcome()}>
-          {(result) => (
-            <output
-              class="banner"
-              classList={{
-                "tint-confirm": result().tone === "confirm",
-                "tint-caution": result().tone === "caution",
-              }}
-            >
-              {result().message}
-            </output>
-          )}
-        </Show>
-
-        <Show when={sentAt()}>
-          {(at) => (
-            <SentBanner sentAt={at()} busy={withdrawing()} onWithdraw={() => void withdraw()} />
-          )}
         </Show>
 
         <Show
@@ -230,6 +173,10 @@ export default function PromptEditor() {
           read the screenshot and its sidecar straight off disk.
         </p>
       </div>
+
+      {/* Outside the document flow on purpose: it is a moment, not a section, and a copy
+          should not reflow the prose the user is reading. */}
+      <OutcomeToast outcome={outcome()} onDismiss={() => setOutcome(null)} />
     </div>
   );
 }
