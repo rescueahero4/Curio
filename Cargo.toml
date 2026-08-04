@@ -26,7 +26,7 @@ default-members = [
 # R-DEL-12: ONE source of the version. It is stamped into the binary (`--version`),
 # the /health response, and runtime.json — three surfaces, one fact. A mismatch
 # between any two is a release-blocking bug.
-version = "0.1.2"
+version = "0.1.3"
 edition = "2024"
 rust-version = "1.95"
 license = "MIT"
