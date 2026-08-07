@@ -174,21 +174,23 @@ export const vocabulary: Vocabulary = {
     submit: "追加",
     busy: "追加中…",
     needName: template<{ noun: string }>("まず{{ noun }}の名前を入力してください。"),
-    paused: "Curio は一時停止中です。名前を追加するにはトレイアイコンから再開してください。",
+    paused:
+      "Curio は一時停止中です。名前を追加するにはトレイアイコンから「Resume」を選んでください。",
     failed: "追加できませんでした。",
     // No 統合してください here: this popover has no merge control to point at.
     taken: "その名前はすでに使われています。",
   },
 
   blocked: {
-    paused: "Curio は一時停止中です。語彙を編集するにはトレイアイコンから再開してください。",
+    paused:
+      "Curio は一時停止中です。語彙を編集するにはトレイアイコンから「Resume」を選んでください。",
     busy: "処理中…",
   },
 
   errors: {
     // The app owns the failure rather than reporting it as weather.
     generic: "変更を保存できませんでした。",
-    paused: "Curio は一時停止中です。トレイアイコンから再開してください。",
+    paused: "Curio は一時停止中です。トレイアイコンから「Resume」を選んでください。",
     taken: "その名前はすでに使われています。同じ意味なら統合してください。",
   },
 };
