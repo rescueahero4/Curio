@@ -1,6 +1,6 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
 import type { Selection } from "~/components/library/selection";
-import { listOf } from "~/components/library/vocab";
+import { quotedList } from "~/components/library/vocab";
 import { refusal } from "~/components/vocabulary/errors";
 import type { VocabEntry } from "~/components/vocabulary/VocabRow";
 import { deleteTerm, mergeTerm } from "~/lib/api";
@@ -294,9 +294,11 @@ export function VocabBulkBar(props: {
 function explain(outcome: Outcome, done: (count: number) => string): Notice {
   if (!outcome.refused.length) return { tone: "confirm", lines: [done(outcome.done)] };
 
-  /* `listOf` is `Intl.ListFormat`, which already knows that English joins with a comma and
-     Japanese with 、 — so the separator is not a string this dictionary has to carry. */
-  const names = listOf(outcome.refused.map((one) => one.name));
+  /* `quotedList` rather than `listOf`: these names land inside a sentence, and a term is free
+     text that can contain the separator the list is joined with. It also settles how the run
+     meets the Japanese around it — each name arrives already delimited, so the template needs
+     no space on either side and works whichever script the names turn out to be in. */
+  const names = quotedList(outcome.refused.map((one) => one.name));
   const why = [...new Set(outcome.refused.map((one) => one.why))];
   const count = outcome.refused.length;
 

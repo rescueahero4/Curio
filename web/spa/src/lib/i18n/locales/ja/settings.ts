@@ -93,12 +93,17 @@ export const settings: Settings = {
     blurb:
       "キャプチャしたものを Curio が評価するために必要です。キーがなくても保存はできますが、評価はキーを追加するまで待機します。",
     /**
-     * Neither of these takes a closing 。 — they are the two halves of one status line, and
-     * `set` is followed by the masked key. A 。 on one and a separator on the other would
-     * alternate in the same paragraph as the user sets and clears a key.
+     * `set` is a noun label, not the 〜です predicate the English is. A finished statement
+     * followed by a colon dangles a value it has already asserted — Japanese takes a colon
+     * after a sentence only when the sentence points forward (「以下のとおりです：」), and
+     * this one does not. The label form points forward by construction.
+     *
+     * Neither takes a closing 。: they are the two halves of one status line, and `set` is
+     * followed by the masked key. A 。 on one and a separator on the other would alternate
+     * in the same paragraph as the user sets and clears a key.
      */
     none: "キーは未設定です",
-    set: "キーは設定済みです:",
+    set: "設定済みのキー:",
     replace: "キーの置き換え",
     add: "キーの設定",
     hint: "Enter キーで保存します。キーは安全に保管され、二度と表示されないため、置き換えると元に戻せません。",
@@ -130,8 +135,14 @@ export const settings: Settings = {
     blurb:
       "キャプチャしたすべてについて、Curio に何を見てほしいかを書くファイルです。自由に編集でき、書いた内容はアップデート後もそのまま残ります。",
     open: "評価基準を開く",
-    /** 伝える throughout: one act, one verb, in all four of these. */
-    opening: "伝えています…",
+    /**
+     * A bare 〜中 noun, like `apiKey.clearing` and `common.saving`, because this is a button
+     * and buttons here do not take a polite progressive. 実行中 rather than a 〜中 form of
+     * 伝える: the three states below already name the act, and a second name for it one
+     * second earlier would read as two different things happening.
+     */
+    opening: "実行中…",
+    /** 伝える, not 開く — Curio hands the file to the OS and never learns what happened to it. */
     asked: template<{ path: string }>("{{ path }} を開くよう、エディターに伝えました。"),
     paused:
       "Curio は一時停止中のため、エディターには何も伝えていません。トレイアイコンから再開してください。",
@@ -156,7 +167,8 @@ export const settings: Settings = {
     title: "MCP サーバー",
     blurb:
       "Claude などの AI ツールが、ライブラリを検索して保存済みのアイテムを読めるようになります。オフにすると、外部からは一切接続できません。",
-    toggle: "エージェントが MCP でこのライブラリにアクセスできるようにする",
+    /** 接続, matching the blurb above and `claudeCode.hint` below — one concept, one word. */
+    toggle: "エージェントが MCP でこのライブラリに接続できるようにする",
     off: "スイッチがオフです。下の登録自体はできますが、オンにするまで何も動きません。",
     claudeCode: {
       label: "Claude Code",

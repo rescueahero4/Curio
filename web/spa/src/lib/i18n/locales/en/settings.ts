@@ -84,8 +84,13 @@ export const settings = {
      * sometimes explains why and sometimes does not, and a clause spliced in behind a colon
      * only reads as English — in Japanese the explanation lands somewhere else entirely.
      *
-     * `reason` arrives from the server already written as a full sentence, and stays in the
-     * language the server wrote it in.
+     * `reason` arrives from the server already written as a full sentence, in the language
+     * the server wrote it in — which is why only this locale renders it. **The Japanese
+     * deliberately drops `{{ reason }}` and states the platform fact itself**, because
+     * there is exactly one reason the server can emit and splicing an English sentence into
+     * Japanese body copy changes language twice to say one thing once. A second reason in
+     * `AutostartSupport` therefore needs a key of its own, not another branch here; see the
+     * note on this key in `../ja/settings.ts`.
      */
     unsupported:
       "Curio can't set this up on your system. You can still add Curio to your computer's startup items yourself.",

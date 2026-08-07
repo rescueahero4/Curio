@@ -136,10 +136,16 @@ function NewTermForm(props: { kind: VocabularyKind; onBack: () => void; onAdded:
       setDescription("");
       props.onAdded();
     } catch (error) {
-      /* The same reader as the row panel's, so the same sentences: adding a name that already
-         exists is a 409 exactly like renaming onto one, and it used to arrive here as the
-         server's English. `add.failed` stays as this form's own wording for everything else. */
-      setProblem(refusal(error, t("vocabulary.add.failed")));
+      /* Adding a name that already exists is a 409 exactly like renaming onto one, and it
+         used to arrive here as the server's English. Both answers are overridden: this form
+         has no merge control to send the reader to, and it knows it was adding rather than
+         changing when something other than the API throws. */
+      setProblem(
+        refusal(error, {
+          fallback: t("vocabulary.add.failed"),
+          taken: t("vocabulary.add.taken"),
+        }),
+      );
     }
     setBusy(false);
   }

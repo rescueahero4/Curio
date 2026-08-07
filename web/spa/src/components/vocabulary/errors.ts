@@ -21,10 +21,17 @@ import { t } from "~/lib/i18n";
  * a validation refusal reaches a Japanese reader in English. That is a real gap and it is not
  * closable from here: the fix is either an error code the client can translate or an
  * `Accept-Language` the server honours, and neither exists yet.
+ *
+ * Both overrides exist because the same refusal has a different next step depending on who
+ * asked. A 409 on a rename is one term colliding with another and the answer is merge, which
+ * is the control under the message. A 409 on a *create* is the same collision with only one
+ * term in it — nothing was made, so there is nothing to merge from, and the Add popover has
+ * no merge control in it to point at. Telling that reader to merge sends them looking for a
+ * button that is not on the screen.
  */
-export function refusal(error: unknown, fallback = t("vocabulary.errors.generic")): string {
-  if (!(error instanceof ApiError)) return fallback;
+export function refusal(error: unknown, words: { fallback?: string; taken?: string } = {}): string {
+  if (!(error instanceof ApiError)) return words.fallback ?? t("vocabulary.errors.generic");
   if (error.isPaused) return t("vocabulary.errors.paused");
-  if (error.status === 409) return t("vocabulary.errors.taken");
+  if (error.status === 409) return words.taken ?? t("vocabulary.errors.taken");
   return error.message;
 }

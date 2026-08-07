@@ -16,7 +16,12 @@
  *
  * Names that come from the data are wrapped in 「」, following `ja/library.ts`. A term is
  * free text and can be a word this sentence also uses — a tag literally named 削除 is legal —
- * so the quotes are what keep 「削除」を削除しますか readable.
+ * so the quotes are what keep 「削除」を削除しますか readable. They are written into the
+ * template for the single-name slots (`{{ name }}`, `{{ target }}`) and left out of
+ * `{{ names }}`, which is not one name: `quotedList` has already bracketed each term in it,
+ * and one pair of marks around the whole run would read as a single name containing a
+ * separator. Either way the slot ends in a bracket, which is why none of them takes a space
+ * before the particle that follows.
  */
 
 import { template } from "@solid-primitives/i18n";
@@ -138,15 +143,17 @@ export const vocabulary: Vocabulary = {
       /*
        * Named first, counted second: the reader wants to know which ones before how many.
        *
-       * `names` arrives already joined by `Intl.ListFormat`, so it is 「A、B」 worth of text
-       * and not one name — unquoted for that reason, where the single-name slots above take
-       * 「」.
+       * No space on either side of the slot. `quotedList` delimits every name itself —
+       * 「和モダン」「ミニマル」 — so the run already ends in a bracket and 「」の reads
+       * correctly whether the names came out Japanese or Latin. A space would be the same
+       * defect as 「タグ を検索」, and only visible on the half of the libraries whose terms
+       * are not English.
        */
       refused: template<{ count: number; names: string }>(
-        "実行できなかったのは {{ names }} の {{ count }} 件です。",
+        "実行できなかったのは{{ names }}の {{ count }} 件です。",
       ),
       nothing: template<{ count: number; names: string }>(
-        "何も変更されていません。実行できなかったのは {{ names }} の {{ count }} 件です。",
+        "何も変更されていません。実行できなかったのは{{ names }}の {{ count }} 件です。",
       ),
     },
   },
@@ -169,6 +176,8 @@ export const vocabulary: Vocabulary = {
     needName: template<{ noun: string }>("まず{{ noun }}の名前を入力してください。"),
     paused: "Curio は一時停止中です。名前を追加するにはトレイアイコンから再開してください。",
     failed: "追加できませんでした。",
+    // No 統合してください here: this popover has no merge control to point at.
+    taken: "その名前はすでに使われています。",
   },
 
   blocked: {

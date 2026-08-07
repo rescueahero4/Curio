@@ -38,7 +38,10 @@ export function StartupSection(props: { settings: Settings; commit: Commit }) {
           into the middle of it. The English tolerated that because the explanation happens to
           belong right after the colon in English; in Japanese it belongs somewhere else, and
           no amount of punctuation in this file can move it there. `reason` itself arrives
-          already written as a sentence, in whatever language the server writes in. */}
+          already written as a sentence, in whatever language the server writes in — so only
+          the English renders it. The Japanese drops the placeholder and states the one
+          platform fact the server can report; a second `AutostartSupport::reason` in Rust
+          needs a key of its own rather than another branch here. */}
       <Show
         when={unsupported()}
         fallback={

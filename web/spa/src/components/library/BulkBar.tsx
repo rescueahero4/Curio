@@ -3,7 +3,7 @@ import { BulkDelete } from "~/components/library/BulkDelete";
 import { type BulkMode, BulkVocabPanel } from "~/components/library/BulkVocabPanel";
 import { type BulkOutcome, bulkTarget, runBulk } from "~/components/library/bulk";
 import type { Selection } from "~/components/library/selection";
-import { familyOptions, listOf, nameOf, termOptions } from "~/components/library/vocab";
+import { familyOptions, nameOf, quotedList, termOptions } from "~/components/library/vocab";
 import { paused } from "~/lib/http";
 import { t } from "~/lib/i18n";
 import type { BulkEdit, ItemFilter } from "~/lib/types";
@@ -179,11 +179,12 @@ function edit(kind: "tags" | "types" | "families", mode: BulkMode, values: strin
  * job here is only to pick which one.
  *
  * The `…One` / `…Other` split is English's plural and nothing more; both Japanese strings are
- * the same sentence, counting in 件. The names are joined by `listOf`, which knows that the
- * separator is a translation too.
+ * the same sentence, counting in 件. The names arrive already delimited from `quotedList` —
+ * both the quotation marks and the way quoted names string together are a translation, and
+ * neither belongs in a template where only one language's copy could carry it.
  */
 function summarize(mode: BulkMode, values: string[], changed: number): string {
-  const named = { values: listOf(values), count: changed };
+  const named = { values: quotedList(values), count: changed };
   if (mode === "add") {
     return changed === 1
       ? t("library.bulk.done.addedOne", named)

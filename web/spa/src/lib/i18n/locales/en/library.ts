@@ -177,6 +177,12 @@ export const library = {
      * of the two languages however carefully the parts are chosen. The `…One` / `…Other`
      * pairs are English's plural and nothing more — the Japanese is the same sentence
      * twice, counting in 件.
+     *
+     * `values` arrives from `quotedList` with each name already in quotation marks, in both
+     * languages: a tag is free text and can contain the comma the list is joined with, so
+     * `Added warm, muted, editorial to 40 items.` cannot say whether that is two names or
+     * three. The marks are not in this template because which marks, and what goes between
+     * two of them, both differ by language.
      */
     done: {
       addedOne: template<{ values: string; count: number }>(
@@ -240,10 +246,15 @@ export const library = {
       families: "Families",
       types: "Design types",
       tags: "Tags",
-      /** The picker's accessible name — what adding here would add to. */
+      /**
+       * The picker's accessible name. One control, three vocabularies, so one shape: these
+       * used to read "Add a family" / "Add to design types" / "Add to tags", which is two
+       * different sentences for the same button depending on which section you had tabbed
+       * into. The Japanese normalised them anyway.
+       */
       addFamily: "Add a family",
-      addType: "Add to design types",
-      addTag: "Add to tags",
+      addType: "Add a design type",
+      addTag: "Add a tag",
       remove: template<{ name: string }>("Remove {{ name }}"),
       emptyFamilies: "No families yet.",
       emptyTypes: "No design types yet.",

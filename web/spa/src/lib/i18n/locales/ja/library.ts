@@ -10,18 +10,21 @@
  * English's plural, and 件 counts every number.
  *
  * **English's one "Remove" is three Japanese verbs, split by what is being removed.** Taking
- * a term off an item is 外す — the term itself survives, and a reader who saw 削除 there would
- * reasonably expect the tag to be gone from the library. Lifting a filter or a selection is
- * 解除, which is what Japanese interfaces put on those. Destroying the row is 削除. The same
- * user action always gets the same verb: the bulk bar's Remove button, its summary of what
- * that button did, and the × on an item's own chip are all 外す, because they are one action
- * reached from three places.
+ * one thing off another is 外す: a term off an item, a pill off the filter row. Both survive
+ * it, and a reader who saw 削除 there would reasonably expect the tag itself to be gone from
+ * the library. Lifting a whole set in one press — *Clear filters*, *Clear selection* — is
+ * 解除, which is the verb Japanese interfaces put on those controls. Only destroying the row
+ * is 削除. So the bulk bar's Remove button, its summary of what that button did, the × on an
+ * item's chip and the empty state's advice to drop a filter pill are all 外す: one thing
+ * coming off another, four times.
  *
  * **An injected name is wrapped in 「」, always.** These are arbitrary user data — a tag can
  * be `warm` or 暖色 — and the half-width space that a Latin run wants inside Japanese text is
  * a visible gap when the run is Japanese. Quoting sidesteps the rule instead of guessing at
  * it, and marks where the data starts and stops. Numbers are the exception and keep their
- * spaces: 「40 件」 is a Latin run under any reading.
+ * spaces: 「40 件」 is a Latin run under any reading. A *list* of names arrives already
+ * quoted, per name, from `quotedList` — so the `done.*` templates set `{{ values }}` bare and
+ * without spaces, because it opens and closes with 「」 of its own.
  */
 
 import { template } from "@solid-primitives/i18n";
@@ -44,7 +47,10 @@ export const library: Library = {
       sessionExpired:
         "Curio が再起動しました。トレイアイコンからダッシュボードを開き直してください。",
       unreachable: "Curio が応答しません。まだ起動しているか確認してください。",
-      retry: "もう一度読み込む",
+      // 「もう一度試す」 rather than 再試行, which is `common.retry` and asks for one write
+      // again. Settled in the i18n README's table; `ja/settings.ts` says the same on its own
+      // page-level banner.
+      retry: "もう一度試す",
     },
     empty: {
       loading: "ライブラリを読み込んでいます…",
@@ -161,19 +167,19 @@ export const library: Library = {
     },
 
     done: {
-      // `values` is a 、-joined run of user-chosen names, so it is quoted like any other
-      // injected name — one 「」 around the whole enumeration, not one per term.
+      // `values` arrives as 「warm」「minimal」 — quoted per name and juxtaposed, which is how
+      // Japanese lists quoted items. No 「」 and no spaces here: it brings its own.
       addedOne: template<{ values: string; count: number }>(
-        "{{ count }} 件に「{{ values }}」を追加しました。",
+        "{{ count }} 件に{{ values }}を追加しました。",
       ),
       addedOther: template<{ values: string; count: number }>(
-        "{{ count }} 件に「{{ values }}」を追加しました。",
+        "{{ count }} 件に{{ values }}を追加しました。",
       ),
       removedOne: template<{ values: string; count: number }>(
-        "{{ count }} 件から「{{ values }}」を外しました。",
+        "{{ count }} 件から{{ values }}を外しました。",
       ),
       removedOther: template<{ values: string; count: number }>(
-        "{{ count }} 件から「{{ values }}」を外しました。",
+        "{{ count }} 件から{{ values }}を外しました。",
       ),
       deletedOne: template<{ count: number }>("{{ count }} 件を削除しました。"),
       deletedOther: template<{ count: number }>("{{ count }} 件を削除しました。"),

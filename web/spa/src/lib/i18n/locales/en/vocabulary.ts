@@ -183,6 +183,14 @@ export const vocabulary = {
     needName: template<{ noun: string }>("Type a {{ noun }} name first."),
     paused: "Curio is paused. Resume from the tray icon to add names.",
     failed: "Could not add that.",
+    /**
+     * The same 409 as `errors.taken`, without the sentence that points at merge.
+     *
+     * A rename that collides has two terms in it and merge is the control below the message.
+     * A create that collides has one: nothing was made, and this popover has no merge control
+     * to send anyone to.
+     */
+    taken: "That name is already taken.",
   },
 
   /** Why a control is off. PRD §5: a disabled control says so. */
