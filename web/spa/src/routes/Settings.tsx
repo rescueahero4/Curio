@@ -21,6 +21,7 @@
 
 import { createResource, For, Show } from "solid-js";
 import { ApiKeySection } from "~/components/settings/ApiKeySection";
+import { LanguageSection } from "~/components/settings/LanguageSection";
 import { McpSection } from "~/components/settings/McpSection";
 import { ModelsSection } from "~/components/settings/ModelsSection";
 import type { Commit } from "~/components/settings/model";
@@ -47,6 +48,7 @@ const SECTION_NAV = [
     items: [
       { id: "paths", label: "Paths" },
       { id: "startup", label: "Startup" },
+      { id: "language", label: "Language" },
     ],
   },
   {
@@ -108,6 +110,9 @@ export function Settings() {
             <div class="flex min-w-0 flex-1 flex-col gap-8">
               <PathsSection settings={current()} commit={commit} />
               <StartupSection settings={current()} commit={commit} />
+              {/* Takes no `settings`: the language lives in this browser, not in the record
+                  the rest of this page edits. See LanguageSection's own note. */}
+              <LanguageSection />
               <ApiKeySection settings={current()} commit={commit} refresh={refresh} />
               <ModelsSection settings={current()} commit={commit} />
               <RubricSection settings={current()} />
