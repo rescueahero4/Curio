@@ -9,6 +9,7 @@
 import { type Accessor, createSignal } from "solid-js";
 import type { Commit } from "~/components/settings/model";
 import { ApiError } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { SettingsPatch } from "~/lib/types";
 
 export type SaveState =
@@ -100,8 +101,11 @@ export function blurOrEnter(commit: (input: HTMLInputElement) => void) {
 function explain(error: unknown): SaveState {
   // A 503 on a mutation is the pause the user chose from the tray, not a fault (R-FE-8).
   // Rendering it as an error would describe their own decision back to them as a failure.
+  // The server's own words when it has them. They arrive in the language the server writes
+  // in, which is English — but a validation message naming the field it rejected is still
+  // more use than a generic refusal, so it is preferred over the translated fallback.
   if (error instanceof ApiError) {
     return error.isPaused ? { kind: "paused" } : { kind: "refused", message: error.message };
   }
-  return { kind: "refused", message: "Curio could not save that." };
+  return { kind: "refused", message: t("settings.save.failed") };
 }

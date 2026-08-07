@@ -1,10 +1,11 @@
 /** The assessment rubric — a markdown file the user owns and Curio reads. */
 
 import { createSignal, Show } from "solid-js";
-import { PAUSED_REASON } from "~/components/settings/model";
+import { pausedReason } from "~/components/settings/model";
 import { Section } from "~/components/settings/section";
 import { openSkillFile } from "~/lib/api";
 import { ApiError, paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Settings } from "~/lib/types";
 
 /** The system route answers 200 with its outcome in the body, never a 4xx (Inventory §10.22). */
@@ -22,14 +23,16 @@ export function RubricSection(props: { settings: Settings }) {
     setNote(null);
     try {
       const outcome = (await openSkillFile()) as Outcome;
-      // Verbatim. The server phrases it as a request because that is all it can honestly
-      // claim — rewording it here would turn "asked" into "opened".
+      // Verbatim, and therefore in the server's language rather than the reader's. The
+      // server phrases it as a request because that is all it can honestly claim — and it
+      // names the tool it asked, which is the part that helps. Restating it from a
+      // dictionary here would turn "asked" into "opened" and drop the detail.
       setNote(outcome.message);
     } catch (error) {
       setNote(
         error instanceof ApiError && error.isPaused
-          ? "Curio is paused, so it did not ask your editor to open. Resume from the tray icon."
-          : "Curio could not reach your editor.",
+          ? t("settings.rubric.paused")
+          : t("settings.rubric.failed"),
       );
     } finally {
       setAsking(false);
@@ -39,8 +42,8 @@ export function RubricSection(props: { settings: Settings }) {
   return (
     <Section
       id="assessment-rubric"
-      title="Assessment rubric"
-      blurb="What you want Curio to look for in everything you capture. Edit it however you like — your changes are kept through updates."
+      title={t("settings.rubric.title")}
+      blurb={t("settings.rubric.blurb")}
     >
       <p class="field field-block bg-desk font-mono text-xs text-ink-muted select-all">
         {props.settings.skill_file_path}
@@ -52,9 +55,9 @@ export function RubricSection(props: { settings: Settings }) {
           class="pill pill-outline"
           onClick={() => void open()}
           disabled={asking() || paused()}
-          title={paused() ? PAUSED_REASON : undefined}
+          title={paused() ? pausedReason() : undefined}
         >
-          {asking() ? "Asking…" : "Open the rubric"}
+          {asking() ? t("settings.rubric.opening") : t("settings.rubric.open")}
         </button>
         <Show when={note()}>
           {(message) => (

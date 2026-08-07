@@ -3,8 +3,9 @@ import { BulkDelete } from "~/components/library/BulkDelete";
 import { type BulkMode, BulkVocabPanel } from "~/components/library/BulkVocabPanel";
 import { type BulkOutcome, bulkTarget, runBulk } from "~/components/library/bulk";
 import type { Selection } from "~/components/library/selection";
-import { familyOptions, nameOf, termOptions } from "~/components/library/vocab";
+import { familyOptions, listOf, nameOf, termOptions } from "~/components/library/vocab";
 import { paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { BulkEdit, ItemFilter } from "~/lib/types";
 
 interface Notice {
@@ -33,8 +34,8 @@ export function BulkBar(props: {
   const [busy, setBusy] = createSignal(false);
 
   const blocked = () => {
-    if (paused()) return "Curio is paused. Resume from the tray icon to edit in bulk.";
-    if (busy()) return "Applying…";
+    if (paused()) return t("library.bulk.paused");
+    if (busy()) return t("common.applying");
     return undefined;
   };
 
@@ -62,46 +63,45 @@ export function BulkBar(props: {
           on its own — see the shadow token's note in `styles.css`. */}
       <div class="card glass-card float sticky bottom-4 z-20 mx-auto flex w-full max-w-4xl flex-wrap items-center gap-2 px-3 py-2">
         <Show when={props.selection.any()}>
-          <span class="text-sm text-ink-muted">
+          {/* The count is inside the sentence rather than in a span of its own. English can
+              put a styled number in front of "selected"; Japanese counts with 件 and puts
+              the whole clause in a different order, and no amount of markup makes one shape
+              serve both. The `numeric` face still reaches the digits from out here. */}
+          <span class="numeric text-sm text-ink-muted">
             <Show
               when={props.selection.matching()}
-              fallback={
-                <>
-                  <span class="numeric font-medium text-ink">{props.selection.count()}</span>{" "}
-                  selected
-                </>
-              }
+              fallback={t("library.bulk.selected", { count: props.selection.count() })}
             >
-              Everything this filter matches
+              {t("library.bulk.allMatching")}
             </Show>
           </span>
 
           <Show when={!props.selection.matching() && props.narrowed()}>
             <button type="button" class="pill" onClick={props.selection.selectMatching}>
-              Select everything that matches
+              {t("library.bulk.selectMatching")}
             </button>
           </Show>
 
           <BulkVocabPanel
-            title="Tags"
+            title={t("library.bulk.tags.title")}
             options={termOptions("tags")}
-            empty="No tags yet — type one below."
-            allowNew
+            empty={t("library.bulk.tags.empty")}
+            newLabel={t("library.bulk.tags.fresh")}
             blocked={blocked()}
             onApply={vocabEdit("tags")}
           />
           <BulkVocabPanel
-            title="Types"
+            title={t("library.bulk.types.title")}
             options={termOptions("types")}
-            empty="No design types yet — type one below."
-            allowNew
+            empty={t("library.bulk.types.empty")}
+            newLabel={t("library.bulk.types.fresh")}
             blocked={blocked()}
             onApply={vocabEdit("types")}
           />
           <BulkVocabPanel
-            title="Families"
+            title={t("library.bulk.families.title")}
             options={familyOptions()}
-            empty="No families yet. Create one on the Vocabulary page first."
+            empty={t("library.bulk.families.empty")}
             blocked={blocked()}
             onApply={vocabEdit("families")}
           />
@@ -115,13 +115,11 @@ export function BulkBar(props: {
           <BulkDelete
             count={props.selection.matching() ? null : props.selection.count()}
             blocked={blocked()}
-            onConfirm={() =>
-              void run({ delete: true }, (changed) => `Deleted ${changed} items.`, false)
-            }
+            onConfirm={() => void run({ delete: true }, deleted, false)}
           />
 
           <button type="button" class="pill" onClick={props.selection.clear}>
-            Clear selection
+            {t("library.bulk.clearSelection")}
           </button>
         </Show>
 
@@ -136,7 +134,7 @@ export function BulkBar(props: {
             >
               {current().text}
               <button type="button" class="pill" onClick={() => setNotice(null)}>
-                Dismiss
+                {t("common.dismiss")}
               </button>
             </output>
           )}
@@ -171,10 +169,35 @@ function edit(kind: "tags" | "types" | "families", mode: BulkMode, values: strin
   }
 }
 
+/**
+ * What a run left behind, as one sentence.
+ *
+ * This used to be `${verb} ${values} ${preposition} ${changed} items.` — four fragments in
+ * English word order, which is the one shape that cannot be translated: Japanese puts the
+ * verb last and marks the direction with a particle on the count, so 「40 件に warm を追加
+ * しました」 reorders every piece. Each combination is therefore a whole key, and the code's
+ * job here is only to pick which one.
+ *
+ * The `…One` / `…Other` split is English's plural and nothing more; both Japanese strings are
+ * the same sentence, counting in 件. The names are joined by `listOf`, which knows that the
+ * separator is a translation too.
+ */
 function summarize(mode: BulkMode, values: string[], changed: number): string {
-  const verb = mode === "add" ? "Added" : "Removed";
-  const preposition = mode === "add" ? "to" : "from";
-  return `${verb} ${values.join(", ")} ${preposition} ${changed} items.`;
+  const named = { values: listOf(values), count: changed };
+  if (mode === "add") {
+    return changed === 1
+      ? t("library.bulk.done.addedOne", named)
+      : t("library.bulk.done.addedOther", named);
+  }
+  return changed === 1
+    ? t("library.bulk.done.removedOne", named)
+    : t("library.bulk.done.removedOther", named);
+}
+
+function deleted(changed: number): string {
+  return changed === 1
+    ? t("library.bulk.done.deletedOne", { count: changed })
+    : t("library.bulk.done.deletedOther", { count: changed });
 }
 
 function explain(outcome: BulkOutcome, describe: (changed: number) => string): Notice {
@@ -184,7 +207,10 @@ function explain(outcome: BulkOutcome, describe: (changed: number) => string): N
     case "over-cap":
       return {
         tone: "caution",
-        text: `${outcome.matched} items match; the cap is ${outcome.limit}. Nothing was changed — narrow the filter, or pick fewer.`,
+        text: t("library.bulk.errors.overCap", {
+          matched: outcome.matched,
+          limit: outcome.limit,
+        }),
       };
     case "error":
       return { tone: "caution", text: outcome.message };

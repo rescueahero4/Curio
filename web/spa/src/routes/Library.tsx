@@ -15,6 +15,7 @@ import { ItemRow } from "~/components/library/ItemRow";
 import { createSelection } from "~/components/library/selection";
 import { createViewMode } from "~/components/library/view";
 import { ensureVocabulary } from "~/components/library/vocab";
+import { t } from "~/lib/i18n";
 import { items } from "~/lib/stores";
 
 /** R-FE-9. A contract, not a tuning knob: the old app settled on it and users learned it. */
@@ -67,7 +68,7 @@ export function Library() {
           <output class="banner tint-caution">
             {message()}
             <button type="button" class="pill pill-outline" onClick={feed.retry}>
-              Try again
+              {t("common.retry")}
             </button>
           </output>
         )}
@@ -122,7 +123,7 @@ export function Library() {
       </Show>
 
       <Show when={feed.loading() && items.list.length > 0}>
-        <p class="text-center text-xs text-ink-faint">Loading more…</p>
+        <p class="text-center text-xs text-ink-faint">{t("library.grid.loadingMore")}</p>
       </Show>
 
       <BulkBar selection={selection} filter={filter} narrowed={narrowed} />
@@ -140,25 +141,24 @@ function Empty(props: { ready: boolean; narrowed: boolean }) {
   return (
     <Show
       when={props.ready}
-      fallback={<p class="py-12 text-center text-sm text-ink-faint">Reading the library…</p>}
+      fallback={
+        <p class="py-12 text-center text-sm text-ink-faint">{t("library.grid.empty.loading")}</p>
+      }
     >
       <div class="card flex flex-col items-center gap-2 px-6 py-12 text-center">
+        {/* A title and a body, which is a split both languages keep: two sentences, not one
+            sentence broken over two elements. */}
         <Show
           when={props.narrowed}
           fallback={
             <>
-              <p class="font-medium">Nothing here yet.</p>
-              <p class="text-sm text-ink-muted">
-                Capture a page with the Curio extension, or use + Add Item in the top bar. Curio
-                describes each one as it lands.
-              </p>
+              <p class="font-medium">{t("library.grid.empty.fresh.title")}</p>
+              <p class="text-sm text-ink-muted">{t("library.grid.empty.fresh.blurb")}</p>
             </>
           }
         >
-          <p class="font-medium">Nothing matches this search.</p>
-          <p class="text-sm text-ink-muted">
-            Clear a filter pill, or search for a word from a name or description.
-          </p>
+          <p class="font-medium">{t("library.grid.empty.filtered.title")}</p>
+          <p class="text-sm text-ink-muted">{t("library.grid.empty.filtered.blurb")}</p>
         </Show>
       </div>
     </Show>

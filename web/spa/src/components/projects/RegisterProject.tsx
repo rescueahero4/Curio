@@ -7,9 +7,9 @@
  */
 
 import { createSignal, Show } from "solid-js";
-import { PAUSED_REASON } from "~/components/projects/copy";
 import { registerProject } from "~/lib/api";
 import { ApiError, paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Project } from "~/lib/types";
 
 export function RegisterProject(props: {
@@ -39,9 +39,9 @@ export function RegisterProject(props: {
       setError(
         failure instanceof ApiError
           ? failure.isPaused
-            ? PAUSED_REASON
+            ? t("projects.paused")
             : failure.message
-          : "Curio could not register that folder.",
+          : t("projects.register.failed"),
       );
     } finally {
       setSaving(false);
@@ -50,20 +50,18 @@ export function RegisterProject(props: {
 
   return (
     <form class="card flex flex-col gap-3 p-4" onSubmit={(event) => void submit(event)}>
-      <h2 class="text-lg font-semibold">Register a folder</h2>
-      <p class="max-w-prose text-sm text-ink-muted">
-        Point Curio at a folder anywhere on this machine. It has to exist already — Curio checks the
-        path rather than creating it. Folders added this way are not followed if you later rename
-        them; only folders Curio finds itself carry a marker file that survives a rename.
-      </p>
+      <h2 class="text-lg font-semibold">{t("projects.register.title")}</h2>
+      <p class="max-w-prose text-sm text-ink-muted">{t("projects.register.blurb")}</p>
 
       <label class="flex flex-col gap-1">
-        <span class="text-sm font-medium">Folder path</span>
+        <span class="text-sm font-medium">{t("projects.register.path")}</span>
         <input
           type="text"
           class="field field-block"
           required
           spellcheck={false}
+          // A path, not a sentence — it stays as it is in both languages, like the paths on
+          // the cards above.
           placeholder="/Users/you/Projects/landing-page"
           value={path()}
           onInput={(event) => setPath(event.currentTarget.value)}
@@ -71,11 +69,11 @@ export function RegisterProject(props: {
       </label>
 
       <label class="flex flex-col gap-1">
-        <span class="text-sm font-medium">Name</span>
+        <span class="text-sm font-medium">{t("projects.register.name")}</span>
         <input
           type="text"
           class="field field-block"
-          placeholder="Optional — defaults to the folder's own name"
+          placeholder={t("projects.register.namePlaceholder")}
           value={name()}
           onInput={(event) => setName(event.currentTarget.value)}
         />
@@ -95,13 +93,17 @@ export function RegisterProject(props: {
           class="pill pill-ink"
           disabled={saving() || paused() || !path().trim()}
           title={
-            paused() ? PAUSED_REASON : path().trim() ? undefined : "Enter a folder path first."
+            paused()
+              ? t("projects.paused")
+              : path().trim()
+                ? undefined
+                : t("projects.register.needPath")
           }
         >
-          {saving() ? "Registering…" : "Register"}
+          {saving() ? t("projects.register.saving") : t("projects.register.submit")}
         </button>
         <button type="button" class="pill pill-outline" onClick={props.onClose}>
-          Cancel
+          {t("common.cancel")}
         </button>
       </div>
     </form>

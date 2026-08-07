@@ -1,3 +1,5 @@
+import { t } from "~/lib/i18n";
+
 /**
  * The selection checkbox, shared by the card and the row.
  *
@@ -23,7 +25,13 @@ export function SelectToggle(props: {
       classList={{ "opacity-100": props.selected }}
       style={{ "transition-duration": "var(--duration-hover)" }}
     >
-      <span class="sr-only">Select {props.name || "this item"}</span>
+      {/* Two whole sentences rather than a name with a fallback word dropped into it: an
+          unnamed item is a different thing to say, not the same sentence missing a noun. */}
+      <span class="sr-only">
+        {props.name
+          ? t("library.selectToggle.named", { name: props.name })
+          : t("library.selectToggle.unnamed")}
+      </span>
       <input
         type="checkbox"
         checked={props.selected}

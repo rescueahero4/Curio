@@ -19,6 +19,7 @@
  */
 
 import { createSignal } from "solid-js";
+import { t } from "~/lib/i18n";
 import type { OverCap } from "~/lib/types";
 
 const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
@@ -81,7 +82,7 @@ export async function request<T>(path: string, init: RequestInit = {}): Promise<
   try {
     response = await fetch(path, init);
   } catch {
-    throw new ApiError(0, null, "Curio is not answering.", false);
+    throw new ApiError(0, null, t("system.request.unreachable"), false);
   }
 
   if (response.ok) {
@@ -144,8 +145,23 @@ async function readBody(response: Response): Promise<unknown> {
   }
 }
 
+/**
+ * The sentence an `ApiError` carries — and the one place the two languages meet the wire.
+ *
+ * Worded here, once, at the moment the failure happens, so that thirty catch blocks can
+ * put `error.message` on the screen without re-deriving which of these three cases they
+ * are looking at. It is therefore fixed in the language the app was in when it was thrown;
+ * an error that outlives a language switch keeps its old wording, which is the right trade
+ * for a string that is read and dismissed in seconds.
+ *
+ * **The middle branch is not translatable, and that is the wire's fault, not this file's.**
+ * `message` is a sentence the server composed in English — "an item with that name exists;
+ * merge into it instead" — and nothing on this side can turn it into Japanese. Localizing
+ * it properly means the server sending a code plus its arguments and the dashboard owning
+ * the sentence, which is a change to the error contract in `curio-server`, not to `t`.
+ */
 function describe(response: Response, body: unknown, isPaused: boolean): string {
-  if (isPaused) return "Curio is paused.";
+  if (isPaused) return t("system.request.paused");
 
   // `message` first, `error` only as a fallback. The server sends both: `error` is a
   // machine code the caller branches on (`conflict`, `over_cap`), `message` is the
@@ -155,5 +171,10 @@ function describe(response: Response, body: unknown, isPaused: boolean): string 
   const message = detail?.message ?? detail?.error;
   if (typeof message === "string" && message) return message;
 
-  return response.statusText || `Request failed (${response.status}).`;
+  // `response.statusText` used to sit ahead of this line, and it lost twice: it is the
+  // HTTP reason phrase, so it is always English, and because it is almost always present
+  // it *suppressed* the fallback rather than backing it up — a 404 reached the user as the
+  // bare words "Not Found", with the one digit worth quoting in a bug report nowhere on
+  // screen.
+  return t("system.request.failed", { status: response.status });
 }

@@ -1,4 +1,5 @@
 import type { Option } from "~/components/library/OptionList";
+import { type Locale, locale } from "~/lib/i18n";
 import { refreshVocabulary, vocabulary } from "~/lib/stores";
 import type { VocabularyKind } from "~/lib/types";
 
@@ -43,4 +44,28 @@ export function familyName(id: string): string {
 
 function terms(kind: Exclude<VocabularyKind, "families">) {
   return kind === "types" ? vocabulary.design_types : vocabulary.tags;
+}
+
+/**
+ * Several names, run together into one phrase.
+ *
+ * The separator is a translation like any other — English joins with a comma and a space,
+ * Japanese with 、 and no space — and `Intl.ListFormat` already knows both, so no dictionary
+ * key has to carry a piece of punctuation. `narrow` is the style without the trailing "and":
+ * these lists sit inside a sentence that has already said what the relationship is.
+ *
+ * One instance per language, kept, for the same reason `lib/format.ts` keeps its formatters:
+ * the constructor is the expensive part, and reading `locale()` here still tracks, so a list
+ * rendered in a component re-joins itself when the language changes.
+ */
+const JOIN = new Map<Locale, Intl.ListFormat>();
+
+export function listOf(names: string[]): string {
+  const tag = locale();
+  let formatter = JOIN.get(tag);
+  if (!formatter) {
+    formatter = new Intl.ListFormat(tag, { style: "narrow", type: "conjunction" });
+    JOIN.set(tag, formatter);
+  }
+  return formatter.format(names);
 }

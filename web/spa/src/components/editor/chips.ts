@@ -12,6 +12,7 @@
  */
 
 import { mergeAttributes, Node } from "@tiptap/core";
+import { t } from "~/lib/i18n";
 
 /** The four node types, by name. These names are the server's serializer contract. */
 export type ChipKind = "familyChip" | "tagChip" | "typeChip" | "itemRef";
@@ -20,15 +21,24 @@ interface ChipSpec {
   kind: ChipKind;
   /** Drawn before the label. Two of the four carry a glyph; tags and types are the word. */
   prefix: string;
-  /** What a screen reader should hear instead of the glyph. */
-  role: string;
+  /**
+   * What a screen reader should hear instead of the glyph.
+   *
+   * A thunk, read when a node view is built, because this array is module-level and a
+   * string resolved here would be fixed at import time. It is read *outside* any reactive
+   * owner — ProseMirror builds these, not Solid — so a chip already on screen keeps the
+   * language it was drawn in until its node view is rebuilt. That is a hover title and an
+   * accessible name on an atom whose visible text is the author's own word, so the stale
+   * window is worth more than a second rendering path (R-FE-17).
+   */
+  role: () => string;
 }
 
 const SPECS: readonly ChipSpec[] = [
-  { kind: "familyChip", prefix: "◈ ", role: "Aesthetic" },
-  { kind: "tagChip", prefix: "", role: "Style" },
-  { kind: "typeChip", prefix: "", role: "Type" },
-  { kind: "itemRef", prefix: "▣ ", role: "Reference" },
+  { kind: "familyChip", prefix: "◈ ", role: () => t("editor.chip.role.family") },
+  { kind: "tagChip", prefix: "", role: () => t("editor.chip.role.tag") },
+  { kind: "typeChip", prefix: "", role: () => t("editor.chip.role.type") },
+  { kind: "itemRef", prefix: "▣ ", role: () => t("editor.chip.role.reference") },
 ];
 
 const CHIP_CLASS =
@@ -76,7 +86,7 @@ function chipNode(spec: ChipSpec) {
         dom.className = CHIP_CLASS;
         dom.dataset.chip = spec.kind;
         dom.contentEditable = "false";
-        dom.title = `${spec.role}: ${label(node.attrs)}`;
+        dom.title = `${spec.role()}: ${label(node.attrs)}`;
         dom.textContent = text(node.attrs, spec);
         return { dom };
       };

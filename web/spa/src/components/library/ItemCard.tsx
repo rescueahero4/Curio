@@ -4,6 +4,7 @@ import { hostOf, ItemFacets } from "~/components/library/ItemFacets";
 import { SelectToggle } from "~/components/library/SelectToggle";
 import { itemImageUrl, reassessItem } from "~/lib/api";
 import { paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Item } from "~/lib/types";
 
 /**
@@ -57,7 +58,7 @@ export function ItemCard(props: {
             the fact the picture cannot carry, and it is one line at any width. */}
         <div class="flex flex-col gap-1 p-0" classList={{ "p-2": props.dense }}>
           <h2 class="truncate font-medium text-ink p-0 m-0 pt-1">
-            {props.item.name || "Untitled"}
+            {props.item.name || t("library.card.untitled")}
           </h2>
           <Show when={host()}>
             {(where) => <span class="truncate text-xs text-ink-faint">{where()}</span>}
@@ -70,13 +71,17 @@ export function ItemCard(props: {
         classList={{ "px-2 pb-2": props.dense }}
       >
         <Show when={props.item.status === "processing"}>
-          <span class="badge badge-strong">Waiting for assessment</span>
+          <span class="badge badge-strong">{t("library.status.processing")}</span>
         </Show>
         <Show when={props.item.status === "needs_review" || grayZone()}>
-          <span class="badge tint-caution">Needs review</span>
+          <span class="badge tint-caution">{t("library.status.needsReview")}</span>
         </Show>
         <Show when={proposal()}>
-          {(family) => <span class="badge tint-proposal">Proposed: {family().name}</span>}
+          {(family) => (
+            <span class="badge tint-proposal">
+              {t("library.card.proposed", { name: family().name })}
+            </span>
+          )}
         </Show>
         {/* Dense tiles are half the width, so they get half the vocabulary before the
             overflow marker takes over. */}
@@ -103,14 +108,17 @@ function FailedFooter(props: { id: string; error: string | null }) {
   const [problem, setProblem] = createSignal<string | null>(null);
 
   const blocked = () => {
-    if (paused()) return "Curio is paused. Resume from the tray icon to re-assess.";
-    if (busy()) return "Asking Curio to look again…";
+    if (paused()) return t("library.card.failed.paused");
+    if (busy()) return t("library.card.failed.busy");
     return undefined;
   };
 
   return (
     <div class="banner tint-caution m-3 mt-0 flex-col items-start gap-1">
-      <span>{problem() ?? props.error ?? "Curio could not describe this one."}</span>
+      {/* The middle term is the server's own words, which arrive in English whatever the
+          dashboard is set to. Everything Curio's front end has to say is translated; a
+          message the API wrote is passed through rather than guessed at. */}
+      <span>{problem() ?? props.error ?? t("library.card.failed.reason")}</span>
       <button
         type="button"
         class="pill pill-outline text-2xs"
@@ -122,12 +130,12 @@ function FailedFooter(props: { id: string; error: string | null }) {
           try {
             await reassessItem(props.id);
           } catch {
-            setProblem("Could not queue a re-assessment. Try again in a moment.");
+            setProblem(t("library.card.failed.problem"));
           }
           setBusy(false);
         }}
       >
-        {busy() ? "Queueing…" : "Re-assess"}
+        {busy() ? t("library.card.failed.queueing") : t("library.card.failed.action")}
       </button>
     </div>
   );

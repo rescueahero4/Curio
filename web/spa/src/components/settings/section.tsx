@@ -16,6 +16,7 @@
 import { createUniqueId, type JSX, Show } from "solid-js";
 import { SavedBadge } from "~/components/SavedBadge";
 import type { Saver } from "~/components/settings/save";
+import { t } from "~/lib/i18n";
 
 export function Section(props: {
   /** Anchor target for the settings nav; see SECTION_NAV in routes/Settings.tsx. */
@@ -55,7 +56,7 @@ export function SaveBadge(props: { saver: Saver }) {
   return (
     <span class="flex flex-wrap items-center gap-2 text-xs">
       <Show when={state().kind === "saving"}>
-        <span class="text-ink-faint">Saving…</span>
+        <span class="text-ink-faint">{t("common.saving")}</span>
       </Show>
 
       {/* `keyed`, so a second save inside the first badge's eight seconds mounts a second
@@ -63,7 +64,7 @@ export function SaveBadge(props: { saver: Saver }) {
       <Show when={confirmation()} keyed>
         {(current) => (
           <SavedBadge
-            label={current.kind === "reverted" ? "Put back" : undefined}
+            label={current.kind === "reverted" ? t("settings.save.reverted") : undefined}
             onUndo={
               current.kind === "saved" && current.undoable ? () => props.saver.undo() : undefined
             }
@@ -73,9 +74,7 @@ export function SaveBadge(props: { saver: Saver }) {
       </Show>
 
       <Show when={state().kind === "paused"}>
-        <span class="text-caution">
-          Curio is paused, so this did not save. Resume from the tray icon and try again.
-        </span>
+        <span class="text-caution">{t("settings.paused.notSaved")}</span>
       </Show>
 
       <Show when={refusal()}>

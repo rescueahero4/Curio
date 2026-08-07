@@ -1,4 +1,5 @@
 import { createSignal, onCleanup, Show } from "solid-js";
+import { t } from "~/lib/i18n";
 import { serverIsUp } from "~/lib/session";
 
 /**
@@ -24,14 +25,18 @@ export function NoSession(props: { reachable: boolean }) {
 
   return (
     <main class="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-4 px-6">
-      <h1 class="text-xl font-semibold">Open Curio from the tray</h1>
-      <p style={{ color: "var(--color-muted)" }}>
-        This tab does not have a session. Curio's dashboard is opened from the tray icon, which
-        hands the browser a one-time key — so a bookmarked link cannot get in on its own.
-      </p>
+      <h1 class="text-xl font-semibold">{t("system.noSession.title")}</h1>
+      <p style={{ color: "var(--color-muted)" }}>{t("system.noSession.body")}</p>
       <p class="text-sm" style={{ color: "var(--color-muted)" }}>
-        <Show when={up()} fallback="Waiting for Curio to start…">
-          Curio is running. Choose <strong>Open Dashboard</strong> from its tray icon.
+        {/*
+          One key, whole sentence. The tray entry used to be a <strong> in the middle of
+          this clause, which cannot survive translation — English puts it after the verb
+          and Japanese before it, so the markup would have wrapped the wrong words in one
+          of the two languages. It is quoted inside the string instead, which reads as
+          「Open Dashboard」 in Japanese without any markup at all.
+        */}
+        <Show when={up()} fallback={t("system.noSession.waiting")}>
+          {t("system.noSession.running")}
         </Show>
       </p>
     </main>

@@ -12,6 +12,7 @@ import { ensureVocabulary } from "~/components/library/vocab";
 import { getItem, getSettings, itemDetailImageUrl, updateItem } from "~/lib/api";
 import { events } from "~/lib/events";
 import { ApiError } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Item, ItemPatch } from "~/lib/types";
 
 /**
@@ -27,7 +28,14 @@ import type { Item, ItemPatch } from "~/lib/types";
 export function ItemDetail() {
   const params = useParams<{ id: string }>();
   const [state, setState] = createStore<{ item: Item | null }>({ item: null });
-  const [problem, setProblem] = createSignal<string | null>(null);
+  // The failure is kept, not the sentence describing it, so a banner already on screen
+  // re-reads itself when the language changes under it. Storing `explain(error)` would
+  // freeze whichever language was current at the moment the fetch failed.
+  const [failure, setFailure] = createSignal<unknown>(null);
+  const problem = () => {
+    const error = failure();
+    return error ? explain(error) : null;
+  };
   const [gone, setGone] = createSignal(false);
   const [settings] = createResource(getSettings);
 
@@ -39,13 +47,15 @@ export function ItemDetail() {
     on(
       () => params.id,
       async (id) => {
-        setProblem(null);
+        setFailure(null);
         setGone(false);
         try {
           setState("item", await getItem(id));
         } catch (error) {
           setState("item", null);
-          setProblem(explain(error));
+          // Functional form: a bare `setFailure(error)` would let Solid mistake a thrown
+          // function for an updater and call it.
+          setFailure(() => error);
         }
       },
     ),
@@ -87,8 +97,11 @@ export function ItemDetail() {
       {/* Where you came from on the left, what you can do on the right. */}
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="flex flex-wrap items-center gap-2">
+          {/* The arrow is decoration on a link whose word is the destination, so it stays
+              here rather than being baked into the string — 「← ライブラリ」 reads the same
+              way round, and a translator should never have to carry a glyph. */}
           <A href="/" class="pill">
-            ← Library
+            <span aria-hidden="true">←</span> {t("items.detail.back")}
           </A>
 
           {/* The grid already says this on the card it was opened from; saying it here too is
@@ -98,7 +111,7 @@ export function ItemDetail() {
           <Show when={state.item?.status === "processing"}>
             <span class="badge badge-strong" aria-live="polite">
               <span class="dot-live" aria-hidden="true" />
-              Assessment in progress
+              {t("items.detail.processing")}
             </span>
           </Show>
         </div>
@@ -109,12 +122,18 @@ export function ItemDetail() {
       </div>
 
       <Show when={gone()}>
+        {/* Two whole clauses, not one sentence with a link inside it: the statement and the
+            way out survive translation independently, and the full stop that used to trail
+            the link is gone — it was underlined-adjacent in English and would have been a
+            stray `.` after 「ライブラリに戻る」. */}
         <output class="banner tint-caution">
-          This item was deleted.{" "}
-          <A href="/" class="underline underline-offset-2">
-            Back to the library
+          {t("items.detail.gone.message")}
+          {/* The gap is a margin rather than a text node: English wants a word space after
+              its full stop, 。 carries one of its own, and a literal space on top of that
+              opens a visible hole before the link. */}
+          <A href="/" class="ml-1 underline underline-offset-2">
+            {t("items.detail.gone.back")}
           </A>
-          .
         </output>
       </Show>
 
@@ -126,7 +145,7 @@ export function ItemDetail() {
         when={state.item}
         fallback={
           <Show when={!problem()}>
-            <p class="py-12 text-center text-sm text-ink-faint">Opening…</p>
+            <p class="py-12 text-center text-sm text-ink-faint">{t("common.loading")}</p>
           </Show>
         }
       >
@@ -201,10 +220,11 @@ function ItemShot(props: { item: Item }) {
   );
 }
 
+/** See `AddItemDialog`'s `explain`: the same shape, over the failures this page can hit. */
 function explain(error: unknown): string {
-  if (!(error instanceof ApiError)) return "Could not open that item.";
-  if (error.status === 404) return "That item is not in the library. It may have been deleted.";
-  if (error.sessionExpired) return "Curio restarted. Open the dashboard from the tray again.";
-  if (error.unreachable) return "Curio is not answering. Is it still running?";
+  if (!(error instanceof ApiError)) return t("items.detail.errors.open");
+  if (error.status === 404) return t("items.detail.errors.notFound");
+  if (error.sessionExpired) return t("items.errors.sessionExpired");
+  if (error.unreachable) return t("items.errors.unreachable");
   return error.message;
 }

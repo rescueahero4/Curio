@@ -30,6 +30,7 @@ import { RubricSection } from "~/components/settings/RubricSection";
 import { StartupSection } from "~/components/settings/StartupSection";
 import { ThresholdsSection } from "~/components/settings/ThresholdsSection";
 import { getSettings, saveSettings } from "~/lib/api";
+import { t } from "~/lib/i18n";
 // Aliased because this route's own component is called `Settings` too. The record is what
 // the server holds; the component is the page that edits it.
 import type { Settings as SettingsRecord } from "~/lib/types";
@@ -41,30 +42,41 @@ import type { Settings as SettingsRecord } from "~/lib/types";
  *
  * The ids are the contract between this list and the `Section`s; each section carries
  * `scroll-mt` so the sticky top bar does not cover the heading a jump lands on.
+ *
+ * A function, not the module constant it used to be. Every label here is a `t(...)` call,
+ * and a constant would resolve all nine of them once at import time — the nav would then be
+ * the one part of the page still in the old language after a switch. Built per render, it
+ * follows along.
+ *
+ * The labels are the sections' own headings wherever they are the same words, so the two
+ * cannot drift; only the API key differs, because its heading is three words too long for
+ * this column.
  */
-const SECTION_NAV = [
-  {
-    group: "General",
-    items: [
-      { id: "paths", label: "Paths" },
-      { id: "startup", label: "Startup" },
-      { id: "language", label: "Language" },
-    ],
-  },
-  {
-    group: "Assessment",
-    items: [
-      { id: "api-key", label: "Anthropic key" },
-      { id: "models", label: "Models" },
-      { id: "assessment-rubric", label: "Assessment rubric" },
-      { id: "thresholds", label: "Confidence thresholds" },
-    ],
-  },
-  {
-    group: "Agents",
-    items: [{ id: "mcp", label: "MCP server" }],
-  },
-];
+function sectionNav() {
+  return [
+    {
+      group: t("settings.nav.groups.general"),
+      items: [
+        { id: "paths", label: t("settings.paths.title") },
+        { id: "startup", label: t("settings.startup.title") },
+        { id: "language", label: t("common.language.title") },
+      ],
+    },
+    {
+      group: t("settings.nav.groups.assessment"),
+      items: [
+        { id: "api-key", label: t("settings.nav.apiKey") },
+        { id: "models", label: t("settings.models.title") },
+        { id: "assessment-rubric", label: t("settings.rubric.title") },
+        { id: "thresholds", label: t("settings.thresholds.title") },
+      ],
+    },
+    {
+      group: t("settings.nav.groups.agents"),
+      items: [{ id: "mcp", label: t("settings.mcp.title") }],
+    },
+  ];
+}
 
 export function Settings() {
   const [settings, { mutate, refetch }] = createResource(getSettings);
@@ -86,20 +98,20 @@ export function Settings() {
   return (
     <section class="mx-auto flex max-w-5xl flex-col gap-4 pb-24">
       <header>
-        <h1 class="text-2xl font-semibold">Settings</h1>
+        <h1 class="text-2xl font-semibold">{t("settings.title")}</h1>
       </header>
 
       <Show when={settings.error}>
         <div class="banner tint-caution">
-          <span>Curio could not read your settings.</span>
+          <span>{t("settings.unreadable.message")}</span>
           <button type="button" class="pill pill-outline" onClick={() => void refresh()}>
-            Try again
+            {t("settings.unreadable.retry")}
           </button>
         </div>
       </Show>
 
       <Show when={settings.loading}>
-        <p class="text-sm text-ink-muted">Reading your settings…</p>
+        <p class="text-sm text-ink-muted">{t("settings.loading")}</p>
       </Show>
 
       <Show when={settings()}>
@@ -139,11 +151,11 @@ export function Settings() {
 function SectionNav(props: { settings: SettingsRecord }) {
   return (
     <nav
-      aria-label="Settings sections"
+      aria-label={t("settings.nav.label")}
       class="sticky top-20 hidden w-44 shrink-0 flex-col gap-6 pt-6 lg:flex"
     >
       <ul class="grid gap-6">
-        <For each={SECTION_NAV}>
+        <For each={sectionNav()}>
           {(group) => (
             <li>
               <p class="text-xs font-medium text-ink-faint">{group.group}</p>
@@ -177,15 +189,18 @@ function SectionNav(props: { settings: SettingsRecord }) {
           Deliberately not `window.location.port` either, close as that is to the truth. It
           is Vite's port under `npm run dev`, which would make this line lie in exactly the
           setting where a developer is most likely to trust it. */}
+      {/* The version line is a product name and a number, and reads the same in either
+          language, so it stays here rather than becoming a dictionary entry that could only
+          ever hold the same four characters twice. "Port" is a word, and does not. */}
       <p class="numeric text-2xs text-ink-faint">
         Curio {props.settings.version}
         <br />
-        Port {props.settings.bound_port}
+        {t("settings.nav.port", { port: props.settings.bound_port })}
         {/* An ephemeral port is a different number every run, and a user reading this to put
             it somewhere durable — a config file, a bookmark — needs to know that. */}
         <Show when={props.settings.port === null}>
           <br />
-          <span>chosen at launch</span>
+          <span>{t("settings.nav.ephemeralPort")}</span>
         </Show>
       </p>
     </nav>

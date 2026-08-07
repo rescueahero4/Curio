@@ -4,6 +4,7 @@ import { SelectToggle } from "~/components/library/SelectToggle";
 import { MergeControl, type MergeTarget } from "~/components/vocabulary/MergeControl";
 import { deleteTerm, mergeTerm, updateTerm } from "~/lib/api";
 import { ApiError, paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import { refreshVocabulary } from "~/lib/stores";
 import type { CreatedBy, VocabularyKind } from "~/lib/types";
 
@@ -54,8 +55,8 @@ export function VocabRow(props: {
   const [busy, setBusy] = createSignal(false);
 
   const blocked = () => {
-    if (paused()) return "Curio is paused. Resume from the tray icon to edit the vocabulary.";
-    if (busy()) return "Working…";
+    if (paused()) return t("vocabulary.blocked.paused");
+    if (busy()) return t("vocabulary.blocked.busy");
     return undefined;
   };
 
@@ -89,7 +90,9 @@ export function VocabRow(props: {
         <td class="td numeric text-end text-ink-muted">{props.entry.item_count}</td>
 
         <td class="td td-origin text-ink-muted">
-          {props.entry.created_by === "ai" ? "Curio" : "You"}
+          {props.entry.created_by === "ai"
+            ? t("vocabulary.origin.ai")
+            : t("vocabulary.origin.user")}
         </td>
 
         <Show when={props.described}>
@@ -99,7 +102,7 @@ export function VocabRow(props: {
           <td class="td td-description">
             <Show
               when={props.entry.description?.trim()}
-              fallback={<span class="text-ink-faint">No description</span>}
+              fallback={<span class="text-ink-faint">{t("vocabulary.row.noDescription")}</span>}
             >
               {(said) => <span class="line-clamp-1 text-ink-muted">{said()}</span>}
             </Show>
@@ -114,7 +117,7 @@ export function VocabRow(props: {
             aria-expanded={open()}
             onClick={() => setOpen((was) => !was)}
           >
-            Edit
+            {t("common.edit")}
             <ChevronDown class={open() ? "chevron chevron-open" : "chevron"} />
           </button>
         </td>
@@ -134,7 +137,7 @@ export function VocabRow(props: {
                 }}
               >
                 <label class="flex flex-1 flex-col gap-1 text-sm">
-                  <span class="text-ink-muted">Name</span>
+                  <span class="text-ink-muted">{t("vocabulary.fields.name")}</span>
                   <input
                     type="text"
                     class="field field-block"
@@ -149,10 +152,10 @@ export function VocabRow(props: {
                   class="pill pill-ink"
                   disabled={!!blocked() || !name().trim() || name().trim() === props.entry.name}
                   title={
-                    name().trim() === props.entry.name ? "The name has not changed." : blocked()
+                    name().trim() === props.entry.name ? t("vocabulary.row.unchanged") : blocked()
                   }
                 >
-                  Rename
+                  {t("vocabulary.row.rename")}
                 </button>
               </form>
 
@@ -166,7 +169,7 @@ export function VocabRow(props: {
                     );
                   }}
                 >
-                  <span class="text-ink-muted">Description</span>
+                  <span class="text-ink-muted">{t("vocabulary.fields.description")}</span>
                   <textarea
                     class="field field-block"
                     rows="3"
@@ -175,12 +178,9 @@ export function VocabRow(props: {
                     title={blocked()}
                     onInput={(event) => setDescription(event.currentTarget.value)}
                   />
-                  <span class="text-xs text-ink-faint">
-                    Curio reads this when it decides what belongs here, and it is what a family chip
-                    expands to in a prompt. Describing the feel is worth more than listing examples.
-                  </span>
+                  <span class="text-xs text-ink-faint">{t("vocabulary.row.descriptionHint")}</span>
                   <button type="submit" class="pill pill-outline self-start" disabled={!!blocked()}>
-                    Save description
+                    {t("vocabulary.row.saveDescription")}
                   </button>
                 </form>
               </Show>
@@ -202,14 +202,19 @@ export function VocabRow(props: {
                     title={blocked()}
                     onClick={() => setAsking(true)}
                   >
-                    Delete
+                    {t("common.delete")}
                   </button>
                 }
               >
                 <div class="flex flex-wrap items-center gap-2 text-sm">
+                  {/* The name and the count are both interpolated into one sentence rather
+                      than dropped into the middle of the markup: the count is the middle of
+                      the English clause and the front of the Japanese one. */}
                   <span class="text-ink-muted">
-                    Delete {props.entry.name}? The {props.entry.item_count} items stay — they just
-                    lose this word.
+                    {t("vocabulary.row.confirm", {
+                      name: props.entry.name,
+                      count: props.entry.item_count,
+                    })}
                   </span>
                   <button
                     type="button"
@@ -219,10 +224,10 @@ export function VocabRow(props: {
                       void run(() => deleteTerm(props.kind, props.entry.id));
                     }}
                   >
-                    Yes, delete
+                    {t("vocabulary.confirmDelete")}
                   </button>
                   <button type="button" class="pill" onClick={() => setAsking(false)}>
-                    Keep it
+                    {t("vocabulary.row.keep")}
                   </button>
                 </div>
               </Show>
@@ -246,7 +251,7 @@ export function VocabRow(props: {
  * rather than reducing to "that did not work".
  */
 function refusal(error: unknown): string {
-  if (!(error instanceof ApiError)) return "That change did not go through.";
-  if (error.isPaused) return "Curio is paused. Resume from the tray icon.";
+  if (!(error instanceof ApiError)) return t("vocabulary.errors.generic");
+  if (error.isPaused) return t("vocabulary.errors.paused");
   return error.message;
 }

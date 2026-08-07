@@ -7,10 +7,11 @@
  * reader to carry a constraint they had not yet had the chance to break.
  */
 
-import { type Commit, PAUSED_REASON } from "~/components/settings/model";
+import { type Commit, pausedReason } from "~/components/settings/model";
 import { blurOrEnter, createSaver } from "~/components/settings/save";
 import { Field, Section } from "~/components/settings/section";
 import { paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Settings, Thresholds } from "~/lib/types";
 
 const STEP = 0.05;
@@ -30,12 +31,15 @@ export function ThresholdsSection(props: { settings: Settings; commit: Commit })
   return (
     <Section
       id="thresholds"
-      title="Confidence thresholds"
+      title={t("settings.thresholds.title")}
       saver={saver}
-      blurb="How sure Curio has to be before filing something on its own. When it isn't sure enough, it asks you instead."
+      blurb={t("settings.thresholds.blurb")}
     >
       <div class="grid gap-3 sm:grid-cols-2">
-        <Field label="Lower" hint="Below this, Curio suggests a new family rather than guessing.">
+        <Field
+          label={t("settings.thresholds.lower.label")}
+          hint={t("settings.thresholds.lower.hint")}
+        >
           {(id) => (
             <input
               id={id}
@@ -46,13 +50,16 @@ export function ThresholdsSection(props: { settings: Settings; commit: Commit })
               step={STEP}
               value={props.settings.thresholds.lower}
               disabled={paused()}
-              title={paused() ? PAUSED_REASON : undefined}
+              title={paused() ? pausedReason() : undefined}
               {...blurOrEnter(commitBound("lower"))}
             />
           )}
         </Field>
 
-        <Field label="Upper" hint="At or above this, Curio files the item without asking.">
+        <Field
+          label={t("settings.thresholds.upper.label")}
+          hint={t("settings.thresholds.upper.hint")}
+        >
           {(id) => (
             <input
               id={id}
@@ -63,7 +70,7 @@ export function ThresholdsSection(props: { settings: Settings; commit: Commit })
               step={STEP}
               value={props.settings.thresholds.upper}
               disabled={paused()}
-              title={paused() ? PAUSED_REASON : undefined}
+              title={paused() ? pausedReason() : undefined}
               {...blurOrEnter(commitBound("upper"))}
             />
           )}

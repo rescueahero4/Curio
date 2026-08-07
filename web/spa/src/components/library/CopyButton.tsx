@@ -1,4 +1,5 @@
 import { createSignal, onCleanup } from "solid-js";
+import { t } from "~/lib/i18n";
 
 /** How long "Copied" stays. Long enough to be read, short enough not to be a state. */
 const CONFIRM_MS = 1_600;
@@ -24,9 +25,9 @@ export function CopyButton(props: {
   async function copy() {
     try {
       await navigator.clipboard.writeText(props.text());
-      setSaid("Copied");
+      setSaid(t("common.copied"));
     } catch {
-      setSaid("Could not reach the clipboard");
+      setSaid(t("library.copyFailed"));
     }
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => setSaid(null), CONFIRM_MS);

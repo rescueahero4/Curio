@@ -9,17 +9,35 @@
  *
  * Aliases exist because the vocabulary has two names for most of these already: a "style"
  * is a tag, an "aesthetic" is a family. Both spellings work rather than one being right.
+ *
+ * ## The four words are not translated, and the two sentences beside them are
+ *
+ * `label` and `aliases` are what the user types and what ends up in the paragraph — the run
+ * really reads `/aesthetic:warm`. Translating them would mean a Japanese reader could see
+ * 「ファミリー」 in the menu and have no way to type toward it, because the matcher only
+ * ever compares against these words; it would also put a Japanese word into a document the
+ * server parses. So they stay as they are, the way `/remind` stays `/remind` in a Japanese
+ * Slack, and the row's second line — `noun` and `hint` — carries the meaning instead.
+ *
+ * Both of those are **thunks, resolved at render**. A label baked in at module load is
+ * frozen in whichever language was current when this file was first imported, which for the
+ * lazily-loaded editor route is whichever language the user was reading when they opened it.
  */
 
 import type { ChipKind } from "~/components/editor/chips";
 import { getVocabulary, listItems } from "~/lib/api";
+import { t } from "~/lib/i18n";
 
 export type PaletteKind = "aesthetic" | "style" | "type" | "item";
 
 export interface PaletteEntry {
   kind: PaletteKind;
+  /** The command token: typed by the user, matched here, written into the document. */
   label: string;
-  hint: string;
+  /** What this inserts, as it reads inside a sentence. Resolved at render. */
+  noun: () => string;
+  /** The row's second line. Resolved at render. */
+  hint: () => string;
   chip: ChipKind;
   aliases: readonly string[];
 }
@@ -28,28 +46,32 @@ export const PALETTE: readonly PaletteEntry[] = [
   {
     kind: "aesthetic",
     label: "aesthetic",
-    hint: "A family from your vocabulary, with its full description",
+    noun: () => t("editor.slash.kinds.aesthetic"),
+    hint: () => t("editor.slash.hints.aesthetic"),
     chip: "familyChip",
     aliases: ["family", "families", "aesthetics", "vibe"],
   },
   {
     kind: "style",
     label: "style",
-    hint: "A tag — the word on its own",
+    noun: () => t("editor.slash.kinds.style"),
+    hint: () => t("editor.slash.hints.style"),
     chip: "tagChip",
     aliases: ["tag", "tags", "styles"],
   },
   {
     kind: "type",
     label: "type",
-    hint: "A design type — the word on its own",
+    noun: () => t("editor.slash.kinds.type"),
+    hint: () => t("editor.slash.hints.type"),
     chip: "typeChip",
     aliases: ["types", "kind"],
   },
   {
     kind: "item",
     label: "item",
-    hint: "A reference, carrying the folder your tool can read",
+    noun: () => t("editor.slash.kinds.item"),
+    hint: () => t("editor.slash.hints.item"),
     chip: "itemRef",
     aliases: ["items", "reference", "ref"],
   },
@@ -114,7 +136,13 @@ export async function loadPicker(kind: PaletteKind): Promise<PickerEntry[]> {
   return terms.map((term) => ({
     id: term.id,
     label: term.name,
-    hint: term.item_count === 1 ? "1 item" : `${term.item_count} items`,
+    // Read once, when the list is fetched, rather than per render: these rows are already
+    // server data and the menu is a moment. A language switch with the picker open leaves
+    // this one line stale until it is reopened, which is the whole cost.
+    hint:
+      term.item_count === 1
+        ? t("editor.slash.itemCount.one")
+        : t("editor.slash.itemCount.other", { count: term.item_count }),
   }));
 }
 

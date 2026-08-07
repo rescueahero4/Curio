@@ -13,6 +13,7 @@
 
 import { createSignal, onCleanup, Show } from "solid-js";
 import { Check, Copy } from "~/components/icons";
+import { t } from "~/lib/i18n";
 
 /** How long the tick stays. Long enough to be read, short enough not to be a state. */
 const CONFIRM_MS = 1_600;
@@ -36,9 +37,7 @@ export function CopyBlock(props: { label: string; hint?: string; snippet: string
       // did not happen sends the user to paste nothing into a config file. A refusal needs
       // more than a tick can say, so it keeps the sentence below the block.
       setCopied(false);
-      setProblem(
-        "Your browser would not let Curio use the clipboard. Select the text and copy it.",
-      );
+      setProblem(t("settings.snippet.refused"));
     }
   }
 
@@ -60,8 +59,12 @@ export function CopyBlock(props: { label: string; hint?: string; snippet: string
         <button
           type="button"
           class="pill pill-icon pill-outline absolute top-2 right-2"
-          aria-label={copied() ? `${props.label} config copied` : `Copy the ${props.label} config`}
-          title={copied() ? "Copied" : "Copy"}
+          aria-label={
+            copied()
+              ? t("settings.snippet.copied", { label: props.label })
+              : t("settings.snippet.copy", { label: props.label })
+          }
+          title={copied() ? t("common.copied") : t("common.copy")}
           onClick={() => void copy()}
         >
           <Show when={copied()} fallback={<Copy />}>

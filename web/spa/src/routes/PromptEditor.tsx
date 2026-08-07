@@ -28,6 +28,7 @@ import { PromptActions } from "~/components/editor/PromptActions";
 import { ghostMap } from "~/components/editor/sections";
 import { Toolbar } from "~/components/editor/Toolbar";
 import { getPrompt, getPromptTemplate, serializePrompt, updatePrompt } from "~/lib/api";
+import { t } from "~/lib/i18n";
 
 /** The same coalescing window the item detail uses (R-FE-13). One habit, one number. */
 const AUTOSAVE_MS = 600;
@@ -66,7 +67,7 @@ export default function PromptEditor() {
       await updatePrompt(params.id, changes);
       setProblem(null);
     } catch (error) {
-      setProblem(error instanceof Error ? error.message : "The last edit did not save.");
+      setProblem(error instanceof Error ? error.message : t("editor.document.failed.save"));
     } finally {
       setSaving(false);
     }
@@ -98,7 +99,7 @@ export default function PromptEditor() {
       setSource((await serializePrompt(params.id)).text);
     } catch (error) {
       setShowingSource(false);
-      setProblem(error instanceof Error ? error.message : "The markdown could not be read.");
+      setProblem(error instanceof Error ? error.message : t("editor.document.failed.source"));
     }
   };
 
@@ -131,7 +132,9 @@ export default function PromptEditor() {
 
         <Show
           when={ready()}
-          fallback={<p class="py-12 text-center text-sm text-ink-faint">Opening the prompt…</p>}
+          fallback={
+            <p class="py-12 text-center text-sm text-ink-faint">{t("editor.document.opening")}</p>
+          }
         >
           {(state) => (
             // The page. The width is set for a comfortable measure rather than for the
@@ -148,7 +151,9 @@ export default function PromptEditor() {
                   when={source()}
                   fallback={
                     <p class="min-h-96 text-sm text-ink-faint">
-                      {source() === null ? "Reading the markdown…" : "This prompt is empty."}
+                      {source() === null
+                        ? t("editor.document.source.reading")
+                        : t("editor.document.source.empty")}
                     </p>
                   }
                 >
@@ -167,11 +172,7 @@ export default function PromptEditor() {
           )}
         </Show>
 
-        <p class="max-w-prose text-xs text-ink-faint">
-          Inserted chips expand when the prompt is serialized: an aesthetic carries its full
-          description, and a reference carries the absolute folder path, so the receiving agent can
-          read the screenshot and its sidecar straight off disk.
-        </p>
+        <p class="max-w-prose text-xs text-ink-faint">{t("editor.document.note")}</p>
       </div>
 
       {/* Outside the document flow on purpose: it is a moment, not a section, and a copy

@@ -4,6 +4,7 @@ import { CopyButton } from "~/components/library/CopyButton";
 import { briefText } from "~/components/library/handoff";
 import { deleteItem, reassessItem } from "~/lib/api";
 import { paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Item } from "~/lib/types";
 
 /**
@@ -27,7 +28,7 @@ export function ItemToolbar(props: {
   const [busy, setBusy] = createSignal<string | null>(null);
   const [problem, setProblem] = createSignal<string | null>(null);
 
-  const pausedReason = () => (paused() ? "Curio is paused. Resume from the tray icon." : undefined);
+  const pausedReason = () => (paused() ? t("library.item.toolbar.paused") : undefined);
 
   async function reassess() {
     setBusy("reassess");
@@ -35,7 +36,7 @@ export function ItemToolbar(props: {
     try {
       await reassessItem(props.item.id);
     } catch {
-      setProblem("Could not queue a re-assessment.");
+      setProblem(t("library.item.toolbar.errors.reassess"));
     }
     setBusy(null);
   }
@@ -46,7 +47,7 @@ export function ItemToolbar(props: {
       await deleteItem(props.item.id);
       navigate("/");
     } catch {
-      setProblem("Could not delete this item.");
+      setProblem(t("library.item.toolbar.errors.delete"));
       setBusy(null);
     }
   }
@@ -55,20 +56,25 @@ export function ItemToolbar(props: {
     <div class="flex flex-col items-end gap-2">
       <div class="flex flex-wrap items-center justify-end gap-2">
         <CopyButton
-          label="Copy folder path"
+          label={t("library.item.toolbar.copyFolder")}
           text={() => props.directory ?? ""}
-          blocked={props.directory ? undefined : "Asking Curio where this item lives…"}
+          blocked={props.directory ? undefined : t("library.item.handoff.locating")}
         />
-        <CopyButton label="Copy brief" text={() => briefText(props.item, props.directory)} />
+        <CopyButton
+          label={t("library.item.toolbar.copyBrief")}
+          text={() => briefText(props.item, props.directory)}
+        />
 
         <button
           type="button"
           class="pill pill-outline"
           disabled={!!pausedReason() || busy() === "reassess"}
-          title={pausedReason() ?? "Re-assessment keeps any name you have edited yourself."}
+          title={pausedReason() ?? t("library.item.toolbar.reassessHint")}
           onClick={() => void reassess()}
         >
-          {busy() === "reassess" ? "Queueing…" : "Re-assess"}
+          {busy() === "reassess"
+            ? t("library.item.toolbar.queueing")
+            : t("library.item.toolbar.reassess")}
         </button>
 
         {/* Delete asks in place rather than in a dialog. The question is one line and the
@@ -83,23 +89,23 @@ export function ItemToolbar(props: {
               title={pausedReason()}
               onClick={() => setAsking(true)}
             >
-              Delete
+              {t("common.delete")}
             </button>
           }
         >
-          <span class="text-xs text-ink-muted">
-            Delete this item and its folder? The screenshot goes with it.
-          </span>
+          <span class="text-xs text-ink-muted">{t("library.item.toolbar.askDelete")}</span>
           <button
             type="button"
             class="pill tint-caution"
             disabled={busy() === "delete"}
             onClick={() => void remove()}
           >
-            {busy() === "delete" ? "Deleting…" : "Yes, delete"}
+            {busy() === "delete"
+              ? t("library.item.toolbar.deleting")
+              : t("library.item.toolbar.yes")}
           </button>
           <button type="button" class="pill pill-outline" onClick={() => setAsking(false)}>
-            Keep it
+            {t("library.item.toolbar.no")}
           </button>
         </Show>
       </div>
@@ -128,45 +134,38 @@ export function ItemActions(props: {
     <aside class="flex flex-col gap-3">
       <Show when={props.apiKeySet === false}>
         <section class="banner tint-caution flex-col items-start gap-1">
-          <strong class="font-semibold">Waiting for an API key.</strong>
-          <span>
-            The screenshot is stored and this page is fully editable. Curio writes the name,
-            description and families once a key is set in Settings — nothing is lost while it waits.
-          </span>
+          <strong class="font-semibold">{t("library.item.handoff.noKey.title")}</strong>
+          <span>{t("library.item.handoff.noKey.blurb")}</span>
         </section>
       </Show>
 
       <section class="card flex flex-col gap-2 p-3">
-        <h2 class="text-sm font-medium">Hand this to an agent</h2>
+        <h2 class="text-sm font-medium">{t("library.item.handoff.title")}</h2>
         <Show
           when={props.directory}
-          fallback={<p class="text-xs text-ink-faint">Asking Curio where this item lives…</p>}
+          fallback={<p class="text-xs text-ink-faint">{t("library.item.handoff.locating")}</p>}
         >
           {(directory) => (
             <>
               <code class="block overflow-x-auto rounded bg-desk px-2 py-1 font-mono text-xs">
                 {directory()}
               </code>
-              <p class="text-xs text-ink-muted">
-                The folder holds <code class="font-mono">screenshot.png</code> and{" "}
-                <code class="font-mono">item.md</code>. Paste the path into Claude Code and ask it
-                to read them.
-              </p>
+              {/* One sentence rather than a clause per file name. The two names used to be
+                  `<code>` spans sitting mid-clause, and a clause cannot be reordered around
+                  markup — Japanese puts the verb after both of them. The names are still
+                  literal, because a file name is not a word. */}
+              <p class="text-xs text-ink-muted">{t("library.item.handoff.contents")}</p>
             </>
           )}
         </Show>
       </section>
 
       <section class="card flex flex-col gap-2 p-3">
-        <h2 class="text-sm font-medium">Image prompt</h2>
+        <h2 class="text-sm font-medium">{t("library.item.handoff.imagePrompt.title")}</h2>
         <CopyButton
-          label="Copy image prompt"
+          label={t("library.item.handoff.imagePrompt.copy")}
           text={() => props.item.image_recipe ?? ""}
-          blocked={
-            props.item.image_recipe
-              ? undefined
-              : "Curio has not written an image prompt for this one yet."
-          }
+          blocked={props.item.image_recipe ? undefined : t("library.item.handoff.imagePrompt.none")}
         />
       </section>
     </aside>

@@ -2,6 +2,7 @@ import { type Accessor, createEffect, createMemo, createSignal, on, onCleanup } 
 import { filterKey, isNarrowed } from "~/components/library/filters";
 import { listItems } from "~/lib/api";
 import { ApiError } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import { setFilterActive, setItemsPage } from "~/lib/stores";
 import type { ItemFilter } from "~/lib/types";
 
@@ -100,9 +101,14 @@ export function createSentinel(onReach: () => void) {
   };
 }
 
+/**
+ * The last line returns the server's own words, which arrive in one language — English —
+ * whatever the dashboard is set to. Everything Curio's front end has to say about a failure
+ * is translated; a message the API wrote is passed through rather than guessed at.
+ */
 function explainFeed(error: unknown): string {
-  if (!(error instanceof ApiError)) return "Could not load the library.";
-  if (error.sessionExpired) return "Curio restarted. Open the dashboard from the tray again.";
-  if (error.unreachable) return "Curio is not answering. Is it still running?";
+  if (!(error instanceof ApiError)) return t("library.grid.errors.load");
+  if (error.sessionExpired) return t("library.grid.errors.sessionExpired");
+  if (error.unreachable) return t("library.grid.errors.unreachable");
   return error.message;
 }

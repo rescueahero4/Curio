@@ -9,12 +9,12 @@
 
 import { A } from "@solidjs/router";
 import { createResource, createSignal, For, onCleanup, onMount, Show } from "solid-js";
-import { EMPTY_BODY, EMPTY_TITLE, PAUSED_REASON, SUBTITLE } from "~/components/projects/copy";
 import { ProjectCard } from "~/components/projects/ProjectCard";
 import { RegisterProject } from "~/components/projects/RegisterProject";
 import { listProjects, listPrompts } from "~/lib/api";
 import { events } from "~/lib/events";
 import { paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Project } from "~/lib/types";
 
 export function Projects() {
@@ -68,13 +68,18 @@ export function Projects() {
     <section class="flex flex-col gap-4">
       <header class="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <h1 class="text-2xl font-semibold">Projects</h1>
-          <p class="mt-1 text-sm text-ink-muted">{SUBTITLE}</p>
+          <h1 class="text-2xl font-semibold">{t("projects.title")}</h1>
+          <p class="mt-1 text-sm text-ink-muted">{t("projects.subtitle")}</p>
         </div>
         <Show when={projects()?.length}>
           {(count) => (
+            // The whole count is one string, number included. English inflects the noun and
+            // Japanese puts a counter between the two, so a `<span>` around the digit with
+            // the word beside it would have been an English-shaped sentence either way.
             <span class="text-sm tabular-nums text-ink-muted">
-              {count()} project{count() === 1 ? "" : "s"}
+              {count() === 1
+                ? t("projects.count.one", { count: count() })
+                : t("projects.count.other", { count: count() })}
             </span>
           )}
         </Show>
@@ -82,23 +87,23 @@ export function Projects() {
 
       <Show when={projects.error}>
         <div class="banner tint-caution">
-          <span>Curio could not read your projects.</span>
+          <span>{t("projects.failed")}</span>
           <button type="button" class="pill pill-outline" onClick={() => void refetch()}>
-            Try again
+            {t("common.retry")}
           </button>
         </div>
       </Show>
 
       <Show when={projects.loading}>
-        <p class="text-sm text-ink-muted">Looking for your projects…</p>
+        <p class="text-sm text-ink-muted">{t("projects.loading")}</p>
       </Show>
 
       <Show when={projects()?.length === 0}>
         <div class="card flex flex-col gap-2 p-5">
-          <h2 class="text-lg font-semibold">{EMPTY_TITLE}</h2>
-          <p class="max-w-prose text-sm text-ink-muted">{EMPTY_BODY}</p>
+          <h2 class="text-lg font-semibold">{t("projects.empty.title")}</h2>
+          <p class="max-w-prose text-sm text-ink-muted">{t("projects.empty.body")}</p>
           <A href="/settings" class="pill pill-outline w-fit">
-            Open Settings
+            {t("projects.empty.settings")}
           </A>
         </div>
       </Show>
@@ -125,18 +130,22 @@ export function Projects() {
         <Show
           when={registering()}
           fallback={
+            // A lead sentence and a button label, not one sentence with a control inside
+            // it: the question and the offer survive translation as wholes, where a subject
+            // in one key and a predicate in another would land in the wrong order in one of
+            // the two languages. The full stop went with the split — it belonged to a
+            // sentence that no longer runs through the button.
             <p class="text-sm text-ink-muted">
-              Somewhere else on this machine?{" "}
+              {t("projects.register.lead")}{" "}
               <button
                 type="button"
                 class="underline decoration-line underline-offset-4 hover:text-ink"
                 onClick={() => setRegistering(true)}
                 disabled={paused()}
-                title={paused() ? PAUSED_REASON : undefined}
+                title={paused() ? t("projects.paused") : undefined}
               >
-                Register a folder by hand
+                {t("projects.register.open")}
               </button>
-              .
             </p>
           }
         >

@@ -8,10 +8,11 @@
  */
 
 import { Show } from "solid-js";
-import { type Commit, PAUSED_REASON } from "~/components/settings/model";
+import { type Commit, pausedReason } from "~/components/settings/model";
 import { createSaver } from "~/components/settings/save";
 import { CheckField, Section } from "~/components/settings/section";
 import { paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Settings } from "~/lib/types";
 
 export function StartupSection(props: { settings: Settings; commit: Commit }) {
@@ -28,27 +29,33 @@ export function StartupSection(props: { settings: Settings; commit: Commit }) {
   return (
     <Section
       id="startup"
-      title="Startup"
+      title={t("settings.startup.title")}
       saver={unsupported() ? undefined : saver}
-      blurb="Have Curio up and running as soon as you turn on your computer."
+      blurb={t("settings.startup.blurb")}
     >
+      {/* When the platform cannot honour this, the explanation is two whole sentences chosen
+          by whether the server gave a reason — not one sentence with `: ${reason}` spliced
+          into the middle of it. The English tolerated that because the explanation happens to
+          belong right after the colon in English; in Japanese it belongs somewhere else, and
+          no amount of punctuation in this file can move it there. `reason` itself arrives
+          already written as a sentence, in whatever language the server writes in. */}
       <Show
         when={unsupported()}
         fallback={
           <CheckField
-            label="Start Curio when I log in"
+            label={t("settings.startup.toggle")}
             checked={props.settings.launch_at_login}
             disabled={paused()}
-            reason={PAUSED_REASON}
+            reason={pausedReason()}
             onChange={toggle}
           />
         }
       >
         {(reported) => (
           <p class="max-w-prose text-sm text-ink-muted">
-            Curio can't set this up on your system
-            {reported().reason ? `: ${reported().reason}` : "."} You can still add Curio to your
-            computer's startup items yourself.
+            {reported().reason
+              ? t("settings.startup.unsupportedReason", { reason: reported().reason ?? "" })
+              : t("settings.startup.unsupported")}
           </p>
         )}
       </Show>

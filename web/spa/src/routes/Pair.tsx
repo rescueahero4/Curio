@@ -1,4 +1,15 @@
-import { createSignal } from "solid-js";
+import { createSignal, Show } from "solid-js";
+import { t } from "~/lib/i18n";
+
+/**
+ * Which way the authorization failed.
+ *
+ * The signal holds the *kind* rather than the sentence. Storing `t("system.pair.refused")`
+ * would freeze the wording at the moment of the failure, so a reader who switched language
+ * afterwards would be looking at an alert in the language they just left. `http.ts` accepts
+ * that trade because `Error.message` has to be a string; nothing here forces it.
+ */
+type Problem = "refused" | "unreachable";
 
 /**
  * The pairing fallback (R-FE-19, D11).
@@ -43,30 +54,27 @@ import { createSignal } from "solid-js";
  */
 export function Pair() {
   const [token, setToken] = createSignal<string | null>(null);
-  const [error, setError] = createSignal<string | null>(null);
+  const [problem, setProblem] = createSignal<Problem | null>(null);
 
   async function authorize() {
-    setError(null);
+    setProblem(null);
     try {
       const response = await fetch("/api/pair/authorize", { method: "POST" });
       if (!response.ok) {
-        setError("Curio refused the request. Open the dashboard from the tray and retry.");
+        setProblem("refused");
         return;
       }
       const body = (await response.json()) as { token?: string };
       if (body.token) setToken(body.token);
     } catch {
-      setError("Could not reach Curio.");
+      setProblem("unreachable");
     }
   }
 
   return (
     <section class="flex flex-col gap-4">
-      <h1 class="text-xl font-semibold">Authorize this browser</h1>
-      <p style={{ color: "var(--color-muted)" }}>
-        The Curio extension normally connects on its own. Use this only if it cannot — typically a
-        development install loaded unpacked.
-      </p>
+      <h1 class="text-xl font-semibold">{t("system.pair.title")}</h1>
+      <p style={{ color: "var(--color-muted)" }}>{t("system.pair.blurb")}</p>
 
       <button
         type="button"
@@ -74,15 +82,15 @@ export function Pair() {
         class="w-fit rounded border px-4 py-2"
         style={{ "border-color": "var(--color-line)" }}
       >
-        Authorize this browser
+        {t("system.pair.authorize")}
       </button>
 
-      {error() && <p role="alert">{error()}</p>}
+      <Show when={problem()}>{(kind) => <p role="alert">{t(`system.pair.${kind()}`)}</p>}</Show>
 
       {token() && (
         <>
           <p class="text-sm" style={{ color: "var(--color-muted)" }}>
-            Authorized. The extension picks this up automatically — you can close this tab.
+            {t("system.pair.done")}
           </p>
           {/*
             The handoff element. It appears ONLY after the click above; the extension's

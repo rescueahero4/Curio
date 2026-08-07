@@ -19,6 +19,7 @@
 
 import { createSignal, onCleanup, onMount, Show } from "solid-js";
 import { Cross } from "~/components/icons";
+import { t } from "~/lib/i18n";
 
 /** How long the badge holds. Mirrored by `--badge-hold` in styles.css, which draws it. */
 const HOLD_MS = 8000;
@@ -26,7 +27,10 @@ const HOLD_MS = 8000;
 const FADE_MS = 200;
 
 export function SavedBadge(props: {
-  /** What landed. "Saved changes" unless a caller has something more exact to say. */
+  /**
+   * What landed. `shell.saved.label` unless a caller has something more exact to say — and
+   * a caller that passes one is passing an already-translated string, not a key.
+   */
   label?: string;
   /** Omit when there is nothing to put back — the offer then never appears. */
   onUndo?: () => void;
@@ -89,11 +93,11 @@ export function SavedBadge(props: {
       onFocusOut={resume}
     >
       <span class="badge-saved-body">
-        <strong class="badge-saved-said">{props.label ?? "Saved changes"}</strong>
+        <strong class="badge-saved-said">{props.label ?? t("shell.saved.label")}</strong>
 
         <Show when={props.onUndo}>
           <button type="button" class="badge-saved-undo" onClick={() => props.onUndo?.()}>
-            Undo
+            {t("shell.saved.undo")}
           </button>
         </Show>
 
@@ -105,8 +109,8 @@ export function SavedBadge(props: {
       <button
         type="button"
         class="badge-saved-close"
-        aria-label="Dismiss"
-        title="Dismiss"
+        aria-label={t("common.dismiss")}
+        title={t("common.dismiss")}
         onClick={leave}
       >
         <Cross class="h-2.5 w-2.5" />

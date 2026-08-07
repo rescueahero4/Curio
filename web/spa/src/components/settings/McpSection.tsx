@@ -15,10 +15,11 @@
 
 import { Show } from "solid-js";
 import { CopyBlock } from "~/components/settings/CopyBlock";
-import { type Commit, PAUSED_REASON } from "~/components/settings/model";
+import { type Commit, pausedReason } from "~/components/settings/model";
 import { createSaver } from "~/components/settings/save";
 import { CheckField, Section } from "~/components/settings/section";
 import { paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Settings } from "~/lib/types";
 
 /**
@@ -73,32 +74,24 @@ export function McpSection(props: { settings: Settings; commit: Commit }) {
     );
 
   return (
-    <Section
-      id="mcp"
-      title="MCP server"
-      saver={saver}
-      blurb="Lets AI tools like Claude search your library and read your saved items. Off means off — nothing can reach it."
-    >
+    <Section id="mcp" title={t("settings.mcp.title")} saver={saver} blurb={t("settings.mcp.blurb")}>
       <CheckField
-        label="Let agents reach this library over MCP"
+        label={t("settings.mcp.toggle")}
         checked={props.settings.mcp_enabled}
         disabled={paused()}
-        reason={PAUSED_REASON}
+        reason={pausedReason()}
         onChange={toggle}
       />
 
       {/* Registering while the toggle is off is the one failure that looks like nothing: the
           command succeeds, the client lists the server, and every call comes back refused. */}
       <Show when={!props.settings.mcp_enabled}>
-        <p class="max-w-prose text-xs text-caution">
-          The toggle is off. These will still set Curio up, but nothing will work until you turn it
-          on.
-        </p>
+        <p class="max-w-prose text-xs text-caution">{t("settings.mcp.off")}</p>
       </Show>
 
       <CopyBlock
-        label="Claude Code"
-        hint="Paste this into a terminal, or into Claude Code itself. Curio needs to be running when Claude connects. If you ever move or reinstall Curio, come back and run this again."
+        label={t("settings.mcp.claudeCode.label")}
+        hint={t("settings.mcp.claudeCode.hint")}
         snippet={addCommand()}
       />
 
@@ -108,14 +101,14 @@ export function McpSection(props: { settings: Settings; commit: Commit }) {
           also cut the JSON snippet to half the measure it needs and set two blocks of
           different heights against each other. */}
       <CopyBlock
-        label="Claude Code, over HTTP"
-        hint="The same thing, connected directly. Only worth using if you've set a fixed port — otherwise this stops working the next time Curio restarts."
+        label={t("settings.mcp.claudeCodeHttp.label")}
+        hint={t("settings.mcp.claudeCodeHttp.hint")}
         snippet={addHttpCommand()}
       />
 
       <CopyBlock
-        label="Claude Desktop"
-        hint="Paste this into claude_desktop_config.json. Claude Desktop has no command that can do it for you. The toggle above still applies."
+        label={t("settings.mcp.claudeDesktop.label")}
+        hint={t("settings.mcp.claudeDesktop.hint")}
         snippet={desktopSnippet()}
       />
     </Section>

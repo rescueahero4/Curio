@@ -7,11 +7,12 @@
  */
 
 import { createSignal, Show } from "solid-js";
-import { type Commit, PAUSED_REASON } from "~/components/settings/model";
+import { type Commit, pausedReason } from "~/components/settings/model";
 import { blurOrEnter, createSaver } from "~/components/settings/save";
 import { Field, Section } from "~/components/settings/section";
 import { clearApiKey } from "~/lib/api";
 import { ApiError, paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Settings } from "~/lib/types";
 
 export function ApiKeySection(props: {
@@ -39,12 +40,12 @@ export function ApiKeySection(props: {
     try {
       await clearApiKey();
       await props.refresh();
-      setNote("Key cleared. Reviews will wait until you add a new one.");
+      setNote(t("settings.apiKey.cleared"));
     } catch (error) {
       setNote(
         error instanceof ApiError && error.isPaused
-          ? "Curio is paused, so the key was not cleared. Resume from the tray icon."
-          : "Curio could not clear the key.",
+          ? t("settings.apiKey.clearPaused")
+          : t("settings.apiKey.clearFailed"),
       );
     } finally {
       setClearing(false);
@@ -54,20 +55,24 @@ export function ApiKeySection(props: {
   return (
     <Section
       id="api-key"
-      title="Anthropic API key"
+      title={t("settings.apiKey.title")}
       saver={saver}
-      blurb="Curio needs this to review what you capture. Without it, saving still works — reviews just wait until you add one."
+      blurb={t("settings.apiKey.blurb")}
     >
+      {/* The masked key is interpolated rather than wrapped in a `font-mono` span of its own.
+          It used to sit mid-sentence in a span, which only works while the sentence is
+          English — Japanese puts the value in a different place, and a fragment either side
+          of it cannot be translated on its own. The whole clause is one key now, and the
+          eight characters of `sk-ant-…` read perfectly well in the body face. */}
       <p class="text-sm">
-        <Show when={props.settings.api_key_set} fallback="No key is set.">
-          A key is set:{" "}
-          <span class="numeric font-mono">{props.settings.api_key_masked ?? "sk-ant-…"}</span>
+        <Show when={props.settings.api_key_set} fallback={t("settings.apiKey.none")}>
+          {t("settings.apiKey.set", { key: props.settings.api_key_masked ?? "sk-ant-…" })}
         </Show>
       </p>
 
       <Field
-        label={props.settings.api_key_set ? "Replace the key" : "Set a key"}
-        hint="Press Enter to save. Your key is stored securely and never shown again, so replacing it can't be undone."
+        label={props.settings.api_key_set ? t("settings.apiKey.replace") : t("settings.apiKey.add")}
+        hint={t("settings.apiKey.hint")}
       >
         {(id) => (
           <input
@@ -78,7 +83,7 @@ export function ApiKeySection(props: {
             spellcheck={false}
             placeholder="sk-ant-…"
             disabled={paused()}
-            title={paused() ? PAUSED_REASON : undefined}
+            title={paused() ? pausedReason() : undefined}
             {...blurOrEnter(commitKey)}
           />
         )}
@@ -92,13 +97,13 @@ export function ApiKeySection(props: {
           disabled={!props.settings.api_key_set || clearing() || paused()}
           title={
             paused()
-              ? PAUSED_REASON
+              ? pausedReason()
               : props.settings.api_key_set
                 ? undefined
-                : "There is no key to clear."
+                : t("settings.apiKey.nothingToClear")
           }
         >
-          {clearing() ? "Clearing…" : "Clear key"}
+          {clearing() ? t("settings.apiKey.clearing") : t("settings.apiKey.clear")}
         </button>
         <Show when={note()}>
           {(message) => (

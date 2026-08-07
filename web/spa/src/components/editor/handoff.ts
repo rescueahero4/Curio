@@ -25,19 +25,26 @@
  */
 
 import { serializePrompt } from "~/lib/api";
+import { t } from "~/lib/i18n";
 
 export interface ActionOutcome {
+  /**
+   * Already translated. The outcome is worded at the moment the action finishes rather than
+   * carried as a key, because a toast is a moment: by the time anyone could switch language
+   * the confirmation has dismissed itself, and the caution the user left standing is a
+   * report of something that happened in the language they were reading when it happened.
+   */
   message: string;
   tone: "confirm" | "caution";
 }
 
-const REFUSED = "The clipboard refused. Nothing was copied.";
-
 export async function copyPrompt(id: string): Promise<ActionOutcome> {
   const { text } = await serializePrompt(id);
-  if (!(await copyToClipboard(text))) return { message: REFUSED, tone: "caution" };
+  if (!(await copyToClipboard(text))) {
+    return { message: t("editor.actions.copy.refused"), tone: "caution" };
+  }
 
-  return { message: "Copied to clipboard", tone: "confirm" };
+  return { message: t("editor.actions.copy.done"), tone: "confirm" };
 }
 
 async function copyToClipboard(text: string): Promise<boolean> {

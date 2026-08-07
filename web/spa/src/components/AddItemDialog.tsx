@@ -1,6 +1,7 @@
 import { createEffect, createSignal, on, onCleanup, Show } from "solid-js";
 import { createItem } from "~/lib/api";
 import { ApiError, paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import { createEscapeLayer } from "~/lib/keyboard";
 
 /**
@@ -21,7 +22,15 @@ export function AddItemDialog(props: { open: boolean; onClose: () => void }) {
   const [title, setTitle] = createSignal("");
   const [over, setOver] = createSignal(false);
   const [busy, setBusy] = createSignal(false);
-  const [problem, setProblem] = createSignal<string | null>(null);
+
+  // The failure is kept, not the sentence describing it, so a banner already on screen
+  // re-reads itself when the language changes under it. Storing `explain(error)` would
+  // freeze whichever language was current at the moment the request failed.
+  const [failure, setFailure] = createSignal<unknown>(null);
+  const problem = () => {
+    const error = failure();
+    return error ? explain(error) : null;
+  };
 
   let panel: HTMLDivElement | undefined;
   let opener: HTMLElement | null = null;
@@ -65,7 +74,7 @@ export function AddItemDialog(props: { open: boolean; onClose: () => void }) {
     revoke();
     setFile(next);
     setPreview(URL.createObjectURL(next));
-    setProblem(null);
+    setFailure(null);
   }
 
   function revoke() {
@@ -79,7 +88,7 @@ export function AddItemDialog(props: { open: boolean; onClose: () => void }) {
     setFile(null);
     setSourceUrl("");
     setTitle("");
-    setProblem(null);
+    setFailure(null);
     setOver(false);
   }
 
@@ -90,9 +99,9 @@ export function AddItemDialog(props: { open: boolean; onClose: () => void }) {
 
   /** Why the submit button is off, or `undefined` when it is on. */
   const blocked = () => {
-    if (paused()) return "Curio is paused. Resume from the tray icon to add items.";
-    if (!file()) return "Add a screenshot first — every item needs one.";
-    if (busy()) return "Adding…";
+    if (paused()) return t("items.add.blocked.paused");
+    if (!file()) return t("items.add.blocked.noFile");
+    if (busy()) return t("items.add.busy");
     return undefined;
   };
 
@@ -102,7 +111,7 @@ export function AddItemDialog(props: { open: boolean; onClose: () => void }) {
     if (!screenshot || busy() || paused()) return;
 
     setBusy(true);
-    setProblem(null);
+    setFailure(null);
     try {
       await createItem({
         screenshot,
@@ -113,7 +122,9 @@ export function AddItemDialog(props: { open: boolean; onClose: () => void }) {
       props.onClose();
     } catch (error) {
       setBusy(false);
-      setProblem(explain(error));
+      // Functional form: a bare `setFailure(error)` would let Solid mistake a thrown
+      // function for an updater and call it.
+      setFailure(() => error);
     }
   }
 
@@ -125,21 +136,19 @@ export function AddItemDialog(props: { open: boolean; onClose: () => void }) {
         <button
           type="button"
           class="absolute inset-0 bg-ink/20"
-          aria-label="Close without adding"
+          aria-label={t("items.add.close")}
           onClick={close}
         />
         <div
           ref={panel}
           role="dialog"
           aria-modal="true"
-          aria-label="Add an item"
+          aria-label={t("items.add.title")}
           tabindex="-1"
           class="sheet relative w-full max-w-lg p-5 outline-none"
         >
-          <h2 class="text-lg font-semibold">Add an item</h2>
-          <p class="mt-1 text-sm text-ink-muted">
-            Drop an image, paste one, or choose a file. Curio describes it once it lands.
-          </p>
+          <h2 class="text-lg font-semibold">{t("items.add.title")}</h2>
+          <p class="mt-1 text-sm text-ink-muted">{t("items.add.blurb")}</p>
 
           <form class="mt-4 flex flex-col gap-3" onSubmit={submit}>
             <DropZone
@@ -151,7 +160,7 @@ export function AddItemDialog(props: { open: boolean; onClose: () => void }) {
             />
 
             <label class="flex flex-col gap-1 text-sm">
-              <span class="text-ink-muted">Source URL (optional)</span>
+              <span class="text-ink-muted">{t("items.add.sourceUrl")}</span>
               <input
                 type="url"
                 class="field field-block"
@@ -162,7 +171,7 @@ export function AddItemDialog(props: { open: boolean; onClose: () => void }) {
             </label>
 
             <label class="flex flex-col gap-1 text-sm">
-              <span class="text-ink-muted">Title (optional — Curio suggests one)</span>
+              <span class="text-ink-muted">{t("items.add.name")}</span>
               <input
                 type="text"
                 class="field field-block"
@@ -180,10 +189,10 @@ export function AddItemDialog(props: { open: boolean; onClose: () => void }) {
                 <span class="mr-auto text-xs text-ink-faint">{blocked()}</span>
               </Show>
               <button type="button" class="pill pill-outline" onClick={close} disabled={busy()}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button type="submit" class="pill pill-ink" disabled={!!blocked()} title={blocked()}>
-                {busy() ? "Adding…" : "Add item"}
+                {busy() ? t("items.add.busy") : t("items.add.submit")}
               </button>
             </div>
           </form>
@@ -221,10 +230,7 @@ function DropZone(props: {
           if (dropped) props.onFile(dropped);
         }}
       >
-        <Show
-          when={props.preview}
-          fallback={<span>Drop an image here, paste, or choose a file</span>}
-        >
+        <Show when={props.preview} fallback={<span>{t("items.add.dropzone")}</span>}>
           {(url) => <img src={url()} alt="" class="shot max-h-56 object-contain" />}
         </Show>
         <Show when={props.name}>
@@ -250,10 +256,14 @@ function isImage(file: File): boolean {
   return file.type.startsWith("image/");
 }
 
+/** Every case worth naming is named; `error.message` is whatever `describe()` could salvage. */
 function explain(error: unknown): string {
-  if (!(error instanceof ApiError)) return "Could not add the item.";
-  if (error.isPaused) return "Curio is paused. Resume from the tray icon and try again.";
-  if (error.sessionExpired) return "Curio restarted. Open the dashboard from the tray again.";
-  if (error.unreachable) return "Curio is not answering. Is it still running?";
+  if (!(error instanceof ApiError)) return t("items.add.errors.create");
+  if (error.isPaused) return t("items.add.errors.paused");
+  if (error.sessionExpired) return t("items.errors.sessionExpired");
+  if (error.unreachable) return t("items.errors.unreachable");
+  // Axum enforces the body limit before any handler, so a 413 comes back as plain text
+  // with no JSON to describe it. Matching on the status is the only way to catch it.
+  if (error.status === 413) return t("items.add.errors.tooLarge");
   return error.message;
 }

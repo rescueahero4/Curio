@@ -5,6 +5,7 @@ import { NavTabs } from "~/components/NavTabs";
 import { SearchBox } from "~/components/SearchBox";
 import { createPrompt } from "~/lib/api";
 import { paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 
 /**
  * The top bar, in the order PRD §5 and Inventory §6 fix it:
@@ -21,7 +22,7 @@ export function TopBar(props: { onAddItem: () => void }) {
   const [starting, setStarting] = createSignal(false);
   const [problem, setProblem] = createSignal<string | null>(null);
 
-  const pausedReason = () => (paused() ? "Curio is paused. Resume from the tray icon." : undefined);
+  const pausedReason = () => (paused() ? t("shell.actions.pausedReason") : undefined);
 
   /**
    * "New Project" starts a *prompt*, not a folder (FR-16, Inventory §6).
@@ -42,7 +43,7 @@ export function TopBar(props: { onAddItem: () => void }) {
     } catch (failure) {
       // Said out loud rather than swallowed: a button that quietly does nothing is
       // indistinguishable from a hang.
-      setProblem(failure instanceof Error ? failure.message : "A new prompt could not be started.");
+      setProblem(failure instanceof Error ? failure.message : t("shell.actions.newProjectFailed"));
     } finally {
       setStarting(false);
     }
@@ -68,7 +69,7 @@ export function TopBar(props: { onAddItem: () => void }) {
     >
       <div class="mx-auto grid w-full max-w-page grid-cols-1 items-center gap-3 px-6 py-0 lg:grid-cols-[1fr_minmax(0,26rem)_1fr]">
         <div class="flex items-center gap-3">
-          <A href="/" class="flex items-center gap-2 text-ink" aria-label="Curio — Library">
+          <A href="/" class="flex items-center gap-2 text-ink" aria-label={t("shell.brand.home")}>
             <BrandMark class="h-6 w-6" />
             <span class="text-lg font-semibold tracking-tight">Curio</span>
           </A>
@@ -92,8 +93,8 @@ export function TopBar(props: { onAddItem: () => void }) {
             class="inline-flex items-center rounded-full p-1.5 transition-[color] hover:text-ink"
             activeClass="text-ink"
             inactiveClass="text-ink-muted"
-            aria-label="Settings"
-            title="Settings"
+            aria-label={t("shell.actions.settings")}
+            title={t("shell.actions.settings")}
             style={{
               "transition-duration": "var(--duration-hover)",
               "transition-timing-function": "var(--ease-hover)",
@@ -109,7 +110,7 @@ export function TopBar(props: { onAddItem: () => void }) {
             disabled={paused()}
             title={pausedReason()}
           >
-            + Add Item
+            {t("shell.actions.addItem")}
           </button>
 
           <button
@@ -119,7 +120,7 @@ export function TopBar(props: { onAddItem: () => void }) {
             disabled={paused() || starting()}
             title={pausedReason()}
           >
-            {starting() ? "Starting…" : "New Project"}
+            {starting() ? t("shell.actions.newProjectStarting") : t("shell.actions.newProject")}
           </button>
         </div>
       </div>
@@ -133,7 +134,7 @@ export function TopBar(props: { onAddItem: () => void }) {
             <p role="alert" class="banner tint-caution">
               <span>{message()}</span>
               <button type="button" class="pill pill-outline" onClick={() => setProblem(null)}>
-                Dismiss
+                {t("common.dismiss")}
               </button>
             </p>
           </div>
