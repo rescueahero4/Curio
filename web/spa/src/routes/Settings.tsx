@@ -1,10 +1,22 @@
 /**
- * Settings (E3 S3.4) — nine sections, one file each.
+ * Settings (E3 S3.4) — eight sections, one file each.
  *
  * The page it replaces was 889 lines of one component, which is the specific outcome NFR-8
  * exists to prevent. So this file is only four things: the fetch, the one write every
  * section shares, the order the sections appear in, and the table of contents that mirrors
  * that order. Each section owns its own copy, its own controls, and its own save badge.
+ *
+ * ## Why there is no "Browser extension" section
+ *
+ * There was one, linking to `/pair`. It was removed because it was a **developer control on
+ * an end-user surface**: the state it resolves needs a port pinned through `CURIO_PORT` or a
+ * hand-edited `config.json`, neither of which is reachable from this page, and a normally
+ * installed extension never reaches that state at all (D11, R-EXT-8).
+ *
+ * `/pair` itself is untouched and still routed — it is the only channel that can hand the
+ * extension a token when native messaging is absent. What went away is advertising it to
+ * people who cannot use it. The conditions, and the one command that avoids all of them,
+ * are documented in `web/extension/README.md` under "Development installs".
  */
 
 import { createResource, For, Show } from "solid-js";
@@ -12,7 +24,6 @@ import { ApiKeySection } from "~/components/settings/ApiKeySection";
 import { McpSection } from "~/components/settings/McpSection";
 import { ModelsSection } from "~/components/settings/ModelsSection";
 import type { Commit } from "~/components/settings/model";
-import { PairingSection } from "~/components/settings/PairingSection";
 import { PathsSection } from "~/components/settings/PathsSection";
 import { RubricSection } from "~/components/settings/RubricSection";
 import { StartupSection } from "~/components/settings/StartupSection";
@@ -35,7 +46,6 @@ const SECTION_NAV = [
     group: "General",
     items: [
       { id: "paths", label: "Paths" },
-      { id: "browser-extension", label: "Browser extension" },
       { id: "startup", label: "Startup" },
     ],
   },
@@ -97,7 +107,6 @@ export function Settings() {
 
             <div class="flex min-w-0 flex-1 flex-col gap-8">
               <PathsSection settings={current()} commit={commit} />
-              <PairingSection />
               <StartupSection settings={current()} commit={commit} />
               <ApiKeySection settings={current()} commit={commit} refresh={refresh} />
               <ModelsSection settings={current()} commit={commit} />

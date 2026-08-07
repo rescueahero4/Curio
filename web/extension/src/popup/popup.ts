@@ -109,9 +109,15 @@ function render(connection: Connection | null): void {
     // Found by the probe, but with no credential: the address is known and the token is
     // not (R-EXT-8b).
     if (text) text.textContent = "Curio needs pairing";
-    // The same dead end one state over: pairing happens in Curio, and nothing here notices
-    // it happened. Reconnect is how the popup asks again.
-    say("Open Curio's Settings and use the pairing page, then press Reconnect.");
+    // Names the page rather than a route into it. Settings used to carry a link and no
+    // longer does — the state is only reachable behind a pinned port, which makes it a
+    // development configuration, so the entry point belongs in the extension's README
+    // rather than on an end-user settings page.
+    //
+    // Reconnect stays offered because pairing happens in Curio and nothing here notices it
+    // happened; it is how the popup asks again. It cannot resolve this state on its own —
+    // the ladder has no rung that mints a token without native messaging.
+    say("Open Curio's /pair page to authorize this browser, then press Reconnect.");
     setCaptureEnabled(false);
     setOpenersEnabled(false);
     setReconnectShown(true);

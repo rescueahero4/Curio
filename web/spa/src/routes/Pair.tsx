@@ -8,6 +8,28 @@ import { createSignal } from "solid-js";
  * cannot — unpacked development installs with no registered NM manifest, a user who
  * declined the installer's registration step, or a future browser without NM support.
  *
+ * ## Reachable by URL only, and that is deliberate
+ *
+ * Settings used to carry a "Browser extension" section linking here. It was removed: the
+ * state this page resolves cannot be reached without a **pinned port** (`CURIO_PORT`, or
+ * `port` hand-edited into `config.json`), and neither is settable from the dashboard. That
+ * made the link a developer control sitting on an end-user surface — visible to everyone,
+ * actionable by almost no one, and misleading in the two states a user can actually reach:
+ *
+ * * **native messaging registered** — the extension re-handshakes on its own and this page
+ *   is never needed (`worker/connection.ts`, R-EXT-18a);
+ * * **ephemeral port, no NM** — the extension cannot find Curio at all, and the handoff
+ *   below fails too, because `acceptPairingToken` has no port to attach the token to.
+ *
+ * So the page stays routed and the entry point does not. Navigate to `/pair` directly. The
+ * four conditions that make it necessary, and the single command that avoids all of them,
+ * are written up in `web/extension/README.md` under "Development installs".
+ *
+ * This is a stopgap, not the destination: once the tray registers the native-messaging host
+ * on first launch (the open P6 gap in `packaging/README.md`), NM covers every real install
+ * and this page, its content script, and `POST /api/pair/authorize` can all be deleted
+ * together.
+ *
  * ## The security contract, unchanged from the previous implementation
  *
  * **The handoff element *is* the authorization.** So the secret must be absent from the
