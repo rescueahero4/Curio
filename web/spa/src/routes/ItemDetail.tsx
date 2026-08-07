@@ -220,7 +220,7 @@ function ItemShot(props: { item: Item }) {
   );
 }
 
-/** See `AddItemDialog`'s `explain`: the same shape, over the failures this page can hit. */
+/** Every case worth naming is named; `error.message` is whatever `describe()` could salvage. */
 function explain(error: unknown): string {
   if (!(error instanceof ApiError)) return t("items.detail.errors.open");
   if (error.status === 404) return t("items.detail.errors.notFound");

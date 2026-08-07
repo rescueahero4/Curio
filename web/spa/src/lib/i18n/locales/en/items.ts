@@ -55,13 +55,8 @@ export const items = {
     errors: {
       create: "Could not add the item.",
       paused: "Curio is paused. Resume from the tray icon and try again.",
-      /**
-       * A 413 off the body limit in `routes/mod.rs`, which is sized for a very tall
-       * full-page stitch — real captures do reach it. Axum rejects those before any
-       * handler runs and answers in plain text, so there is no JSON message to show and
-       * the generic path would surface the raw reason phrase, "Payload Too Large".
-       */
-      tooLarge: "That screenshot is too big to add.",
+      /** The upload exceeded the server's size limit. "Big" is bytes, not pixels. */
+      tooLarge: "That screenshot is too big to add. Try capturing a smaller area.",
     },
   },
 

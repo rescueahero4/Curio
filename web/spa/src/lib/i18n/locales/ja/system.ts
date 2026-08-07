@@ -17,7 +17,11 @@ export const system: System = {
     // A statement, not a request. The body already says ください once and `running` says it
     // again; a heading that asks as well makes the screen instruct three times.
     title: "トレイから Curio を開く",
-    body: "このタブにはセッションがありません。ダッシュボードはトレイアイコンから開きます。そのときにブラウザーに一度だけ使える鍵が渡されるため、ブックマークしたリンクからは開けません。",
+    // 「Curio の」 is doing work, not repeating the heading: this is the first mention of a
+    // dashboard in the Japanese, and a bare 「ダッシュボードは」 would presuppose a referent
+    // the reader has not been given. On this screen of all screens, the reader may not yet
+    // know what Curio is.
+    body: "このタブにはセッションがありません。Curio のダッシュボードはトレイアイコンから開きます。そのときにブラウザーに一度だけ使える鍵が渡されるため、ブックマークしたリンクからは開けません。",
     waiting: "Curio の起動を待っています…",
     running: "Curio は実行中です。トレイアイコンのメニューから「Open Dashboard」を選んでください。",
   },

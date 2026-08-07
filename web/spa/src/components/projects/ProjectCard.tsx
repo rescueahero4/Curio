@@ -73,8 +73,11 @@ export function ProjectCard(props: {
     try {
       const opened = await openProject(props.project.id);
       if (!opened.entry) {
+        // The tile takes it from here: its label and its title both say there is no page.
+        // A note as well would be the same sentence twice — and `frontDoor` is sticky, so
+        // that copy would sit under the card in whatever language was loaded when it was
+        // set, for as long as the card lives.
         setFrontDoor(false);
-        setNote(t("projects.card.launch.noPage"));
         return;
       }
       setFrontDoor(true);
@@ -101,10 +104,24 @@ export function ProjectCard(props: {
   async function reveal() {
     setBusy(true);
     setNote(null);
+    // Captured before the await, because it is what the request was sent with and what
+    // decides which of the server's three sentences comes back.
+    const nearest = missing();
     try {
-      // Verbatim, and deliberately phrased as a request: nothing here can know whether a
-      // file manager actually opened, so claiming it did would be a guess (§10.22).
-      setNote(((await revealPath(props.project.path, missing())) as Outcome).message);
+      const outcome = (await revealPath(props.project.path, nearest)) as Outcome;
+      // The ordinary success is the most-read line on this card, and the server composes it
+      // in English, so it is said here instead — from `asked` and a path this component
+      // already holds. The other two shapes stay as the server wrote them: the nearest-folder
+      // fallback names a second path that never crosses the wire on its own, and a refusal
+      // carries an OS error. Both are rare, and both are still English.
+      //
+      // Either way the wording promises only that Curio asked. Nothing on this side can know
+      // whether a file manager opened, so claiming it did would be a guess (§10.22).
+      setNote(
+        outcome.asked && !nearest
+          ? t("projects.card.revealAsked", { path: props.project.path })
+          : outcome.message,
+      );
     } catch (error) {
       setNote(
         error instanceof ApiError && error.isPaused
@@ -171,7 +188,7 @@ export function ProjectCard(props: {
         </div>
         <Show when={missing()}>
           <span class="badge tint-caution absolute top-2.5 left-2.5">
-            {t("projects.card.badge")}
+            {t("projects.card.missing.badge")}
           </span>
         </Show>
       </button>

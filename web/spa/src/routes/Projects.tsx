@@ -89,7 +89,7 @@ export function Projects() {
         <div class="banner tint-caution">
           <span>{t("projects.failed")}</span>
           <button type="button" class="pill pill-outline" onClick={() => void refetch()}>
-            {t("common.retry")}
+            {t("projects.retry")}
           </button>
         </div>
       </Show>
@@ -135,8 +135,11 @@ export function Projects() {
             // in one key and a predicate in another would land in the wrong order in one of
             // the two languages. The full stop went with the split — it belonged to a
             // sentence that no longer runs through the button.
-            <p class="text-sm text-ink-muted">
-              {t("projects.register.lead")}{" "}
+            //
+            // The gap between the two is layout rather than a literal space, because the
+            // space that reads right after "machine?" is wrong after 。
+            <p class="flex flex-wrap items-baseline gap-1 text-sm text-ink-muted">
+              <span>{t("projects.register.lead")}</span>
               <button
                 type="button"
                 class="underline decoration-line underline-offset-4 hover:text-ink"

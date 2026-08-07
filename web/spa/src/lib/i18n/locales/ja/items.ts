@@ -34,17 +34,17 @@ export const items: Items = {
     name: "タイトル（任意。未入力の場合は Curio が提案します）",
     blocked: {
       paused: "Curio は一時停止中です。アイテムを追加するにはトレイアイコンから再開してください。",
-      // The English says the rule and the next step in one line. Japanese says the rule
-      // only: the drop zone sits directly above this hint and already says how to add one,
-      // so repeating the instruction here spends a second line on nothing.
-      noFile: "アイテムにはスクリーンショットが必須です。",
+      // Instruction, not rule: the English carries both, and the disabled button beside
+      // this hint already asserts the rule on its own.
+      noFile: "まずスクリーンショットを追加してください。",
     },
     busy: "追加中…",
     submit: "追加",
     errors: {
       create: "アイテムを追加できませんでした。",
       paused: "Curio は一時停止中です。トレイアイコンから再開してもう一度お試しください。",
-      tooLarge: "このスクリーンショットは大きすぎて追加できません。",
+      tooLarge:
+        "このスクリーンショットは大きすぎて追加できません。範囲を狭めて撮り直してください。",
     },
   },
 

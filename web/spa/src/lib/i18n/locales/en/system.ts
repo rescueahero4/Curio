@@ -34,7 +34,7 @@ export const system = {
      * (D14). Naming it in Japanese would send the reader looking for a menu entry that is
      * not there.
      */
-    running: "Curio is running. Choose “Open Dashboard” from its tray icon.",
+    running: "Curio is running. Choose “Open Dashboard” from its tray menu.",
   },
 
   /* -- the client-side 404 (R-FE-2) --------------------------------------------------- */

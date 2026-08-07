@@ -4,13 +4,6 @@
  * English is the source of truth: this file defines the keys, and `../ja/projects.ts` is
  * type-checked against `Projects`, so a key added here without a Japanese counterpart fails
  * the build rather than shipping as a blank label.
- *
- * This namespace replaced `components/projects/copy.ts`, which held the same sentences as
- * module-level constants. PRD §5 makes the wording a requirement rather than a detail —
- * honest status, empty states that teach the next action, every disabled control saying why
- * — and that argument is for keeping the sentences *together*, which a namespace does as
- * well as a module did. What a module could not do is change language: a `const` is read
- * once at import and would still be English after a switch.
  */
 
 import { template } from "@solid-primitives/i18n";
@@ -38,6 +31,8 @@ export const projects = {
   },
 
   failed: "Curio could not read your projects.",
+  /** Not `common.retry`: this asks for the whole page again, not for one failed write. */
+  retry: "Try again",
   loading: "Looking for your projects…",
 
   empty: {
@@ -54,11 +49,6 @@ export const projects = {
   },
 
   register: {
-    /**
-     * The footer's lead and its button. One sentence with a control in the middle would put
-     * the subject in one key and the predicate in another, and the two languages disagree
-     * about which comes first — so each side owns a whole clause instead.
-     */
     lead: "Somewhere else on this machine?",
     open: "Register a folder by hand",
 
@@ -95,26 +85,26 @@ export const projects = {
       failed: "Curio could not open that project.",
     },
 
-    badge: "missing",
-
-    /** The path is the control, so its title names the destination rather than the widget. */
+    /** The tooltip on a path that is itself the button, so it names where it goes. */
     reveal: template<{ path: string }>("Open {{ path }} in your file manager"),
+    /**
+     * Word for word what `POST /api/system/reveal` answers on its ordinary success, said
+     * here instead so it has a Japanese counterpart. Phrased as a request, like the server's
+     * (§10.22): nothing on either side can know whether a file manager actually opened.
+     */
+    revealAsked: template<{ path: string }>("Asked your file manager to open {{ path }}."),
     revealFailed: "Curio could not ask your file manager to open.",
 
-    /** One line, three facts, no labels: "detected" and "opened" are the labels. */
     detected: template<{ when: string }>("detected {{ when }}"),
     opened: template<{ when: string }>("opened {{ when }}"),
 
-    /**
-     * Only the unusual origins are named. "Found by Curio" is true of nearly every project
-     * and therefore tells the reader nothing.
-     */
     origin: {
       mcp: "added by an agent",
       manual: "added by you",
     },
 
     missing: {
+      badge: "missing",
       /**
        * FR-19. Curio still never removes a missing folder's record on its own — the record
        * carries the prompt link, and nothing left on disk can rebuild it. What changed is
@@ -130,10 +120,6 @@ export const projects = {
       removeFailed: "Curio could not remove that project.",
 
       confirm: "Remove this project for good?",
-      /**
-       * Named for what is lost, not for the button that was pressed: the prompt link is the
-       * only part of this record that is nowhere else.
-       */
       cost: "Its prompt link goes with it.",
       removing: "Removing…",
       keep: "Keep",

@@ -70,6 +70,32 @@ alphanumerics.
 **Don't translate what is not a word.** `Curio`, `MCP`, `Anthropic`, file paths, and the
 model ids stay exactly as they are.
 
+**If translating makes you want to change what the English says, change the English — or
+leave both alone. Never only the Japanese.** This is the rule that is easiest to break
+without noticing. Translating a screen is the most careful anyone ever reads its copy, so
+you *will* find things: a redundant possessive, a button repeating its own heading, an
+instruction that says "from its tray icon" when you choose from the menu. Fixing them
+quietly on the Japanese side forks the two languages — the Japanese then carries an edit no
+English reviewer can see, and when the judgement is wrong the damage lands only on the
+readers who cannot check it against the source. A translator who improves one side has
+stopped translating.
+
+This is about judgement, not grammar. Japanese routinely has to make explicit what English
+leaves implicit — 「ページが見つかりません」 for "Not found", because 見つかりません alone has
+no subject. Supplying what the grammar requires is translating. Supplying what you think the
+writer should have said is not.
+
+**Separately: the Japanese must not say less than the English.** The clause you drop is
+never a whole sentence — it is small enough to feel like tidying. One screen here lost the
+possessive from 「Curio のダッシュボード」, six characters, on the reasoning that the heading
+above already said Curio. But English names a thing and marks it as given in one move, where
+Japanese splits those jobs: without the introduction, the 「は」 that follows presupposes a
+referent the reader was never given. Six characters, on the one screen whose entire job is
+orienting someone who has forgotten what Curio is.
+
+And if the Japanese would say *more* than the English, that is not a licence either — it is
+a sign the English is missing something, and the fix goes in the English.
+
 ## Glossary
 
 Consistency across screens matters more than the perfect word on any one of them. These are
@@ -102,6 +128,25 @@ settled; use them.
 | Session            | セッション         |                                               |
 | Folder             | フォルダー         | long vowel mark, matching Windows and macOS ja |
 | Browser            | ブラウザー         | likewise                                       |
+
+## Reusing `common`
+
+Reuse a `common` key when your screen means **exactly** the same thing by it. The bar is not
+"the same English word appears" — `Remove` as in "take this tag off" and `Remove` as in
+"delete this file" are five identical letters and two different Japanese words (解除 and
+削除).
+
+The one that has caught several people already:
+
+| Situation | Key | English | Japanese |
+| --- | --- | --- | --- |
+| Re-attempt one failed write | `common.retry` | Retry | 再試行 |
+| Re-request a whole page that failed to load | your own namespace | Try again | もう一度試す |
+
+They are different offers and they read differently. Three namespaces reached for
+`common.retry` on a page-level failure banner and shipped "Retry" beside another screen's
+"Try again"; if you are writing the button under *"Curio could not read your …"*, it is the
+second row.
 
 ## What is not translated
 

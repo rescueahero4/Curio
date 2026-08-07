@@ -1,14 +1,12 @@
 /**
  * Projects strings, Japanese.
  *
- * 起動 is the verb for opening a project's page, on the tile and in the timestamps alike —
- * 開く is what the *folder* does, and a screen that used one word for both would leave the
- * reader guessing which of the two a control was about.
- *
- * The counter on projects is 件, like items: 「3 件のプロジェクト」. `count.one` and
- * `count.other` are the same sentence because Japanese does not inflect for number; the two
- * keys exist for English's sake and collapsing them is the correct Japanese, not a
- * copy-paste slip.
+ * 開く is the verb throughout — for the page a project serves and for the folder on disk
+ * alike. 起動 was tried and dropped: it means booting a program, where what this screen does
+ * is open a served page in a tab, which `ja/library.ts` already calls 「新しいタブで開く」.
+ * Timestamps are label-and-value (「検出: 昨日」) rather than a phrase, because
+ * `Intl.RelativeTimeFormat` hands us 昨日 and 今 as often as 3 日前 and neither of those
+ * takes に.
  */
 
 import { template } from "@solid-primitives/i18n";
@@ -22,11 +20,12 @@ export const projects: Projects = {
   paused: "Curio は一時停止中です。トレイアイコンから再開してください。",
 
   count: {
-    one: template<{ count: number }>("{{ count }} 件のプロジェクト"),
-    other: template<{ count: number }>("{{ count }} 件のプロジェクト"),
+    one: template<{ count: number }>("プロジェクト {{ count }} 件"),
+    other: template<{ count: number }>("プロジェクト {{ count }} 件"),
   },
 
   failed: "Curio はプロジェクトを読み込めませんでした。",
+  retry: "もう一度試す",
   loading: "プロジェクトを探しています…",
 
   empty: {
@@ -46,7 +45,7 @@ export const projects: Projects = {
       "このマシン上のどこにあるフォルダーでも指定できます。ただし、フォルダーは既に存在している必要があります。Curio はパスを確認するだけで、フォルダーを作成することはありません。この方法で追加したフォルダーは、後で名前を変更しても追従しません。名前の変更に耐えるマーカーファイルを持つのは、Curio が自動で見つけたフォルダーだけです。",
     path: "フォルダーのパス",
     name: "名前",
-    namePlaceholder: "任意。空欄の場合はフォルダー名を使います",
+    namePlaceholder: "任意。空欄の場合はフォルダー名を使います。",
     submit: "登録",
     saving: "登録中…",
     needPath: "先にフォルダーのパスを入力してください。",
@@ -55,46 +54,52 @@ export const projects: Projects = {
 
   card: {
     launch: {
-      label: "起動 ↗",
-      opening: "起動中…",
-      title: "新しいタブで起動します",
-      missingLabel: "フォルダーがありません",
-      missingTitle: "フォルダーがないため、表示できるものがありません。",
-      noPageLabel: "起動できるページがありません",
+      label: "開く ↗",
+      opening: "開いています…",
+      title: "新しいタブで開きます。",
+      missingLabel: "見つかりません",
+      missingTitle: "フォルダーがないため、開くものがありません。",
+      noPageLabel: "開けるページがありません",
       noPage:
-        "ここにも v1/v2/… のサブフォルダーにも index.html がないため、起動できるページがありません。フォルダーを開いて、ツールが実際に書き出した内容を確認してください。",
+        "ここにも v1/v2/… のサブフォルダーにも index.html がないため、開けるページがありません。フォルダーを開いて、ツールが実際に書き出した内容を確認してください。",
       blocked: template<{ url: string }>(
         "ブラウザーが新しいタブをブロックしました。プロジェクトは {{ url }} にあります。",
       ),
       failed: "Curio はそのプロジェクトを開けませんでした。",
     },
 
-    badge: "見つかりません",
+    reveal: template<{ path: string }>("{{ path }} をファイルマネージャーで開きます。"),
+    revealAsked: template<{ path: string }>(
+      "{{ path }} を開くようファイルマネージャーに要求しました。",
+    ),
+    revealFailed: "Curio はファイルマネージャーに開くよう要求できませんでした。",
 
-    reveal: template<{ path: string }>("{{ path }} をファイルマネージャーで開きます"),
-    revealFailed: "Curio はファイルマネージャーの起動を要求できませんでした。",
+    detected: template<{ when: string }>("検出: {{ when }}"),
+    opened: template<{ when: string }>("最終アクセス: {{ when }}"),
 
-    // 「検出 3 日前」 — the same shape Japanese dashboards use for 「更新 3 分前」, and short
-    // enough to sit on one line with the origin note beside it.
-    detected: template<{ when: string }>("検出 {{ when }}"),
-    opened: template<{ when: string }>("起動 {{ when }}"),
-
+    // Labels, not clauses: 「エージェントが追加」 would leave が without a predicate, since
+    // 追加 on its own is a noun.
     origin: {
-      mcp: "エージェントが追加",
-      manual: "手動で追加",
+      mcp: "エージェントによる追加",
+      manual: "手動での追加",
     },
 
     missing: {
-      title: "プロジェクトフォルダーが見つかりません",
+      badge: "見つかりません",
+      // The card's heading already names the project, so プロジェクト here would be a word
+      // the reader has just read — and the banner wraps without it.
+      title: "フォルダーが見つかりません",
       locate: "場所を開く",
-      locateTitle: "実際に存在する最も近いフォルダーを開きます",
-      // 削除 rather than 解除: this ends the record, and the title beside it is what says the
-      // folder itself is left alone.
+      locateTitle: "実際に存在する最も近いフォルダーを開きます。",
+      // 削除 rather than 解除: this ends the record, and the sentence beside it is what says
+      // the folder itself is left alone.
       remove: "削除",
       removeTitle: "このプロジェクトを Curio から削除します。フォルダーはそのまま残ります。",
       removeFailed: "Curio はそのプロジェクトを削除できませんでした。",
 
-      confirm: "このプロジェクトを完全に削除しますか。",
+      // Scoped to the record on purpose. 「完全に削除しますか」 beside a folder path reads as
+      // *delete the files*, and a user who fears for their work declines a safe action.
+      confirm: "このプロジェクトを Curio から削除しますか。",
       cost: "プロンプトとのリンクも失われます。",
       removing: "削除中…",
       keep: "残す",
@@ -106,7 +111,7 @@ export const projects: Projects = {
     untitled: "無題のプロンプト",
     unlink: "プロンプトのリンクを解除",
     deleted: "プロンプトは削除済み",
-    clear: "解除",
+    clear: "リンクを解除",
     failed: "Curio はプロンプトのリンクを変更できませんでした。",
   },
 };
