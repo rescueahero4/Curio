@@ -33,7 +33,8 @@ export const items: Items = {
     sourceUrl: "参照元 URL（任意）",
     name: "タイトル（任意。未入力の場合は Curio が提案します）",
     blocked: {
-      paused: "Curio は一時停止中です。アイテムを追加するにはトレイアイコンから再開してください。",
+      paused:
+        "Curio は一時停止中です。アイテムを追加するにはトレイアイコンから「Resume」を選んでください。",
       // Instruction, not rule: the English carries both, and the disabled button beside
       // this hint already asserts the rule on its own.
       noFile: "まずスクリーンショットを追加してください。",
@@ -42,7 +43,8 @@ export const items: Items = {
     submit: "追加",
     errors: {
       create: "アイテムを追加できませんでした。",
-      paused: "Curio は一時停止中です。トレイアイコンから再開してもう一度お試しください。",
+      paused:
+        "Curio は一時停止中です。トレイアイコンから「Resume」を選び、もう一度お試しください。",
       tooLarge:
         "このスクリーンショットは大きすぎて追加できません。範囲を狭めて撮り直してください。",
     },

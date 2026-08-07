@@ -17,7 +17,7 @@ export const projects: Projects = {
 
   subtitle: "AI ツールがプロジェクトルートに書き出したフォルダーです。自動的に検出されます。",
 
-  paused: "Curio は一時停止中です。トレイアイコンから再開してください。",
+  paused: "Curio は一時停止中です。トレイアイコンから「Resume」を選んでください。",
 
   count: {
     one: template<{ count: number }>("プロジェクト {{ count }} 件"),

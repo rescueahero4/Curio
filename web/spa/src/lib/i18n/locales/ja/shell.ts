@@ -31,14 +31,14 @@ export const shell: Shell = {
     newProject: "新規プロジェクト",
     newProjectStarting: "作成中…",
     newProjectFailed: "新しいプロンプトを作成できませんでした。",
-    pausedReason: "Curio は一時停止中です。トレイアイコンから再開してください。",
+    pausedReason: "Curio は一時停止中です。トレイアイコンから「Resume」を選んでください。",
   },
 
   paused: {
     title: "Curio は一時停止中です。",
     // Three も rather than a と-joined pair and a comma: 「閲覧と検索、すでに…」 reads at
     // first as an apposition, and the reader has to back up to find the third item.
-    body: "閲覧も検索も、すでにキャプチャしたものも、これまでどおり使えます。新しいキャプチャと編集は、トレイアイコンから「再開」を選ぶまで受け付けません。",
+    body: "閲覧も検索も、すでにキャプチャしたものも、これまでどおり使えます。新しいキャプチャと編集は、トレイアイコンで「Resume」を選ぶまで受け付けません。",
   },
 
   missingKey: {

@@ -118,7 +118,8 @@ export const library: Library = {
     },
     failed: {
       reason: "Curio はこのアイテムを説明できませんでした。",
-      paused: "Curio は一時停止中です。再評価するにはトレイアイコンから再開してください。",
+      paused:
+        "Curio は一時停止中です。再評価するにはトレイアイコンから「Resume」を選んでください。",
       busy: "Curio が見直しています…",
       queueing: "登録中…",
       action: "再評価",
@@ -131,7 +132,8 @@ export const library: Library = {
     allMatching: "このフィルターに一致するすべて",
     selectMatching: "一致するすべてを選択",
     clearSelection: "選択を解除",
-    paused: "Curio は一時停止中です。一括編集するにはトレイアイコンから再開してください。",
+    paused:
+      "Curio は一時停止中です。一括編集するにはトレイアイコンから「Resume」を選んでください。",
 
     tags: {
       title: "タグ",
@@ -189,7 +191,7 @@ export const library: Library = {
       overCap: template<{ matched: number; limit: number }>(
         "{{ matched }} 件が一致しますが、上限は {{ limit }} 件です。何も変更していません。フィルターを絞り込むか、選ぶ数を減らしてください。",
       ),
-      paused: "Curio は一時停止中です。トレイアイコンから再開してください。",
+      paused: "Curio は一時停止中です。トレイアイコンから「Resume」を選んでください。",
       failed: "編集は反映されませんでした。",
     },
   },
@@ -213,7 +215,7 @@ export const library: Library = {
       errors: {
         save: "編集を保存できませんでした。",
         paused:
-          "Curio は一時停止中のため、編集は保存されませんでした。トレイアイコンから再開してください。",
+          "Curio は一時停止中のため、編集は保存されませんでした。トレイアイコンから「Resume」を選んでください。",
         unreachable: "Curio が応答しないため、編集は保存されませんでした。",
       },
     },
@@ -251,7 +253,7 @@ export const library: Library = {
       acceptProposal: template<{ name: string }>("Curio の提案「{{ name }}」を採用"),
       moveTo: "移動先",
       choose: "ファミリーを選択…",
-      paused: "Curio は一時停止中です。判断するにはトレイアイコンから再開してください。",
+      paused: "Curio は一時停止中です。判断するにはトレイアイコンから「Resume」を選んでください。",
       busy: "判断を保存しています…",
       problem: "判断を保存できませんでした。少し時間をおいてお試しください。",
     },
@@ -266,7 +268,7 @@ export const library: Library = {
       yes: "削除する",
       no: "削除しない",
       deleting: "削除中…",
-      paused: "Curio は一時停止中です。トレイアイコンから再開してください。",
+      paused: "Curio は一時停止中です。トレイアイコンから「Resume」を選んでください。",
       errors: {
         reassess: "再評価を登録できませんでした。",
         delete: "このアイテムを削除できませんでした。",

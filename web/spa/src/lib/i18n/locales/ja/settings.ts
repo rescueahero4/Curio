@@ -45,9 +45,10 @@ export const settings: Settings = {
   },
 
   paused: {
-    reason: "Curio は一時停止中です。設定を変更するには、トレイアイコンから再開してください。",
+    reason:
+      "Curio は一時停止中です。設定を変更するには、トレイアイコンから「Resume」を選んでください。",
     notSaved:
-      "Curio は一時停止中のため、保存されませんでした。トレイアイコンから再開して、もう一度お試しください。",
+      "Curio は一時停止中のため、保存されませんでした。トレイアイコンから「Resume」を選び、もう一度お試しください。",
   },
 
   save: {
@@ -112,7 +113,7 @@ export const settings: Settings = {
     nothingToClear: "消去できるキーがありません。",
     cleared: "キーを消去しました。新しいキーを追加するまで、評価は待機します。",
     clearPaused:
-      "Curio は一時停止中のため、キーは消去されませんでした。トレイアイコンから再開してください。",
+      "Curio は一時停止中のため、キーは消去されませんでした。トレイアイコンから「Resume」を選んでください。",
     clearFailed: "Curio がキーを消去できませんでした。",
   },
 
@@ -145,7 +146,7 @@ export const settings: Settings = {
     /** 伝える, not 開く — Curio hands the file to the OS and never learns what happened to it. */
     asked: template<{ path: string }>("{{ path }} を開くよう、エディターに伝えました。"),
     paused:
-      "Curio は一時停止中のため、エディターには何も伝えていません。トレイアイコンから再開してください。",
+      "Curio は一時停止中のため、エディターには何も伝えていません。トレイアイコンから「Resume」を選んでください。",
     failed: "Curio がエディターに伝えられませんでした。",
   },
 

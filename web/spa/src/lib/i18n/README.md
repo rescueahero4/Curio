@@ -124,7 +124,7 @@ settled; use them.
 | Bulk (edit)        | 一括               | 一括編集, 一括削除                             |
 | Undo               | 元に戻す           |                                               |
 | Paused             | 一時停止中         | `Curio は一時停止中です`                       |
-| Tray icon          | トレイアイコン     |                                               |
+| Tray icon          | トレイアイコン     | but name the menu entry in Latin — see below   |
 | Session            | セッション         |                                               |
 | Folder             | フォルダー         | long vowel mark, matching Windows and macOS ja |
 | Browser            | ブラウザー         | likewise                                       |
@@ -147,6 +147,21 @@ They are different offers and they read differently. Three namespaces reached fo
 `common.retry` on a page-level failure banner and shipped "Retry" beside another screen's
 "Try again"; if you are writing the button under *"Curio could not read your …"*, it is the
 second row.
+
+## Naming the tray menu
+
+The tray is built in `crates/curio-tray` and its entries are hard-coded English on every
+locale (D14) — `Pause`, `Resume`, `Open Dashboard`. So Japanese strings name them **in Latin,
+in corner brackets**:
+
+> トレイアイコンから「Resume」を選んでください。
+
+Not 「再開してください」. English gets the mapping for free, because *Resume* is at once the
+verb and the capitalised label; Japanese has no such overlap, and a reader told 再開 goes
+looking for 再開 on a menu that does not have it. This is the language-forced explicitation
+described above, not a unilateral edit — which is why the English needs no matching change.
+
+If the tray is ever localized, every one of these strings moves with it.
 
 ## What is not translated
 
