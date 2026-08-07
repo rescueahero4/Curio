@@ -40,7 +40,7 @@ export function RubricSection(props: { settings: Settings }) {
     <Section
       id="assessment-rubric"
       title="Assessment rubric"
-      blurb="The instructions Curio sends with every screenshot. It is written once, on first run, and never overwritten — so anything you change here stays changed, through updates and restarts."
+      blurb="What you want Curio to look for in everything you capture. Edit it however you like — your changes are kept through updates."
     >
       <p class="field field-block bg-desk font-mono text-xs text-ink-muted select-all">
         {props.settings.skill_file_path}

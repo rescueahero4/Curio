@@ -30,7 +30,7 @@ export function StartupSection(props: { settings: Settings; commit: Commit }) {
       id="startup"
       title="Startup"
       saver={unsupported() ? undefined : saver}
-      blurb="Curio can start with your machine so captures and the watcher are running before you go looking for them."
+      blurb="Have Curio up and running as soon as you turn on your computer."
     >
       <Show
         when={unsupported()}
@@ -46,9 +46,9 @@ export function StartupSection(props: { settings: Settings; commit: Commit }) {
       >
         {(reported) => (
           <p class="max-w-prose text-sm text-ink-muted">
-            This platform cannot register Curio to start at login
-            {reported().reason ? `: ${reported().reason}` : "."} There is no toggle here because
-            there is nothing behind it — add Curio to your session's startup items instead.
+            Curio can't set this up on your system
+            {reported().reason ? `: ${reported().reason}` : "."} You can still add Curio to your
+            computer's startup items yourself.
           </p>
         )}
       </Show>

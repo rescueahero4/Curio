@@ -39,7 +39,7 @@ export function ApiKeySection(props: {
     try {
       await clearApiKey();
       await props.refresh();
-      setNote("Key cleared. Assessments will queue until you set a new one.");
+      setNote("Key cleared. Reviews will wait until you add a new one.");
     } catch (error) {
       setNote(
         error instanceof ApiError && error.isPaused
@@ -56,7 +56,7 @@ export function ApiKeySection(props: {
       id="api-key"
       title="Anthropic API key"
       saver={saver}
-      blurb="Curio needs a key to assess captures. Without one, captures still arrive and queue — they are never lost, they just wait."
+      blurb="Curio needs this to review what you capture. Without it, saving still works — reviews just wait until you add one."
     >
       <p class="text-sm">
         <Show when={props.settings.api_key_set} fallback="No key is set.">
@@ -67,7 +67,7 @@ export function ApiKeySection(props: {
 
       <Field
         label={props.settings.api_key_set ? "Replace the key" : "Set a key"}
-        hint="Saves when you press Enter or click away from the box. Curio stores it in your OS keychain and never shows it again — replacing a key discards the old one for good, so there is nothing to undo."
+        hint="Press Enter to save. Your key is stored securely and never shown again, so replacing it can't be undone."
       >
         {(id) => (
           <input

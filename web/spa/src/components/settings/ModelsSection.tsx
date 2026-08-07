@@ -23,10 +23,10 @@ export function ModelsSection(props: { settings: Settings; commit: Commit }) {
       id="models"
       title="Models"
       saver={saver}
-      blurb="Model ids are sent to Anthropic as you type them here. Curio does not check that a name exists — a typo shows up as a failed assessment, not as a rejected save."
+      blurb="Which AI models Curio uses. Names aren't checked as you type, so a typo shows up later as a review that failed."
     >
       <div class="grid gap-3 sm:grid-cols-2">
-        <Field label="Vision" hint="Reads screenshots and writes the assessment.">
+        <Field label="Vision" hint="Looks at your screenshots and writes the review.">
           {(id) => (
             <input
               id={id}
@@ -41,7 +41,7 @@ export function ModelsSection(props: { settings: Settings; commit: Commit }) {
           )}
         </Field>
 
-        <Field label="Utility" hint="Smaller jobs: vocabulary dedupe and key checks.">
+        <Field label="Utility" hint="Handles the smaller background jobs.">
           {(id) => (
             <input
               id={id}

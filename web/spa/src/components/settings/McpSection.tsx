@@ -77,7 +77,7 @@ export function McpSection(props: { settings: Settings; commit: Commit }) {
       id="mcp"
       title="MCP server"
       saver={saver}
-      blurb="Lets an AI agent search your library, read items, and register projects. The toggle gates both transports: turned off, the HTTP endpoint refuses and the stdio proxy — which forwards to the same endpoint — refuses with it. Off means off everywhere."
+      blurb="Lets AI tools like Claude search your library and read your saved items. Off means off — nothing can reach it."
     >
       <CheckField
         label="Let agents reach this library over MCP"
@@ -91,14 +91,14 @@ export function McpSection(props: { settings: Settings; commit: Commit }) {
           command succeeds, the client lists the server, and every call comes back refused. */}
       <Show when={!props.settings.mcp_enabled}>
         <p class="max-w-prose text-xs text-caution">
-          The toggle is off. Any of the below will still register Curio with the client — the client
-          will simply be refused on every call until you turn it on.
+          The toggle is off. These will still set Curio up, but nothing will work until you turn it
+          on.
         </p>
       </Show>
 
       <CopyBlock
         label="Claude Code"
-        hint="Run it in a terminal, or paste it into Claude Code itself. It names this executable by its full path, so nothing has to be on your PATH — but move or reinstall Curio and the registration has to be made again from here. Curio must be running when the agent connects; this form finds it wherever it is listening, so it survives a restart."
+        hint="Paste this into a terminal, or into Claude Code itself. Curio needs to be running when Claude connects. If you ever move or reinstall Curio, come back and run this again."
         snippet={addCommand()}
       />
 
@@ -109,13 +109,13 @@ export function McpSection(props: { settings: Settings; commit: Commit }) {
           different heights against each other. */}
       <CopyBlock
         label="Claude Code, over HTTP"
-        hint="The same server, reached directly. Worth using only if you have pinned a port in config.json — otherwise the one below belongs to this run of Curio, and the next run will listen somewhere else and leave this registration pointing at nothing."
+        hint="The same thing, connected directly. Only worth using if you've set a fixed port — otherwise this stops working the next time Curio restarts."
         snippet={addHttpCommand()}
       />
 
       <CopyBlock
         label="Claude Desktop"
-        hint="Paste into claude_desktop_config.json — Claude Desktop has no add command. The command is this executable's full path for the same reason: Claude Desktop spawns it directly, with no shell to search a PATH. The proxy forwards to the same server, so the toggle above still applies."
+        hint="Paste this into claude_desktop_config.json. Claude Desktop has no command that can do it for you. The toggle above still applies."
         snippet={desktopSnippet()}
       />
     </Section>

@@ -21,11 +21,15 @@ export function PathsSection(props: { settings: Settings; commit: Commit }) {
       id="paths"
       title="Paths"
       saver={saver}
-      blurb="Where Curio keeps data, and where it watches for projects."
+      blurb="Where your library lives, and where Curio looks for new projects."
     >
+      {/* The hint no longer names CURIO_DATA_ROOT. Moving a library is a file operation
+          someone has to perform deliberately, and an env var printed on a settings page reads
+          as a step a designer is expected to take. "Not from this page" is the honest and
+          useful half; the variable is in the docs for whoever actually needs it. */}
       <Field
         label="Data root"
-        hint="Your library, sidecars and prompts. Not editable here on purpose — moving a library is a file operation, not a form field. Set CURIO_DATA_ROOT and restart to change it."
+        hint="Your library, notes and prompts all live here. This can't be moved from inside the app."
       >
         {(id) => (
           <p id={id} class="field field-block bg-desk text-ink-muted select-all">
@@ -40,7 +44,7 @@ export function PathsSection(props: { settings: Settings; commit: Commit }) {
           the same parenthetical for the same reason. */}
       <Field
         label="Projects root (watched)"
-        hint="The folder Curio watches. Any new top-level folder inside it becomes a project within about five seconds — Curio never creates one itself. Saves when you press Enter or click away, and it has to be a folder that already exists. Takes effect on the next restart."
+        hint="Curio watches this folder. Add a folder inside it and it becomes a project within a few seconds. Press Enter to save. The folder has to exist already, and Curio needs a restart to start watching a new one."
       >
         {(id) => (
           <input
