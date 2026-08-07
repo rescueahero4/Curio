@@ -30,6 +30,7 @@ import {
   splitQuery,
 } from "~/components/editor/palette";
 import type { SlashTrigger } from "~/components/editor/slashTrigger";
+import { t } from "~/lib/i18n";
 
 interface Props {
   trigger: SlashTrigger;
@@ -52,8 +53,13 @@ export function SlashMenu(props: Props) {
 
   const picks = createMemo(() => filterPicker(entries() ?? [], parts().tail ?? ""));
 
+  /** Stage-one rows, in the shape `Rows` draws. The hint is resolved here, per render. */
+  const paletteRows = createMemo<readonly { id: string; label: string; hint: string }[]>(() =>
+    palette().map((entry) => ({ id: entry.kind, label: entry.label, hint: entry.hint() })),
+  );
+
   const options = createMemo<readonly { id: string; label: string; hint: string }[]>(() =>
-    chosen() ? picks() : palette().map((entry) => ({ id: entry.kind, ...entry })),
+    chosen() ? picks() : paletteRows(),
   );
 
   const [highlight, setHighlight] = createSignal(0);
@@ -124,19 +130,43 @@ export function SlashMenu(props: Props) {
   onMount(() => props.onKeys(handle));
   onCleanup(() => props.onKeys(null));
 
+  /** The menu's accessible name, which changes with the stage it is in. */
+  const name = () => {
+    const entry = chosen();
+    return entry ? t("editor.slash.pick", { kind: entry.noun() }) : t("editor.slash.label");
+  };
+
+  /**
+   * The three keys, on one line.
+   *
+   * Assembled from three keys rather than one because they are three independent hints
+   * joined by a separator, not a sentence with three clauses — nothing about the order
+   * carries meaning, so nothing breaks when a language wants them worded differently. The
+   * middle one has two forms because it counts what is ticked. The separator is punctuation
+   * rather than a word, and stays here — it is the same one the rail's tooltips use.
+   */
+  const keyHints = () =>
+    [
+      t("editor.slash.hint.tick"),
+      ticked().length
+        ? t("editor.slash.hint.insertCount", { count: ticked().length })
+        : t("editor.slash.hint.insert"),
+      t("editor.slash.hint.close"),
+    ].join(" · ");
+
   return (
     <div
       class="panel float fixed z-50 max-h-80 w-80 overflow-y-auto py-1"
       style={{ left: `${props.trigger.left}px`, top: `${props.trigger.bottom + 4}px` }}
       role="listbox"
-      aria-label={chosen() ? `Pick a ${chosen()?.label}` : "Insert from your library"}
+      aria-label={name()}
       // The editor keeps the caret: a mousedown that stole focus would collapse the run
       // this menu is anchored to.
       onMouseDown={(event) => event.preventDefault()}
     >
       <Show when={!chosen()}>
         <Rows
-          options={palette().map((entry) => ({ id: entry.kind, ...entry }))}
+          options={paletteRows()}
           highlight={highlight()}
           ticked={[]}
           onPick={(index) => {
@@ -147,8 +177,8 @@ export function SlashMenu(props: Props) {
       </Show>
 
       <Show when={chosen()}>
-        <Show when={!entries.loading} fallback={<Note>Reading your library…</Note>}>
-          <Show when={picks().length} fallback={<Note>Nothing here matches yet.</Note>}>
+        <Show when={!entries.loading} fallback={<Note>{t("editor.slash.loading")}</Note>}>
+          <Show when={picks().length} fallback={<Note>{t("editor.slash.none")}</Note>}>
             <Rows
               options={picks()}
               highlight={highlight()}
@@ -163,9 +193,7 @@ export function SlashMenu(props: Props) {
             />
           </Show>
         </Show>
-        <p class="border-line border-t px-3 pt-1.5 pb-1 text-2xs text-ink-faint">
-          Tab to tick · Enter to insert{ticked().length ? ` ${ticked().length}` : ""} · Esc to close
-        </p>
+        <p class="border-line border-t px-3 pt-1.5 pb-1 text-2xs text-ink-faint">{keyHints()}</p>
       </Show>
     </div>
   );

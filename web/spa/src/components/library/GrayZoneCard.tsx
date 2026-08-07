@@ -1,6 +1,7 @@
 import { createSignal, For, Show } from "solid-js";
 import { resolveGrayZone } from "~/lib/api";
 import { paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import { vocabulary } from "~/lib/stores";
 import type { GrayZoneAction, Item } from "~/lib/types";
 
@@ -25,8 +26,8 @@ export function GrayZoneCard(props: { item: Item; onResolved: (item: Item) => vo
     props.item.families.some((family) => family.gray_zone) || props.item.status === "needs_review";
 
   const blocked = () => {
-    if (paused()) return "Curio is paused. Resume from the tray icon to decide.";
-    if (busy()) return "Saving the decision…";
+    if (paused()) return t("library.item.grayZone.paused");
+    if (busy()) return t("library.item.grayZone.busy");
     return undefined;
   };
 
@@ -41,7 +42,7 @@ export function GrayZoneCard(props: { item: Item; onResolved: (item: Item) => vo
         ),
       );
     } catch {
-      setProblem("That decision did not save. Try again in a moment.");
+      setProblem(t("library.item.grayZone.problem"));
     }
     setBusy(false);
   }
@@ -49,18 +50,21 @@ export function GrayZoneCard(props: { item: Item; onResolved: (item: Item) => vo
   return (
     <Show when={undecided()}>
       <section class="banner tint-caution flex-col items-start gap-2">
+        {/* A lead and a body, which is a split that survives translation — a heading and the
+            sentence under it are two clauses, not a subject and a predicate. The score used
+            to sit in a `numeric` span mid-sentence; it is formatted before it goes into the
+            string now, because Japanese puts that clause somewhere English does not and no
+            markup can follow it there. */}
         <div>
-          <strong class="font-semibold">Needs review.</strong>{" "}
-          <Show
-            when={nearest()}
-            fallback="Curio could not place this one in a family. Choose where it belongs."
-          >
+          <strong class="font-semibold">{t("library.item.grayZone.title")}</strong>{" "}
+          <Show when={nearest()} fallback={t("library.item.grayZone.unplaced")}>
             {(family) => (
-              <>
-                Curio was not sure enough to decide — {family().name} scored{" "}
-                <span class="numeric">{family().score.toFixed(2)}</span>, inside the band where it
-                asks instead of guessing.
-              </>
+              <span class="numeric">
+                {t("library.item.grayZone.near", {
+                  name: family().name,
+                  score: family().score.toFixed(2),
+                })}
+              </span>
             )}
           </Show>
         </div>
@@ -75,7 +79,7 @@ export function GrayZoneCard(props: { item: Item; onResolved: (item: Item) => vo
                 title={blocked()}
                 onClick={() => void decide("accept")}
               >
-                Keep {family().name}
+                {t("library.item.grayZone.keep", { name: family().name })}
               </button>
             )}
           </Show>
@@ -89,13 +93,13 @@ export function GrayZoneCard(props: { item: Item; onResolved: (item: Item) => vo
                 title={blocked()}
                 onClick={() => void decide("accept_proposal")}
               >
-                Accept Curio's proposal: {family().name}
+                {t("library.item.grayZone.acceptProposal", { name: family().name })}
               </button>
             )}
           </Show>
 
           <label class="flex items-center gap-2 text-sm">
-            <span class="text-ink-muted">Move to</span>
+            <span class="text-ink-muted">{t("library.item.grayZone.moveTo")}</span>
             <select
               class="field"
               value={target()}
@@ -107,7 +111,7 @@ export function GrayZoneCard(props: { item: Item; onResolved: (item: Item) => vo
                 if (chosen) void decide("reassign", chosen);
               }}
             >
-              <option value="">Choose a family…</option>
+              <option value="">{t("library.item.grayZone.choose")}</option>
               <For each={vocabulary.families}>
                 {(family) => <option value={family.id}>{family.name}</option>}
               </For>

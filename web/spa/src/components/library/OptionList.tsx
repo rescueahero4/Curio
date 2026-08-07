@@ -1,4 +1,5 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
+import { t } from "~/lib/i18n";
 
 /** One choosable vocabulary entry. `count` is shown when the source knows it. */
 export interface Option {
@@ -85,8 +86,14 @@ export function OptionList(props: {
         <input
           type="search"
           class="field field-block"
-          placeholder={props.create ? "Filter / Create" : "Filter this list"}
-          aria-label={props.create ? `Filter or create a ${props.create.noun}` : "Filter this list"}
+          placeholder={
+            props.create ? t("library.options.filterOrCreate") : t("library.options.filter")
+          }
+          aria-label={
+            props.create
+              ? t("library.options.filterOrCreateLabel", { noun: props.create.noun })
+              : t("library.options.filter")
+          }
           value={needle()}
           onInput={(event) => setNeedle(event.currentTarget.value)}
           onKeyDown={(event) => {
@@ -103,7 +110,7 @@ export function OptionList(props: {
         when={shown().length || canCreate()}
         fallback={
           <p class="px-1 py-2 text-xs text-ink-faint">
-            {props.options.length ? "Nothing matches that." : props.empty}
+            {props.options.length ? t("library.options.noMatch") : props.empty}
           </p>
         }
       >
@@ -120,9 +127,15 @@ export function OptionList(props: {
                 <span class="text-ink-faint" aria-hidden="true">
                   +
                 </span>
+                {/* One string, not an offer with the typed name tacked on the end: the name
+                    sits mid-sentence in Japanese —「「warm」を新しいタグとして作成」— and a
+                    trailing span cannot move there. The faint treatment on the name went with
+                    it; a row that is already the only one of its kind does not need it. */}
                 <span class="min-w-0 flex-1 truncate">
-                  Create new {props.create?.noun}
-                  <span class="text-ink-faint"> “{query()}”</span>
+                  {t("library.options.create", {
+                    noun: props.create?.noun ?? "",
+                    name: query(),
+                  })}
                 </span>
               </button>
             </li>

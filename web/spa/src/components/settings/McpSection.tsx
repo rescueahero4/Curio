@@ -15,10 +15,11 @@
 
 import { Show } from "solid-js";
 import { CopyBlock } from "~/components/settings/CopyBlock";
-import { type Commit, PAUSED_REASON } from "~/components/settings/model";
+import { type Commit, pausedReason } from "~/components/settings/model";
 import { createSaver } from "~/components/settings/save";
 import { CheckField, Section } from "~/components/settings/section";
 import { paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Settings } from "~/lib/types";
 
 /**
@@ -73,32 +74,24 @@ export function McpSection(props: { settings: Settings; commit: Commit }) {
     );
 
   return (
-    <Section
-      id="mcp"
-      title="MCP server"
-      saver={saver}
-      blurb="Lets an AI agent search your library, read items, and register projects. The toggle gates both transports: turned off, the HTTP endpoint refuses and the stdio proxy — which forwards to the same endpoint — refuses with it. Off means off everywhere."
-    >
+    <Section id="mcp" title={t("settings.mcp.title")} saver={saver} blurb={t("settings.mcp.blurb")}>
       <CheckField
-        label="Let agents reach this library over MCP"
+        label={t("settings.mcp.toggle")}
         checked={props.settings.mcp_enabled}
         disabled={paused()}
-        reason={PAUSED_REASON}
+        reason={pausedReason()}
         onChange={toggle}
       />
 
       {/* Registering while the toggle is off is the one failure that looks like nothing: the
           command succeeds, the client lists the server, and every call comes back refused. */}
       <Show when={!props.settings.mcp_enabled}>
-        <p class="max-w-prose text-xs text-caution">
-          The toggle is off. Any of the below will still register Curio with the client — the client
-          will simply be refused on every call until you turn it on.
-        </p>
+        <p class="max-w-prose text-xs text-caution">{t("settings.mcp.off")}</p>
       </Show>
 
       <CopyBlock
-        label="Claude Code"
-        hint="Run it in a terminal, or paste it into Claude Code itself. It names this executable by its full path, so nothing has to be on your PATH — but move or reinstall Curio and the registration has to be made again from here. Curio must be running when the agent connects; this form finds it wherever it is listening, so it survives a restart."
+        label={t("settings.mcp.claudeCode.label")}
+        hint={t("settings.mcp.claudeCode.hint")}
         snippet={addCommand()}
       />
 
@@ -108,14 +101,14 @@ export function McpSection(props: { settings: Settings; commit: Commit }) {
           also cut the JSON snippet to half the measure it needs and set two blocks of
           different heights against each other. */}
       <CopyBlock
-        label="Claude Code, over HTTP"
-        hint="The same server, reached directly. Worth using only if you have pinned a port in config.json — otherwise the one below belongs to this run of Curio, and the next run will listen somewhere else and leave this registration pointing at nothing."
+        label={t("settings.mcp.claudeCodeHttp.label")}
+        hint={t("settings.mcp.claudeCodeHttp.hint")}
         snippet={addHttpCommand()}
       />
 
       <CopyBlock
-        label="Claude Desktop"
-        hint="Paste into claude_desktop_config.json — Claude Desktop has no add command. The command is this executable's full path for the same reason: Claude Desktop spawns it directly, with no shell to search a PATH. The proxy forwards to the same server, so the toggle above still applies."
+        label={t("settings.mcp.claudeDesktop.label")}
+        hint={t("settings.mcp.claudeDesktop.hint")}
         snippet={desktopSnippet()}
       />
     </Section>

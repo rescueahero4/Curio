@@ -1,17 +1,35 @@
 import { createSignal, For, Show } from "solid-js";
 import { ChevronRight } from "~/components/icons";
 import { Popover } from "~/components/library/Popover";
+import { refusal } from "~/components/vocabulary/errors";
 import { createTerm } from "~/lib/api";
-import { ApiError, paused } from "~/lib/http";
+import { paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import { refreshVocabulary } from "~/lib/stores";
 import type { VocabularyKind } from "~/lib/types";
 
 /** What the menu offers, in the order the tabs name them. */
-const KINDS: { kind: VocabularyKind; label: string }[] = [
-  { kind: "families", label: "Aesthetic Family" },
-  { kind: "types", label: "Design Type" },
-  { kind: "tags", label: "Tag" },
-];
+const KINDS: VocabularyKind[] = ["families", "types", "tags"];
+
+/**
+ * What the menu calls a collection, and what a sentence calls it.
+ *
+ * Two different words on purpose: the menu names the thing about to be made, in the phrasing
+ * the PRD uses for it, and the hint under a disabled button needs the same idea inside a
+ * sentence. Both are looked up here rather than stored on `KINDS`, because that array is
+ * built once at import and would have kept whichever language was loaded then.
+ */
+function menuLabel(kind: VocabularyKind): string {
+  if (kind === "families") return t("vocabulary.add.kinds.families");
+  if (kind === "types") return t("vocabulary.add.kinds.types");
+  return t("vocabulary.add.kinds.tags");
+}
+
+function singular(kind: VocabularyKind): string {
+  if (kind === "families") return t("vocabulary.kinds.families.one");
+  if (kind === "types") return t("vocabulary.kinds.types.one");
+  return t("vocabulary.kinds.tags.one");
+}
 
 /**
  * Add a word by hand — to any of the three collections, from one control.
@@ -36,7 +54,7 @@ export function AddTerm(props: {
   onAdded: (kind: VocabularyKind) => void;
 }) {
   return (
-    <Popover label="Add" title="Add to the vocabulary" outlined>
+    <Popover label={t("vocabulary.add.label")} title={t("vocabulary.add.title")} outlined>
       {(close) => <AddPanel close={close} onAdded={props.onAdded} />}
     </Popover>
   );
@@ -50,29 +68,33 @@ export function AddTerm(props: {
  * reopening on the form that was last used.
  */
 function AddPanel(props: { close: () => void; onAdded: (kind: VocabularyKind) => void }) {
-  const [chosen, setChosen] = createSignal<(typeof KINDS)[number] | null>(null);
+  /*
+   * The kind, not the menu entry it was clicked from. Holding the entry would hold the label
+   * that was on it at the time, and the form below would go on saying it after a language
+   * change; the kind is the part that does not depend on the language.
+   */
+  const [chosen, setChosen] = createSignal<VocabularyKind | null>(null);
 
   return (
     <Show
       when={chosen()}
       fallback={
         <For each={KINDS}>
-          {(entry) => (
-            <button type="button" class="menu-item" onClick={() => setChosen(entry)}>
-              <span class="min-w-0 flex-1 truncate">{entry.label}</span>
+          {(kind) => (
+            <button type="button" class="menu-item" onClick={() => setChosen(kind)}>
+              <span class="min-w-0 flex-1 truncate">{menuLabel(kind)}</span>
               <ChevronRight class="chevron" />
             </button>
           )}
         </For>
       }
     >
-      {(entry) => (
+      {(kind) => (
         <NewTermForm
-          kind={entry().kind}
-          noun={entry().label}
+          kind={kind()}
           onBack={() => setChosen(null)}
           onAdded={() => {
-            props.onAdded(entry().kind);
+            props.onAdded(kind());
             props.close();
           }}
         />
@@ -82,21 +104,19 @@ function AddPanel(props: { close: () => void; onAdded: (kind: VocabularyKind) =>
 }
 
 /** The fields one collection needs, and nothing the other two would have added. */
-function NewTermForm(props: {
-  kind: VocabularyKind;
-  noun: string;
-  onBack: () => void;
-  onAdded: () => void;
-}) {
+function NewTermForm(props: { kind: VocabularyKind; onBack: () => void; onAdded: () => void }) {
   const [name, setName] = createSignal("");
   const [description, setDescription] = createSignal("");
   const [problem, setProblem] = createSignal<string | null>(null);
   const [busy, setBusy] = createSignal(false);
 
   const blocked = () => {
-    if (paused()) return "Curio is paused. Resume from the tray icon to add names.";
-    if (busy()) return "Adding…";
-    if (!name().trim()) return `Type a ${props.noun.toLowerCase()} first.`;
+    if (paused()) return t("vocabulary.add.paused");
+    if (busy()) return t("vocabulary.add.busy");
+    /* The in-sentence noun rather than the menu's Title Case one lower-cased. `toLowerCase`
+       is a no-op on a language without case, and it was only ever standing in for a word
+       this dictionary can simply hold. */
+    if (!name().trim()) return t("vocabulary.add.needName", { noun: singular(props.kind) });
     return undefined;
   };
 
@@ -116,7 +136,16 @@ function NewTermForm(props: {
       setDescription("");
       props.onAdded();
     } catch (error) {
-      setProblem(error instanceof ApiError ? error.message : "Could not add that.");
+      /* Adding a name that already exists is a 409 exactly like renaming onto one, and it
+         used to arrive here as the server's English. Both answers are overridden: this form
+         has no merge control to send the reader to, and it knows it was adding rather than
+         changing when something other than the API throws. */
+      setProblem(
+        refusal(error, {
+          fallback: t("vocabulary.add.failed"),
+          taken: t("vocabulary.add.taken"),
+        }),
+      );
     }
     setBusy(false);
   }
@@ -129,13 +158,15 @@ function NewTermForm(props: {
       <div class="flex items-center gap-1 border-line border-b pb-2">
         <button type="button" class="pill pill-icon" onClick={props.onBack}>
           <ChevronRight class="chevron rotate-180" />
-          <span class="sr-only">Back to the list of collections</span>
+          <span class="sr-only">{t("vocabulary.add.back")}</span>
         </button>
-        <span class="font-medium text-sm">New {props.noun}</span>
+        <span class="font-medium text-sm">
+          {t("vocabulary.add.heading", { noun: menuLabel(props.kind) })}
+        </span>
       </div>
 
       <label class="flex flex-col gap-1 text-sm">
-        <span class="text-ink-muted">Name</span>
+        <span class="text-ink-muted">{t("vocabulary.fields.name")}</span>
         {/*
          * Focused explicitly rather than with `autofocus`, which browsers honour
          * inconsistently on an element inserted after load — and this one always is. It also
@@ -154,21 +185,19 @@ function NewTermForm(props: {
 
       <Show when={props.kind === "families"}>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-ink-muted">Description</span>
+          <span class="text-ink-muted">{t("vocabulary.fields.description")}</span>
           <textarea
             class="field field-block"
             rows="3"
             value={description()}
             onInput={(event) => setDescription(event.currentTarget.value)}
           />
-          <span class="text-ink-faint text-xs">
-            What Curio matches against, and what the chip expands to in a prompt.
-          </span>
+          <span class="text-ink-faint text-xs">{t("vocabulary.add.descriptionHint")}</span>
         </label>
       </Show>
 
       <button type="submit" class="pill pill-ink self-end" disabled={!!blocked()} title={blocked()}>
-        Add
+        {t("vocabulary.add.submit")}
       </button>
 
       <Show when={problem()}>

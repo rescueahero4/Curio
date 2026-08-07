@@ -16,11 +16,11 @@
 
 import { createSignal, Show } from "solid-js";
 import { Folder } from "~/components/icons";
-import { MISSING_TITLE, NO_FRONT_DOOR, PAUSED_REASON } from "~/components/projects/copy";
 import { PromptLink } from "~/components/projects/PromptLink";
 import { forgetProject, openProject, revealPath } from "~/lib/api";
 import { absoluteTime, relativeTime } from "~/lib/format";
 import { ApiError, paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Project, ProjectOrigin, Prompt } from "~/lib/types";
 
 /** `POST /api/system/reveal` always answers 200; the outcome is in the body (§10.22). */
@@ -36,10 +36,16 @@ interface Outcome {
  * it was a badge on every card carrying no signal. The other two do earn their line: they
  * behave differently (no marker file, so no rename-following, and the watcher's
  * missing-reconciliation skips them), so when one is wrong the origin is the explanation.
+ *
+ * A map of *keys*, not of words: the values are read during render, so the note follows a
+ * language change. The same map holding `t(...)` results would have frozen whichever
+ * language was loaded when this module first ran.
  */
-const ORIGIN_NOTE: Partial<Record<ProjectOrigin, string>> = {
-  mcp: "added by an agent",
-  manual: "added by you",
+const ORIGIN_NOTE: Partial<
+  Record<ProjectOrigin, "projects.card.origin.mcp" | "projects.card.origin.manual">
+> = {
+  mcp: "projects.card.origin.mcp",
+  manual: "projects.card.origin.manual",
 };
 
 export function ProjectCard(props: {
@@ -55,10 +61,10 @@ export function ProjectCard(props: {
 
   const missing = () => props.project.status === "missing";
   const launchReason = () => {
-    if (paused()) return PAUSED_REASON;
-    if (missing()) return "The folder is gone, so there is nothing to serve.";
-    if (!frontDoor()) return NO_FRONT_DOOR;
-    return "Launch in a new tab";
+    if (paused()) return t("projects.paused");
+    if (missing()) return t("projects.card.launch.missingTitle");
+    if (!frontDoor()) return t("projects.card.launch.noPage");
+    return t("projects.card.launch.title");
   };
 
   async function launch() {
@@ -67,8 +73,11 @@ export function ProjectCard(props: {
     try {
       const opened = await openProject(props.project.id);
       if (!opened.entry) {
+        // The tile takes it from here: its label and its title both say there is no page.
+        // A note as well would be the same sentence twice — and `frontDoor` is sticky, so
+        // that copy would sit under the card in whatever language was loaded when it was
+        // set, for as long as the card lives.
         setFrontDoor(false);
-        setNote(NO_FRONT_DOOR);
         return;
       }
       setFrontDoor(true);
@@ -76,10 +85,10 @@ export function ProjectCard(props: {
       if (tab) {
         tab.opener = null;
       } else {
-        setNote(`Your browser blocked the new tab. The project is at ${opened.url}.`);
+        setNote(t("projects.card.launch.blocked", { url: opened.url }));
       }
     } catch (error) {
-      setNote(error instanceof ApiError ? error.message : "Curio could not open that project.");
+      setNote(error instanceof ApiError ? error.message : t("projects.card.launch.failed"));
     } finally {
       setBusy(false);
     }
@@ -95,15 +104,29 @@ export function ProjectCard(props: {
   async function reveal() {
     setBusy(true);
     setNote(null);
+    // Captured before the await, because it is what the request was sent with and what
+    // decides which of the server's three sentences comes back.
+    const nearest = missing();
     try {
-      // Verbatim, and deliberately phrased as a request: nothing here can know whether a
-      // file manager actually opened, so claiming it did would be a guess (§10.22).
-      setNote(((await revealPath(props.project.path, missing())) as Outcome).message);
+      const outcome = (await revealPath(props.project.path, nearest)) as Outcome;
+      // The ordinary success is the most-read line on this card, and the server composes it
+      // in English, so it is said here instead — from `asked` and a path this component
+      // already holds. The other two shapes stay as the server wrote them: the nearest-folder
+      // fallback names a second path that never crosses the wire on its own, and a refusal
+      // carries an OS error. Both are rare, and both are still English.
+      //
+      // Either way the wording promises only that Curio asked. Nothing on this side can know
+      // whether a file manager opened, so claiming it did would be a guess (§10.22).
+      setNote(
+        outcome.asked && !nearest
+          ? t("projects.card.revealAsked", { path: props.project.path })
+          : outcome.message,
+      );
     } catch (error) {
       setNote(
         error instanceof ApiError && error.isPaused
-          ? PAUSED_REASON
-          : "Curio could not ask your file manager to open.",
+          ? t("projects.paused")
+          : t("projects.card.revealFailed"),
       );
     } finally {
       setBusy(false);
@@ -120,8 +143,8 @@ export function ProjectCard(props: {
       setConfirming(false);
       setNote(
         error instanceof ApiError && error.isPaused
-          ? PAUSED_REASON
-          : "Curio could not remove that project.",
+          ? t("projects.paused")
+          : t("projects.card.missing.removeFailed"),
       );
     } finally {
       setBusy(false);
@@ -164,7 +187,9 @@ export function ProjectCard(props: {
           </span>
         </div>
         <Show when={missing()}>
-          <span class="badge tint-caution absolute top-2.5 left-2.5">missing</span>
+          <span class="badge tint-caution absolute top-2.5 left-2.5">
+            {t("projects.card.missing.badge")}
+          </span>
         </Show>
       </button>
 
@@ -179,7 +204,11 @@ export function ProjectCard(props: {
           class="flex min-w-0 items-center gap-1.5 text-left font-mono text-2xs text-ink-faint hover:text-ink-muted hover:underline hover:decoration-dotted hover:underline-offset-4 disabled:no-underline disabled:hover:text-ink-faint"
           onClick={() => void reveal()}
           disabled={busy() || paused()}
-          title={paused() ? PAUSED_REASON : `Open ${props.project.path} in your file manager`}
+          title={
+            paused()
+              ? t("projects.paused")
+              : t("projects.card.reveal", { path: props.project.path })
+          }
         >
           <Folder class="shrink-0 text-ink-faint" />
           <span class="truncate">{props.project.path}</span>
@@ -191,16 +220,16 @@ export function ProjectCard(props: {
             datetime={props.project.detected_at}
             title={absoluteTime(props.project.detected_at)}
           >
-            detected {relativeTime(props.project.detected_at)}
+            {t("projects.card.detected", { when: relativeTime(props.project.detected_at) })}
           </time>
           <Show when={props.project.last_opened_at}>
             {(at) => (
               <time datetime={at()} title={absoluteTime(at())}>
-                opened {relativeTime(at())}
+                {t("projects.card.opened", { when: relativeTime(at()) })}
               </time>
             )}
           </Show>
-          <Show when={ORIGIN_NOTE[props.project.origin]}>{(what) => <span>{what()}</span>}</Show>
+          <Show when={ORIGIN_NOTE[props.project.origin]}>{(key) => <span>{t(key())}</span>}</Show>
         </p>
 
         {/* Only when there is something to say. An unlinked project used to carry an offer
@@ -217,7 +246,9 @@ export function ProjectCard(props: {
 
         <Show when={missing()}>
           <div class="banner tint-caution mt-1 items-center justify-between text-xs  p-1 pl-3 pr-1">
-            <span>{confirming() ? "Remove this project for good?" : MISSING_TITLE}</span>
+            <span>
+              {confirming() ? t("projects.card.missing.confirm") : t("projects.card.missing.title")}
+            </span>
             <span class="flex items-center gap-2">
               <Show
                 when={confirming()}
@@ -228,9 +259,11 @@ export function ProjectCard(props: {
                       class="pill pill-outline px-2 py-0 rounded-sm"
                       onClick={() => void reveal()}
                       disabled={busy() || paused()}
-                      title={paused() ? PAUSED_REASON : "Open the closest folder that is there"}
+                      title={
+                        paused() ? t("projects.paused") : t("projects.card.missing.locateTitle")
+                      }
                     >
-                      Locate
+                      {t("projects.card.missing.locate")}
                     </button>
                     <button
                       type="button"
@@ -238,24 +271,24 @@ export function ProjectCard(props: {
                       onClick={requestRemove}
                       disabled={busy() || paused()}
                       title={
-                        paused() ? PAUSED_REASON : "Forget this project. The folder is not touched."
+                        paused() ? t("projects.paused") : t("projects.card.missing.removeTitle")
                       }
                     >
-                      Remove
+                      {t("projects.card.missing.remove")}
                     </button>
                   </>
                 }
               >
                 {/* Named for what is lost, not for the button that was pressed: the prompt
                     link is the only part of this record that is nowhere else. */}
-                <span class="text-ink-muted">Its prompt link goes with it.</span>
+                <span class="text-ink-muted">{t("projects.card.missing.cost")}</span>
                 <button
                   type="button"
                   class="pill pill-ink"
                   onClick={() => void remove()}
                   disabled={busy()}
                 >
-                  {busy() ? "Removing…" : "Remove"}
+                  {busy() ? t("projects.card.missing.removing") : t("projects.card.missing.remove")}
                 </button>
                 <button
                   type="button"
@@ -263,7 +296,7 @@ export function ProjectCard(props: {
                   onClick={() => setConfirming(false)}
                   disabled={busy()}
                 >
-                  Keep
+                  {t("projects.card.missing.keep")}
                 </button>
               </Show>
             </span>
@@ -282,8 +315,12 @@ export function ProjectCard(props: {
   );
 }
 
+/**
+ * Called from the JSX rather than precomputed, so the `t(...)` reads happen inside the
+ * render that shows them and the label follows a language change like the rest of the card.
+ */
 function launchLabel(busy: boolean, missing: boolean, frontDoor: boolean): string {
-  if (missing) return "Folder missing";
-  if (!frontDoor) return "No page to launch";
-  return busy ? "Opening…" : "Launch ↗";
+  if (missing) return t("projects.card.launch.missingLabel");
+  if (!frontDoor) return t("projects.card.launch.noPageLabel");
+  return busy ? t("projects.card.launch.opening") : t("projects.card.launch.label");
 }

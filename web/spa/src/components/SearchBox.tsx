@@ -1,5 +1,6 @@
 import { useLocation, useNavigate, useSearchParams } from "@solidjs/router";
 import { createSignal } from "solid-js";
+import { t } from "~/lib/i18n";
 import { createShortcut, isApplePlatform } from "~/lib/keyboard";
 
 /**
@@ -36,12 +37,14 @@ export function SearchBox() {
   return (
     <search class="w-full">
       <label class="relative flex items-center">
-        <span class="sr-only">Search the library</span>
+        {/* Label and placeholder are the same key on purpose: the label is `sr-only`, so
+            the placeholder is the only name a sighted reader sees the field carry. */}
+        <span class="sr-only">{t("shell.search.label")}</span>
         <input
           ref={input}
           type="search"
           class="field pr-0 py-1"
-          placeholder="Search the library"
+          placeholder={t("shell.search.label")}
           value={typeof searchParams.q === "string" ? searchParams.q : ""}
           onInput={(event) => commit(event.currentTarget.value)}
           onFocus={() => setFocused(true)}

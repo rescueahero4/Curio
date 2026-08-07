@@ -4,11 +4,18 @@ import { ChevronRight } from "~/components/icons";
 import { hostOf, ItemFacets } from "~/components/library/ItemFacets";
 import { SelectToggle } from "~/components/library/SelectToggle";
 import { itemImageUrl } from "~/lib/api";
+import { perLocale } from "~/lib/format";
+import { t } from "~/lib/i18n";
 import type { Item } from "~/lib/types";
 
-/** Module-level, because constructing a formatter per row is the expensive part. */
-const WHEN = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
-const WHEN_EXACT = new Intl.DateTimeFormat(undefined, { dateStyle: "full", timeStyle: "short" });
+/**
+ * The shapes are this view's — a bare date in the cell, the whole stamp in the tooltip — but
+ * the caching and the reason for it belong to `lib/format.ts`, which explains both.
+ */
+const WHEN = perLocale((tag) => new Intl.DateTimeFormat(tag, { dateStyle: "medium" }));
+const WHEN_EXACT = perLocale(
+  (tag) => new Intl.DateTimeFormat(tag, { dateStyle: "full", timeStyle: "short" }),
+);
 
 /**
  * One item as a row.
@@ -63,7 +70,9 @@ export function ItemRow(props: {
         />
 
         <div class="flex min-w-0 flex-1 flex-col">
-          <h2 class="truncate font-medium text-ink">{props.item.name || "Untitled"}</h2>
+          <h2 class="truncate font-medium text-ink">
+            {props.item.name || t("library.card.untitled")}
+          </h2>
           {/* Where it came from, in place of the description a row has no room to finish
               anyway — a truncated sentence is the worst of both, costing the width and
               still not saying the thing. */}
@@ -78,16 +87,20 @@ export function ItemRow(props: {
             be in this view at all, keep their width. */}
         <div class="hidden shrink-0 items-center gap-1 lg:flex">
           <Show when={props.item.status === "processing"}>
-            <span class="badge badge-strong">Waiting for assessment</span>
+            <span class="badge badge-strong">{t("library.status.processing")}</span>
           </Show>
           <Show when={props.item.status === "assessment_failed"}>
-            <span class="badge tint-caution">Assessment failed</span>
+            <span class="badge tint-caution">{t("library.status.failed")}</span>
           </Show>
           <Show when={props.item.status === "needs_review" || grayZone()}>
-            <span class="badge tint-caution">Needs review</span>
+            <span class="badge tint-caution">{t("library.status.needsReview")}</span>
           </Show>
           <Show when={proposal()}>
-            {(family) => <span class="badge tint-proposal">Proposed: {family().name}</span>}
+            {(family) => (
+              <span class="badge tint-proposal">
+                {t("library.card.proposed", { name: family().name })}
+              </span>
+            )}
           </Show>
           <ItemFacets item={props.item} limit={3} />
         </div>
@@ -95,9 +108,9 @@ export function ItemRow(props: {
         <time
           class="numeric hidden shrink-0 text-xs text-ink-faint sm:block"
           datetime={props.item.created_at}
-          title={WHEN_EXACT.format(captured())}
+          title={WHEN_EXACT().format(captured())}
         >
-          {WHEN.format(captured())}
+          {WHEN().format(captured())}
         </time>
 
         <ChevronRight class="chevron" />

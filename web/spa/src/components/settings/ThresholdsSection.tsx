@@ -1,9 +1,17 @@
-/** The two numbers that decide when Curio is sure, unsure, or wrong. */
+/**
+ * The two numbers that decide when Curio is sure, unsure, or wrong.
+ *
+ * The blurb deliberately no longer spells out the three bands or the lower ≤ upper rule. The
+ * field hints say what each number does at the moment you are editing it, and the ordering
+ * rule is enforced on save with a message of its own — so stating it up front only asked the
+ * reader to carry a constraint they had not yet had the chance to break.
+ */
 
-import { type Commit, PAUSED_REASON } from "~/components/settings/model";
+import { type Commit, pausedReason } from "~/components/settings/model";
 import { blurOrEnter, createSaver } from "~/components/settings/save";
 import { Field, Section } from "~/components/settings/section";
 import { paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Settings, Thresholds } from "~/lib/types";
 
 const STEP = 0.05;
@@ -23,12 +31,15 @@ export function ThresholdsSection(props: { settings: Settings; commit: Commit })
   return (
     <Section
       id="thresholds"
-      title="Confidence thresholds"
+      title={t("settings.thresholds.title")}
       saver={saver}
-      blurb="Above the upper bound Curio files an item itself; below the lower bound it proposes a new family; between the two is the gray zone, where it files the nearest match and asks you to confirm. The lower bound has to sit at or below the upper one — the server refuses the save otherwise, because inverted bounds would not fail loudly, they would quietly classify everything wrong."
+      blurb={t("settings.thresholds.blurb")}
     >
       <div class="grid gap-3 sm:grid-cols-2">
-        <Field label="Lower" hint="Under this, Curio proposes a new family instead of guessing.">
+        <Field
+          label={t("settings.thresholds.lower.label")}
+          hint={t("settings.thresholds.lower.hint")}
+        >
           {(id) => (
             <input
               id={id}
@@ -39,13 +50,16 @@ export function ThresholdsSection(props: { settings: Settings; commit: Commit })
               step={STEP}
               value={props.settings.thresholds.lower}
               disabled={paused()}
-              title={paused() ? PAUSED_REASON : undefined}
+              title={paused() ? pausedReason() : undefined}
               {...blurOrEnter(commitBound("lower"))}
             />
           )}
         </Field>
 
-        <Field label="Upper" hint="At or above this, Curio files the item without asking.">
+        <Field
+          label={t("settings.thresholds.upper.label")}
+          hint={t("settings.thresholds.upper.hint")}
+        >
           {(id) => (
             <input
               id={id}
@@ -56,7 +70,7 @@ export function ThresholdsSection(props: { settings: Settings; commit: Commit })
               step={STEP}
               value={props.settings.thresholds.upper}
               disabled={paused()}
-              title={paused() ? PAUSED_REASON : undefined}
+              title={paused() ? pausedReason() : undefined}
               {...blurOrEnter(commitBound("upper"))}
             />
           )}

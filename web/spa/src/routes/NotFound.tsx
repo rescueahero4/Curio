@@ -1,4 +1,5 @@
 import { A } from "@solidjs/router";
+import { t } from "~/lib/i18n";
 
 /**
  * The client-side 404 (R-FE-2).
@@ -10,9 +11,9 @@ import { A } from "@solidjs/router";
 export function NotFound() {
   return (
     <section class="flex flex-col gap-3">
-      <h1 class="text-xl font-semibold">Not found</h1>
+      <h1 class="text-xl font-semibold">{t("system.notFound.title")}</h1>
       <p style={{ color: "var(--color-muted)" }}>
-        <A href="/">Back to the library</A>
+        <A href="/">{t("system.notFound.back")}</A>
       </p>
     </section>
   );

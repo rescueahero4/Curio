@@ -14,9 +14,9 @@
 
 import { A } from "@solidjs/router";
 import { createSignal, Show } from "solid-js";
-import { PAUSED_REASON } from "~/components/projects/copy";
 import { updateProject } from "~/lib/api";
 import { ApiError, paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Project, Prompt } from "~/lib/types";
 
 export function PromptLink(props: {
@@ -37,8 +37,8 @@ export function PromptLink(props: {
     } catch (failure) {
       setError(
         failure instanceof ApiError && failure.isPaused
-          ? PAUSED_REASON
-          : "Curio could not change the prompt link.",
+          ? t("projects.paused")
+          : t("projects.prompt.failed"),
       );
     } finally {
       setSaving(false);
@@ -48,41 +48,47 @@ export function PromptLink(props: {
   return (
     <>
       <Show when={linked()}>
-        {(prompt) => (
-          <span class="flex min-w-0 items-center gap-1.5">
-            <A
-              href={`/prompts/${prompt().id}`}
-              class="max-w-[12rem] truncate text-ink-muted underline decoration-line underline-offset-4 hover:text-ink"
-              title={`From "${prompt().title || "Untitled prompt"}"`}
-            >
-              {prompt().title || "Untitled prompt"}
-            </A>
-            <button
-              type="button"
-              class="text-ink-faint hover:text-caution"
-              title="Unlink this prompt"
-              aria-label="Unlink this prompt"
-              disabled={saving() || paused()}
-              onClick={() => void relink(null)}
-            >
-              ×
-            </button>
-          </span>
-        )}
+        {(prompt) => {
+          // Resolved once per render and reused by both the link text and its title —
+          // an untitled prompt is one fact, and computing it twice invites the two to
+          // disagree the day one of them gains a word.
+          const name = () => prompt().title || t("projects.prompt.untitled");
+          return (
+            <span class="flex min-w-0 items-center gap-1.5">
+              <A
+                href={`/prompts/${prompt().id}`}
+                class="max-w-[12rem] truncate text-ink-muted underline decoration-line underline-offset-4 hover:text-ink"
+                title={t("projects.prompt.from", { title: name() })}
+              >
+                {name()}
+              </A>
+              <button
+                type="button"
+                class="text-ink-faint hover:text-caution"
+                title={t("projects.prompt.unlink")}
+                aria-label={t("projects.prompt.unlink")}
+                disabled={saving() || paused()}
+                onClick={() => void relink(null)}
+              >
+                ×
+              </button>
+            </span>
+          );
+        }}
       </Show>
 
       {/* A record pointing at a prompt that is no longer in the list: say so, and offer the
           way out, rather than rendering an empty space where a name should be. */}
       <Show when={props.project.prompt_id && !linked()}>
         <span class="flex items-center gap-1.5 text-ink-faint">
-          <span>Prompt deleted</span>
+          <span>{t("projects.prompt.deleted")}</span>
           <button
             type="button"
             class="underline decoration-line underline-offset-4 hover:text-ink"
             disabled={saving() || paused()}
             onClick={() => void relink(null)}
           >
-            Clear
+            {t("projects.prompt.clear")}
           </button>
         </span>
       </Show>

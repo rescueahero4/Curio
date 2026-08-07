@@ -1,4 +1,5 @@
 import { createSignal, For, Show } from "solid-js";
+import { t } from "~/lib/i18n";
 
 /** One thing this entry could be merged into. */
 export interface MergeTarget {
@@ -29,17 +30,18 @@ export function MergeControl(props: {
   return (
     <div class="flex flex-wrap items-center gap-2">
       <label class="flex items-center gap-2 text-sm">
-        <span class="text-ink-muted">Merge into</span>
+        {/* English hangs a preposition over the dropdown and lets it point at what follows.
+            Japanese marks the role on the noun instead — 統合先, "what this is merged into" —
+            which is why this label is a phrase in one language and a noun in the other. */}
+        <span class="text-ink-muted">{t("vocabulary.merge.into")}</span>
         <select
           class="field"
           value={into()}
           disabled={!!props.blocked || props.targets.length === 0}
-          title={
-            props.targets.length === 0 ? "There is nothing else to merge this into." : props.blocked
-          }
+          title={props.targets.length === 0 ? t("vocabulary.merge.empty") : props.blocked}
           onChange={(event) => setInto(event.currentTarget.value)}
         >
-          <option value="">Choose…</option>
+          <option value="">{t("vocabulary.merge.choose")}</option>
           <For each={props.targets}>
             {(target) => <option value={target.id}>{target.name}</option>}
           </For>
@@ -57,10 +59,10 @@ export function MergeControl(props: {
                 setInto("");
               }}
             >
-              Merge {props.name} into {target().name}
+              {t("vocabulary.merge.action", { name: props.name, target: target().name })}
             </button>
             <span class="text-xs text-ink-faint">
-              Everything tagged {props.name} keeps its items and takes the other name.
+              {t("vocabulary.merge.hint", { name: props.name })}
             </span>
           </>
         )}

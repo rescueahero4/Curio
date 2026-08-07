@@ -7,12 +7,20 @@
  */
 
 import { createSignal, Show } from "solid-js";
-import { type Commit, PAUSED_REASON } from "~/components/settings/model";
+import { type Commit, pausedReason } from "~/components/settings/model";
 import { blurOrEnter, createSaver } from "~/components/settings/save";
 import { Field, Section } from "~/components/settings/section";
 import { clearApiKey } from "~/lib/api";
 import { ApiError, paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Settings } from "~/lib/types";
+
+/**
+ * What became of the last clear. A kind, not a sentence: the note has no timer and stays
+ * until the next attempt, so a reader who switches language while it is up would otherwise
+ * be left with a line in the language they just left.
+ */
+type Note = "cleared" | "paused" | "failed";
 
 export function ApiKeySection(props: {
   settings: Settings;
@@ -21,7 +29,14 @@ export function ApiKeySection(props: {
 }) {
   const saver = createSaver(props.commit);
   const [clearing, setClearing] = createSignal(false);
-  const [note, setNote] = createSignal<string | null>(null);
+  const [note, setNote] = createSignal<Note | null>(null);
+
+  const noteText = (current: Note) => {
+    if (current === "cleared") return t("settings.apiKey.cleared");
+    return current === "paused"
+      ? t("settings.apiKey.clearPaused")
+      : t("settings.apiKey.clearFailed");
+  };
 
   function commitKey(input: HTMLInputElement) {
     const key = input.value.trim();
@@ -39,13 +54,9 @@ export function ApiKeySection(props: {
     try {
       await clearApiKey();
       await props.refresh();
-      setNote("Key cleared. Assessments will queue until you set a new one.");
+      setNote("cleared");
     } catch (error) {
-      setNote(
-        error instanceof ApiError && error.isPaused
-          ? "Curio is paused, so the key was not cleared. Resume from the tray icon."
-          : "Curio could not clear the key.",
-      );
+      setNote(error instanceof ApiError && error.isPaused ? "paused" : "failed");
     } finally {
       setClearing(false);
     }
@@ -54,20 +65,24 @@ export function ApiKeySection(props: {
   return (
     <Section
       id="api-key"
-      title="Anthropic API key"
+      title={t("settings.apiKey.title")}
       saver={saver}
-      blurb="Curio needs a key to assess captures. Without one, captures still arrive and queue — they are never lost, they just wait."
+      blurb={t("settings.apiKey.blurb")}
     >
+      {/* Split heading-from-value, not subject-from-predicate: the clause is one key that
+          each language ends its own way, and the mask keeps the monospaced face it needs.
+          The mask exists so two keys can be told apart, and `sk-ant-…lI10` in a proportional
+          face is the one place that fails. */}
       <p class="text-sm">
-        <Show when={props.settings.api_key_set} fallback="No key is set.">
-          A key is set:{" "}
+        <Show when={props.settings.api_key_set} fallback={t("settings.apiKey.none")}>
+          {t("settings.apiKey.set")}{" "}
           <span class="numeric font-mono">{props.settings.api_key_masked ?? "sk-ant-…"}</span>
         </Show>
       </p>
 
       <Field
-        label={props.settings.api_key_set ? "Replace the key" : "Set a key"}
-        hint="Saves when you press Enter or click away from the box. Curio stores it in your OS keychain and never shows it again — replacing a key discards the old one for good, so there is nothing to undo."
+        label={props.settings.api_key_set ? t("settings.apiKey.replace") : t("settings.apiKey.add")}
+        hint={t("settings.apiKey.hint")}
       >
         {(id) => (
           <input
@@ -78,7 +93,7 @@ export function ApiKeySection(props: {
             spellcheck={false}
             placeholder="sk-ant-…"
             disabled={paused()}
-            title={paused() ? PAUSED_REASON : undefined}
+            title={paused() ? pausedReason() : undefined}
             {...blurOrEnter(commitKey)}
           />
         )}
@@ -92,18 +107,18 @@ export function ApiKeySection(props: {
           disabled={!props.settings.api_key_set || clearing() || paused()}
           title={
             paused()
-              ? PAUSED_REASON
+              ? pausedReason()
               : props.settings.api_key_set
                 ? undefined
-                : "There is no key to clear."
+                : t("settings.apiKey.nothingToClear")
           }
         >
-          {clearing() ? "Clearing…" : "Clear key"}
+          {clearing() ? t("settings.apiKey.clearing") : t("settings.apiKey.clear")}
         </button>
         <Show when={note()}>
-          {(message) => (
+          {(current) => (
             <span role="status" class="text-xs text-ink-muted">
-              {message()}
+              {noteText(current())}
             </span>
           )}
         </Show>

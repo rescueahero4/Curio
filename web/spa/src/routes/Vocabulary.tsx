@@ -3,26 +3,42 @@ import { ensureVocabulary } from "~/components/library/vocab";
 import { AddTerm } from "~/components/vocabulary/AddTerm";
 import type { VocabEntry } from "~/components/vocabulary/VocabRow";
 import { VocabTable } from "~/components/vocabulary/VocabTable";
+import { t } from "~/lib/i18n";
 import { refreshVocabulary, vocabulary } from "~/lib/stores";
 import type { VocabularyKind } from "~/lib/types";
 
-const TABS: { kind: VocabularyKind; label: string }[] = [
-  { kind: "families", label: "Families" },
-  { kind: "types", label: "Design types" },
-  { kind: "tags", label: "Tags" },
-];
+/** The tabs in the order they are drawn. The labels are looked up, not stored. */
+const KINDS: VocabularyKind[] = ["families", "types", "tags"];
 
-const PLURAL: Record<VocabularyKind, string> = {
-  families: "families",
-  types: "design types",
-  tags: "tags",
-};
+/**
+ * A tab's label, resolved where it is drawn.
+ *
+ * The array above used to carry the words. A module-level array is built once, at import,
+ * which is before a reader has switched language and long before they switch it again — the
+ * labels would have been English for the rest of the session.
+ */
+function tabLabel(kind: VocabularyKind): string {
+  if (kind === "families") return t("vocabulary.tabs.families");
+  if (kind === "types") return t("vocabulary.tabs.types");
+  return t("vocabulary.tabs.tags");
+}
 
-const SINGULAR: Record<VocabularyKind, string> = {
-  families: "family",
-  types: "design type",
-  tags: "tag",
-};
+/**
+ * The collection as a noun a sentence can be built around, in both the forms English needs.
+ *
+ * Handed down rather than looked up in the table, because the table is one component over
+ * three collections and the sentences it writes — "Search tags", "Delete 3 families?" — are
+ * whole templates with a slot for this.
+ */
+function nouns(kind: VocabularyKind): { one: string; other: string } {
+  if (kind === "families") {
+    return { one: t("vocabulary.kinds.families.one"), other: t("vocabulary.kinds.families.other") };
+  }
+  if (kind === "types") {
+    return { one: t("vocabulary.kinds.types.one"), other: t("vocabulary.kinds.types.other") };
+  }
+  return { one: t("vocabulary.kinds.tags.one"), other: t("vocabulary.kinds.tags.other") };
+}
 
 /**
  * The words the library is described in (FR-11, R-FE-15a).
@@ -62,11 +78,8 @@ export function Vocabulary() {
   return (
     <section class="flex flex-col gap-4">
       <header class="flex flex-col gap-1">
-        <h1 class="text-xl font-semibold">Vocabulary</h1>
-        <p class="text-sm text-ink-muted">
-          Every name Curio uses to describe your library. Rename one and every item follows; merge
-          two when they turned out to mean the same thing.
-        </p>
+        <h1 class="text-xl font-semibold">{t("vocabulary.title")}</h1>
+        <p class="text-sm text-ink-muted">{t("vocabulary.blurb")}</p>
       </header>
 
       {/* ConsistencyPass — "these three words look like one thing" — belongs here, above
@@ -81,9 +94,9 @@ export function Vocabulary() {
         when={vocabulary.loaded}
         fallback={
           <p class="flex items-center justify-center gap-2 py-12 text-sm text-ink-faint">
-            Reading the vocabulary…
+            {t("vocabulary.loading")}
             <button type="button" class="pill" onClick={() => void refreshVocabulary()}>
-              Try again
+              {t("vocabulary.retry")}
             </button>
           </p>
         }
@@ -91,21 +104,20 @@ export function Vocabulary() {
         <VocabTable
           kind={tab()}
           entries={entries()}
-          noun={PLURAL[tab()]}
-          one={SINGULAR[tab()]}
+          nouns={nouns(tab())}
           tabs={
-            <nav aria-label="Vocabulary collections" class="flex items-center gap-1">
-              <For each={TABS}>
-                {(entry) => (
+            <nav aria-label={t("vocabulary.tabs.label")} class="flex items-center gap-1">
+              <For each={KINDS}>
+                {(kind) => (
                   <button
                     type="button"
                     class="pill"
-                    classList={{ "pill-current": tab() === entry.kind }}
-                    aria-current={tab() === entry.kind ? "page" : undefined}
-                    onClick={() => setTab(entry.kind)}
+                    classList={{ "pill-current": tab() === kind }}
+                    aria-current={tab() === kind ? "page" : undefined}
+                    onClick={() => setTab(kind)}
                   >
-                    {entry.label}
-                    <span class="numeric text-2xs">{count(entry.kind)}</span>
+                    {tabLabel(kind)}
+                    <span class="numeric text-2xs">{count(kind)}</span>
                   </button>
                 )}
               </For>

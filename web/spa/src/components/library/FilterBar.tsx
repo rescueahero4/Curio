@@ -15,35 +15,45 @@ import { Popover } from "~/components/library/Popover";
 import { createReviewCount } from "~/components/library/reviewCount";
 import type { ViewMode } from "~/components/library/view";
 import { familyOptions, termOptions } from "~/components/library/vocab";
+import { t } from "~/lib/i18n";
 import type { ItemStatus } from "~/lib/types";
 
-const STATUSES: { id: ItemStatus; label: string }[] = [
-  { id: "processing", label: "Waiting for assessment" },
-  { id: "ready", label: "Described" },
-  { id: "needs_review", label: "Needs review" },
-  { id: "assessment_failed", label: "Assessment failed" },
-];
+/**
+ * Both lists are built per call rather than held as module constants, which is what a
+ * translated label costs: `t` is a signal underneath, and a string read once at module scope
+ * would be whatever language the tab happened to open in for the rest of the session.
+ */
+function statuses(): { id: ItemStatus; label: string }[] {
+  return [
+    { id: "processing", label: t("library.status.processing") },
+    { id: "ready", label: t("library.status.ready") },
+    { id: "needs_review", label: t("library.status.needsReview") },
+    { id: "assessment_failed", label: t("library.status.failed") },
+  ];
+}
 
-const VIEWS: { mode: ViewMode; label: string; hint: string; icon: () => JSX.Element }[] = [
-  {
-    mode: "comfortable",
-    label: "Comfortable grid",
-    hint: "Larger cards, with descriptions",
-    icon: () => <ViewComfortable />,
-  },
-  {
-    mode: "dense",
-    label: "Dense grid",
-    hint: "Fit more on screen",
-    icon: () => <ViewDense />,
-  },
-  {
-    mode: "list",
-    label: "List",
-    hint: "One row per item, with capture dates",
-    icon: () => <ViewList />,
-  },
-];
+function views(): { mode: ViewMode; label: string; hint: string; icon: () => JSX.Element }[] {
+  return [
+    {
+      mode: "comfortable",
+      label: t("library.filters.view.comfortable.label"),
+      hint: t("library.filters.view.comfortable.hint"),
+      icon: () => <ViewComfortable />,
+    },
+    {
+      mode: "dense",
+      label: t("library.filters.view.dense.label"),
+      hint: t("library.filters.view.dense.hint"),
+      icon: () => <ViewDense />,
+    },
+    {
+      mode: "list",
+      label: t("library.filters.view.list.label"),
+      hint: t("library.filters.view.list.hint"),
+      icon: () => <ViewList />,
+    },
+  ];
+}
 
 /**
  * The filter row (FR-10).
@@ -73,42 +83,44 @@ export function FilterBar(props: {
     <div class="flex flex-wrap items-center gap-2">
       <FacetPill
         kind="type"
-        title="Design type"
+        title={t("library.filters.type.title")}
         selected={props.facets.type}
         options={() => termOptions("types")}
-        empty="No design types yet. Curio adds them as it describes captures."
+        empty={t("library.filters.type.empty")}
         onToggle={change}
       />
       <FacetPill
         kind="family"
-        title="Family"
+        title={t("library.filters.family.title")}
         selected={props.facets.family}
         options={familyOptions}
-        empty="No families yet. They appear once Curio has something to group."
+        empty={t("library.filters.family.empty")}
         onToggle={change}
       />
       <FacetPill
         kind="tag"
-        title="Tag"
+        title={t("library.filters.tag.title")}
         selected={props.facets.tag}
         options={() => termOptions("tags")}
-        empty="No tags yet."
+        empty={t("library.filters.tag.empty")}
         onToggle={change}
       />
 
       <Popover
-        title="Status"
-        label={<Label text="Status" count={props.facets.status.length} />}
+        title={t("library.filters.status.title")}
+        label={
+          <Label text={t("library.filters.status.title")} count={props.facets.status.length} />
+        }
         active={props.facets.status.length > 0}
         outlined
       >
         {() => (
           <OptionList
-            options={STATUSES}
+            options={statuses()}
             selected={props.facets.status}
-            empty="No statuses."
+            empty={t("library.filters.status.empty")}
             onToggle={(id) => {
-              const chosen = STATUSES.find((status) => status.id === id);
+              const chosen = statuses().find((status) => status.id === id);
               if (chosen) props.onFacets(toggleStatus(props.facets, chosen.id));
             }}
           />
@@ -130,7 +142,7 @@ export function FilterBar(props: {
           props.onFacets({ ...props.facets, needs_review: !props.facets.needs_review })
         }
       >
-        Needs review
+        {t("library.status.needsReview")}
         <Show when={reviewCount() !== null}>
           <span class="numeric text-2xs">{reviewCount()}</span>
         </Show>
@@ -138,13 +150,13 @@ export function FilterBar(props: {
 
       <Show when={facetCount(props.facets) > 0}>
         <button type="button" class="pill" onClick={() => props.onFacets(NO_FACETS)}>
-          Clear filters
+          {t("library.filters.clear")}
         </button>
       </Show>
 
       <div class="ml-auto flex items-center gap-3">
         <A href="/vocabulary" class="link-dotted">
-          Vocabulary
+          {t("library.filters.vocabulary")}
         </A>
 
         {/* A `<fieldset>` rather than a div with `role="group"`: three buttons that are one
@@ -152,8 +164,8 @@ export function FilterBar(props: {
             them. It is hidden visually because the icons and the row's position already
             say it to anyone who can see them. */}
         <fieldset class="segmented">
-          <legend class="sr-only">How the library is shown</legend>
-          <For each={VIEWS}>
+          <legend class="sr-only">{t("library.filters.view.legend")}</legend>
+          <For each={views()}>
             {(entry) => (
               <button
                 type="button"

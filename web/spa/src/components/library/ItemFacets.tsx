@@ -1,4 +1,6 @@
 import { For, Show } from "solid-js";
+import { listOf } from "~/components/library/vocab";
+import { t } from "~/lib/i18n";
 import type { Item } from "~/lib/types";
 
 /**
@@ -51,10 +53,7 @@ export function ItemFacets(props: { item: Item; limit: number }) {
 
   const shown = () => facets().slice(0, props.limit);
   const hidden = () => facets().slice(props.limit);
-  const rest = () =>
-    hidden()
-      .map((facet) => facet.name)
-      .join(", ");
+  const rest = () => listOf(hidden().map((facet) => facet.name));
 
   return (
     <>
@@ -63,7 +62,11 @@ export function ItemFacets(props: { item: Item; limit: number }) {
           <span
             class="badge"
             classList={{ "badge-strong": facet.kind === "family" }}
-            title={`${facet.kind === "family" ? "Aesthetic family" : "Design type"}: ${facet.name}`}
+            title={
+              facet.kind === "family"
+                ? t("library.card.facets.family", { name: facet.name })
+                : t("library.card.facets.type", { name: facet.name })
+            }
           >
             {facet.name}
           </span>

@@ -36,10 +36,20 @@ import {
   Undo,
 } from "~/components/icons";
 import { Popover } from "~/components/library/Popover";
+import { t } from "~/lib/i18n";
+import { isApplePlatform } from "~/lib/keyboard";
 
 interface Control {
   icon: (props: { class?: string }) => JSX.Element;
-  title: string;
+  /**
+   * The control's accessible name, and its tooltip. A **thunk**, because these two arrays
+   * are module-level: a string read here would be resolved once, when the lazily-loaded
+   * editor chunk is first imported, and every button on the rail would then keep the
+   * language the reader happened to be in when they first opened a prompt. Called from JSX,
+   * so each name is its own reactive read and a language change re-labels the rail without
+   * touching the document.
+   */
+  title: () => string;
   /** The mark or node this control reports on. Absent means it never reads as pressed. */
   name?: string;
   attrs?: Record<string, unknown>;
@@ -50,19 +60,19 @@ interface Control {
 const MARKS: readonly Control[] = [
   {
     icon: Bold,
-    title: "Bold",
+    title: () => t("editor.toolbar.bold"),
     name: "bold",
     run: (editor) => editor.chain().focus().toggleBold().run(),
   },
   {
     icon: Italic,
-    title: "Italic",
+    title: () => t("editor.toolbar.italic"),
     name: "italic",
     run: (editor) => editor.chain().focus().toggleItalic().run(),
   },
   {
     icon: Code,
-    title: "Inline code",
+    title: () => t("editor.toolbar.code"),
     name: "code",
     run: (editor) => editor.chain().focus().toggleCode().run(),
   },
@@ -72,31 +82,31 @@ const MARKS: readonly Control[] = [
 const BLOCKS: readonly Control[] = [
   {
     icon: BulletList,
-    title: "Bulleted list",
+    title: () => t("editor.toolbar.bulletList"),
     name: "bulletList",
     run: (editor) => editor.chain().focus().toggleBulletList().run(),
   },
   {
     icon: OrderedList,
-    title: "Numbered list",
+    title: () => t("editor.toolbar.orderedList"),
     name: "orderedList",
     run: (editor) => editor.chain().focus().toggleOrderedList().run(),
   },
   {
     icon: Quote,
-    title: "Quote",
+    title: () => t("editor.toolbar.quote"),
     name: "blockquote",
     run: (editor) => editor.chain().focus().toggleBlockquote().run(),
   },
   {
     icon: CodeBlock,
-    title: "Code block",
+    title: () => t("editor.toolbar.codeBlock"),
     name: "codeBlock",
     run: (editor) => editor.chain().focus().toggleCodeBlock().run(),
   },
   {
     icon: Divider,
-    title: "Divider",
+    title: () => t("editor.toolbar.divider"),
     run: (editor) => editor.chain().focus().setHorizontalRule().run(),
   },
 ];
@@ -113,7 +123,21 @@ const BLOCKS: readonly Control[] = [
 const HEADINGS = [2, 3] as const;
 
 /** Why every editing control is off while the Markdown view is up. */
-const SOURCE_REASON = "The Markdown view is read-only — switch back to edit the document";
+const sourceReason = () => t("editor.toolbar.source.blocked");
+
+/**
+ * The keystroke, appended to a tooltip.
+ *
+ * **Not a dictionary entry**, because these are the glyphs printed on the keys and a
+ * Japanese keyboard prints the same ones. They vary by *platform*, not by language, which
+ * is a different axis and the one this rail was getting wrong: TipTap binds history to
+ * `Mod-z`, so on a Mac the chord is ⌘Z and the tooltip said Ctrl-Z — naming a chord that is
+ * not bound, in both languages. `isApplePlatform` and the ⌘/Ctrl split are the same ones
+ * `SearchBox` already renders for Cmd-K.
+ */
+const SHORTCUTS = isApplePlatform()
+  ? { undo: "⌘Z", redo: "⇧⌘Z" }
+  : { undo: "Ctrl-Z", redo: "Ctrl-Shift-Z" };
 
 interface Props {
   editor: Editor;
@@ -154,6 +178,14 @@ export function Toolbar(props: Props) {
     return action === "undo" ? props.editor.can().undo() : props.editor.can().redo();
   };
 
+  /** What the block-type trigger reads at rest: the heading the caret is in, or the body. */
+  const blockName = () => {
+    const level = heading();
+    return level === null
+      ? t("editor.toolbar.block.text")
+      : t("editor.toolbar.block.heading", { level });
+  };
+
   /**
    * The `/` palette's four commands, reachable by mouse.
    *
@@ -177,7 +209,7 @@ export function Toolbar(props: Props) {
       class="glass z-20 border-line border-b lg:sticky"
       style={{ top: "var(--topbar-h)" }}
       role="toolbar"
-      aria-label="Prompt document"
+      aria-label={t("editor.toolbar.label")}
     >
       {/* Wider than the page below it, narrower than the shell above it. At the sheet's own
           64rem the controls and the actions do not fit on one line — which was the whole
@@ -185,16 +217,16 @@ export function Toolbar(props: Props) {
           that the rail stops reading as one instrument. 78rem is where both hold. */}
       <div class="mx-auto flex max-w-[78rem] flex-wrap items-center gap-0.5 px-6 py-1.5">
         <ToolButton
-          title="Undo"
-          shortcut="Ctrl-Z"
+          title={t("editor.toolbar.undo")}
+          shortcut={SHORTCUTS.undo}
           disabled={props.source || !can("undo")}
           onClick={() => props.editor.chain().focus().undo().run()}
         >
           <Undo />
         </ToolButton>
         <ToolButton
-          title="Redo"
-          shortcut="Ctrl-Shift-Z"
+          title={t("editor.toolbar.redo")}
+          shortcut={SHORTCUTS.redo}
           disabled={props.source || !can("redo")}
           onClick={() => props.editor.chain().focus().redo().run()}
         >
@@ -204,16 +236,16 @@ export function Toolbar(props: Props) {
         <span class="tool-sep" aria-hidden="true" />
 
         <Popover
-          label={<span class="text-sm">{heading() ? `Heading ${heading()}` : "Text"}</span>}
-          title="Block type"
+          label={<span class="text-sm">{blockName()}</span>}
+          title={t("editor.toolbar.block.title")}
           variant="tool"
           width="11rem"
-          blocked={props.source ? SOURCE_REASON : undefined}
+          blocked={props.source ? sourceReason() : undefined}
         >
           {(close) => (
             <div class="flex flex-col">
               <BlockChoice
-                label="Text"
+                label={t("editor.toolbar.block.text")}
                 on={heading() === null}
                 onPick={() => {
                   props.editor.chain().focus().setParagraph().run();
@@ -223,7 +255,7 @@ export function Toolbar(props: Props) {
               <For each={HEADINGS}>
                 {(level) => (
                   <BlockChoice
-                    label={`Heading ${level}`}
+                    label={t("editor.toolbar.block.heading", { level })}
                     markdown={"#".repeat(level)}
                     on={heading() === level}
                     onPick={() => {
@@ -242,7 +274,7 @@ export function Toolbar(props: Props) {
         <For each={MARKS}>
           {(control) => (
             <ToolButton
-              title={control.title}
+              title={control.title()}
               on={isActive(control)}
               disabled={props.source}
               onClick={() => control.run(props.editor)}
@@ -257,7 +289,7 @@ export function Toolbar(props: Props) {
         <For each={BLOCKS}>
           {(control) => (
             <ToolButton
-              title={control.title}
+              title={control.title()}
               on={isActive(control)}
               disabled={props.source}
               onClick={() => control.run(props.editor)}
@@ -273,13 +305,13 @@ export function Toolbar(props: Props) {
           label={
             <span class="flex items-center gap-1 text-sm">
               <Plus />
-              Insert
+              {t("editor.toolbar.insert.label")}
             </span>
           }
-          title="Insert from the library"
+          title={t("editor.toolbar.insert.title")}
           variant="tool"
           width="17rem"
-          blocked={props.source ? SOURCE_REASON : undefined}
+          blocked={props.source ? sourceReason() : undefined}
         >
           {(close) => (
             <div class="flex flex-col">
@@ -290,8 +322,10 @@ export function Toolbar(props: Props) {
                     class="rounded-card px-2.5 py-1.5 text-left hover:bg-desk"
                     onClick={() => insert(entry.label, close)}
                   >
+                    {/* The command word, untranslated, because clicking this row types it
+                        into the paragraph. The line under it says what it means. */}
                     <span class="block text-base capitalize">{entry.label}</span>
-                    <span class="block text-2xs text-ink-faint">{entry.hint}</span>
+                    <span class="block text-2xs text-ink-faint">{entry.hint()}</span>
                   </button>
                 )}
               </For>
@@ -303,7 +337,7 @@ export function Toolbar(props: Props) {
           {/* The only acknowledgement a document with no Save button gets. It says nothing
               at rest on purpose — "Saved" that never goes away stops being read. */}
           <Show when={props.saving}>
-            <span class="mr-1 text-2xs text-ink-faint">Saving…</span>
+            <span class="mr-1 text-2xs text-ink-faint">{t("common.saving")}</span>
           </Show>
 
           <button
@@ -311,11 +345,11 @@ export function Toolbar(props: Props) {
             class="tool-btn px-2 text-sm"
             data-on={props.source ? "true" : "false"}
             aria-pressed={props.source}
-            title="Show the text this prompt becomes when it is copied"
+            title={t("editor.toolbar.source.hint")}
             onClick={() => props.onSource(!props.source)}
           >
             <Markdown />
-            Markdown
+            {t("editor.toolbar.source.label")}
           </button>
 
           <span class="tool-sep" aria-hidden="true" />
@@ -342,7 +376,7 @@ function ToolButton(props: {
       data-on={props.on ? "true" : "false"}
       aria-pressed={props.on ?? false}
       aria-label={props.title}
-      title={props.disabled ? SOURCE_REASON : titleFor(props)}
+      title={props.disabled ? sourceReason() : titleFor(props)}
       disabled={props.disabled}
       // The editor loses its selection to a plain click, and a formatting button with
       // nothing selected formats nothing.

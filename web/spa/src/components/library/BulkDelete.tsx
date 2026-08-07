@@ -1,4 +1,5 @@
 import { createSignal, Show } from "solid-js";
+import { t } from "~/lib/i18n";
 
 /**
  * Delete, behind a count.
@@ -7,6 +8,10 @@ import { createSignal, Show } from "solid-js";
  * 40 items" is verifiable against what they think they selected, where a bare "are you
  * sure" is not. In `matching` mode the number is the server's to know, so the confirmation
  * says what is true — everything the filter matches.
+ *
+ * That makes three whole questions rather than one sentence with a subject dropped into it.
+ * The subject used to be assembled — `Delete ${count} items?` — which reads as English word
+ * order and nothing else; each of the three is now a sentence a translator owns end to end.
  */
 export function BulkDelete(props: {
   count: number | null;
@@ -15,8 +20,14 @@ export function BulkDelete(props: {
 }) {
   const [asking, setAsking] = createSignal(false);
 
-  const subject = () =>
-    props.count === null ? "everything this filter matches" : `${props.count} items`;
+  /** English needs a singular; Japanese counts everything in 件 and reuses one sentence. */
+  const question = () => {
+    const count = props.count;
+    if (count === null) return t("library.bulk.delete.askMatching");
+    return count === 1
+      ? t("library.bulk.delete.askOne", { count })
+      : t("library.bulk.delete.askOther", { count });
+  };
 
   return (
     <Show
@@ -29,12 +40,12 @@ export function BulkDelete(props: {
           title={props.blocked}
           onClick={() => setAsking(true)}
         >
-          Delete
+          {t("common.delete")}
         </button>
       }
     >
       <span class="flex items-center gap-2 text-sm text-ink-muted">
-        Delete {subject()}?
+        {question()}
         <button
           type="button"
           class="pill tint-caution"
@@ -43,10 +54,10 @@ export function BulkDelete(props: {
             props.onConfirm();
           }}
         >
-          Yes, delete
+          {t("library.bulk.delete.yes")}
         </button>
         <button type="button" class="pill" onClick={() => setAsking(false)}>
-          Keep them
+          {t("library.bulk.delete.no")}
         </button>
       </span>
     </Show>

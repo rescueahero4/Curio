@@ -1,5 +1,6 @@
 import { createSignal, onCleanup } from "solid-js";
 import { ApiError } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { ItemPatch } from "~/lib/types";
 
 /** R-FE-13. Long enough to coalesce a sentence, short enough that a tab-away is safe. */
@@ -86,9 +87,10 @@ export function createAutosave(save: (patch: ItemPatch) => Promise<unknown>) {
 
 export type Autosave = ReturnType<typeof createAutosave>;
 
+/** The last line is the server's own words, which are English whatever the dashboard is. */
 function explainSave(error: unknown): string {
-  if (!(error instanceof ApiError)) return "That edit did not save.";
-  if (error.isPaused) return "Curio is paused, so the edit was not saved. Resume from the tray.";
-  if (error.unreachable) return "Curio is not answering, so the edit was not saved.";
+  if (!(error instanceof ApiError)) return t("library.item.fields.errors.save");
+  if (error.isPaused) return t("library.item.fields.errors.paused");
+  if (error.unreachable) return t("library.item.fields.errors.unreachable");
   return error.message;
 }

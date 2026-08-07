@@ -2,6 +2,7 @@ import { Show } from "solid-js";
 import { ExternalLink } from "~/components/icons";
 import type { SaveState } from "~/components/library/autosave";
 import { paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Item, ItemPatch } from "~/lib/types";
 
 /**
@@ -18,8 +19,7 @@ export function ItemFields(props: {
   problem: string | null;
   onEdit: (patch: ItemPatch) => void;
 }) {
-  const blocked = () =>
-    paused() ? "Curio is paused. Edits are not being saved right now." : undefined;
+  const blocked = () => (paused() ? t("library.item.fields.paused") : undefined);
 
   /**
    * The source URL, if it is one a browser should be sent to.
@@ -42,7 +42,7 @@ export function ItemFields(props: {
   return (
     <div class="flex flex-col gap-3">
       <label class="flex flex-col gap-1">
-        <span class="text-sm text-ink-muted">Name</span>
+        <span class="text-sm text-ink-muted">{t("library.item.fields.name")}</span>
         <input
           type="text"
           class="field field-block text-lg"
@@ -54,7 +54,7 @@ export function ItemFields(props: {
       </label>
 
       <label class="flex flex-col gap-1">
-        <span class="text-sm text-ink-muted">Short description</span>
+        <span class="text-sm text-ink-muted">{t("library.item.fields.description")}</span>
         <textarea
           class="field field-block"
           rows="3"
@@ -66,7 +66,7 @@ export function ItemFields(props: {
       </label>
 
       <label class="flex flex-col gap-1">
-        <span class="text-sm text-ink-muted">Source URL</span>
+        <span class="text-sm text-ink-muted">{t("library.item.fields.sourceUrl")}</span>
         {/* The field stays a field — this is still the place the URL is edited. The link is
             an affordance laid into it, because the other thing anyone does with a source URL
             is go and look at it, and select-all-copy-new-tab-paste is four gestures for
@@ -91,9 +91,9 @@ export function ItemFields(props: {
                 target="_blank"
                 rel="noreferrer noopener"
                 class="pill pill-icon absolute top-1/2 right-1 -translate-y-1/2"
-                title="Open in a new tab"
+                title={t("library.item.fields.openSource")}
               >
-                <span class="sr-only">Open the source URL in a new tab</span>
+                <span class="sr-only">{t("library.item.fields.openSourceLabel")}</span>
                 <ExternalLink />
               </a>
             )}
@@ -102,9 +102,7 @@ export function ItemFields(props: {
       </label>
 
       <label class="flex flex-col gap-1">
-        <span class="text-sm text-ink-muted">
-          Image prompt — what Curio would say to regenerate this look
-        </span>
+        <span class="text-sm text-ink-muted">{t("library.item.fields.imagePrompt")}</span>
         <textarea
           class="field field-block font-mono text-xs"
           rows="4"
@@ -128,10 +126,13 @@ export function ItemFields(props: {
 
 function Status(props: { state: SaveState; item: Item }) {
   return (
-    <Show when={props.state === "idle"} fallback={props.state === "saving" ? "Saving…" : "Saved."}>
+    <Show
+      when={props.state === "idle"}
+      fallback={props.state === "saving" ? t("common.saving") : t("library.item.fields.saved")}
+    >
       {props.item.last_edited_by === "user"
-        ? "Edited by you. Re-assessment will keep your name."
-        : "Described by Curio. Anything you change here is kept."}
+        ? t("library.item.fields.byUser")
+        : t("library.item.fields.byCurio")}
     </Show>
   );
 }

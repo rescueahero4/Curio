@@ -4,15 +4,22 @@ import { createSelection } from "~/components/library/selection";
 import { compare, createSort, type SortKey } from "~/components/vocabulary/sort";
 import { VocabBulkBar } from "~/components/vocabulary/VocabBulkBar";
 import { type VocabEntry, VocabRow } from "~/components/vocabulary/VocabRow";
+import { t } from "~/lib/i18n";
 import type { VocabularyKind } from "~/lib/types";
 
 type Origin = "all" | "ai" | "user";
 
-/** The sortable columns, in the order they are drawn. */
-const COLUMNS: { key: SortKey; label: string; class?: string }[] = [
-  { key: "name", label: "Name" },
-  { key: "items", label: "Items", class: "th-end" },
-  { key: "origin", label: "Named by", class: "td-origin" },
+/**
+ * The sortable columns, in the order they are drawn.
+ *
+ * A function rather than the array it used to be: a module-level array is built at import,
+ * so its labels would be whatever language was loaded then and would stay that way through
+ * every switch afterwards. Called from inside the `<For>`, the headings track the language.
+ */
+const columns = (): { key: SortKey; label: string; class?: string }[] => [
+  { key: "name", label: t("vocabulary.fields.name") },
+  { key: "items", label: t("vocabulary.table.columns.items"), class: "th-end" },
+  { key: "origin", label: t("vocabulary.origin.label"), class: "td-origin" },
 ];
 
 /**
@@ -33,9 +40,20 @@ const COLUMNS: { key: SortKey; label: string; class?: string }[] = [
 export function VocabTable(props: {
   kind: VocabularyKind;
   entries: VocabEntry[];
-  noun: string;
-  /** The same noun for one of them, for the bulk bar's counts. */
-  one: string;
+  /**
+   * What this collection is called, already translated, in both the forms English needs.
+   *
+   * This used to be a bare `noun` the component pasted in front of and behind — `Search
+   * ${noun}`, `No ${noun} yet`. That only works in a language whose word order happens to
+   * put the noun where the English does: Japanese wants 「タグ を検索」, with the particle
+   * after the noun and the verb at the end, and there is no prefix or suffix that produces
+   * it. So the sentences moved into the dictionary as whole templates with a slot, and what
+   * crosses this boundary is the noun alone.
+   *
+   * Both forms because the bulk bar counts with it and a bar reading "1 families" reads as a
+   * bug. The Japanese is the same word twice — 件 does the counting.
+   */
+  nouns: { one: string; other: string };
   /**
    * The collection tabs, and the Add control.
    *
@@ -99,9 +117,12 @@ export function VocabTable(props: {
         {props.tabs}
 
         <div class="ml-auto flex flex-wrap items-center gap-2">
-          <span class="text-sm text-ink-faint">
-            <span class="numeric">{shown().length}</span> of{" "}
-            <span class="numeric">{props.entries.length}</span>
+          {/* One string, one span. The two numbers used to sit in `numeric` spans of their
+              own with the word between them, which is a sentence assembled out of markup —
+              and the word does not stay between them in Japanese, where the total comes
+              first. Tabular figures on the whole readout do the same job. */}
+          <span class="numeric text-sm text-ink-faint">
+            {t("vocabulary.table.shown", { shown: shown().length, total: props.entries.length })}
           </span>
 
           <div class="field-wrap">
@@ -113,8 +134,8 @@ export function VocabTable(props: {
             <input
               type="search"
               class="field field-inset w-44"
-              placeholder="Search"
-              aria-label={`Search ${props.noun}`}
+              placeholder={t("vocabulary.table.search.placeholder")}
+              aria-label={t("vocabulary.table.search.label", { noun: props.nouns.other })}
               value={needle()}
               onInput={(event) => setNeedle(event.currentTarget.value)}
             />
@@ -123,13 +144,14 @@ export function VocabTable(props: {
           <div class="field-wrap">
             <select
               class="field field-select w-auto"
-              aria-label="Named by"
+              aria-label={t("vocabulary.origin.label")}
               value={origin()}
               onChange={(event) => setOrigin(asOrigin(event.currentTarget.value))}
             >
-              <option value="all">Anyone</option>
-              <option value="ai">Curio</option>
-              <option value="user">You</option>
+              {/* Curio is the product's name and stays Latin in both languages. */}
+              <option value="all">{t("vocabulary.origin.anyone")}</option>
+              <option value="ai">{t("vocabulary.origin.ai")}</option>
+              <option value="user">{t("vocabulary.origin.user")}</option>
             </select>
             {/* Drawn over the select rather than by it, so this is the same glyph at the
                 same distance from the same edge as the Add button's. */}
@@ -145,8 +167,8 @@ export function VocabTable(props: {
         fallback={
           <p class="card px-6 py-10 text-center text-sm text-ink-muted">
             {props.entries.length
-              ? "Nothing here matches those filters."
-              : `No ${props.noun} yet. Curio adds them as it describes captures, and you can add your own above.`}
+              ? t("vocabulary.table.empty.filtered")
+              : t("vocabulary.table.empty.none", { noun: props.nouns.other })}
           </p>
         }
       >
@@ -160,7 +182,9 @@ export function VocabTable(props: {
                 <th class="th th-check">
                   <label class="flex items-center">
                     <span class="sr-only">
-                      {allShown() ? "Clear the selection" : `Select all ${shown().length} shown`}
+                      {allShown()
+                        ? t("vocabulary.table.clearSelection")
+                        : t("vocabulary.table.selectAll", { count: shown().length })}
                     </span>
                     {/* `indeterminate` is a property and not an attribute — there is no
                         markup for it — so it is written onto the node. It is the only thing
@@ -175,7 +199,7 @@ export function VocabTable(props: {
                   </label>
                 </th>
 
-                <For each={COLUMNS}>
+                <For each={columns()}>
                   {(column) => (
                     <th
                       class={`th ${column.class ?? ""}`}
@@ -192,12 +216,12 @@ export function VocabTable(props: {
 
                 <Show when={described()}>
                   <th class="th td-description" scope="col">
-                    Description
+                    {t("vocabulary.fields.description")}
                   </th>
                 </Show>
 
                 <th class="th td-actions" scope="col">
-                  <span class="sr-only">Actions</span>
+                  <span class="sr-only">{t("vocabulary.table.columns.actions")}</span>
                 </th>
               </tr>
             </thead>
@@ -225,8 +249,7 @@ export function VocabTable(props: {
         kind={props.kind}
         entries={props.entries}
         selection={selection}
-        noun={props.noun}
-        one={props.one}
+        nouns={props.nouns}
       />
     </div>
   );

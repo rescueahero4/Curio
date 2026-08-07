@@ -1,6 +1,7 @@
 import { createSignal, Show } from "solid-js";
 import { type Option, OptionList } from "~/components/library/OptionList";
 import { Popover } from "~/components/library/Popover";
+import { t } from "~/lib/i18n";
 
 /** How a bulk vocabulary edit applies. Never a whole-set replace — see `BulkBar`. */
 export type BulkMode = "add" | "remove";
@@ -18,8 +19,17 @@ export function BulkVocabPanel(props: {
   title: string;
   options: Option[];
   empty: string;
-  /** Tags and types accept a new name; families must already exist to be assigned. */
-  allowNew?: boolean;
+  /**
+   * The placeholder on the new-name box — "New tag" — and, by being present at all, the
+   * fact that this panel can mint one. Tags and types accept a new name; families must
+   * already exist to be assigned, so they pass nothing.
+   *
+   * A label rather than the `allowNew` boolean it replaced, because the boolean made this
+   * component derive the placeholder from its own title: `"Tags".toLowerCase()` minus a
+   * trailing `s` is a sentence built out of English grammar, and there is no rule of that
+   * shape to apply to タグ.
+   */
+  newLabel?: string;
   blocked?: string;
   onApply: (mode: BulkMode, chosen: string[], fresh: string) => void;
 }) {
@@ -52,14 +62,16 @@ export function BulkVocabPanel(props: {
             }
           />
 
-          <Show when={props.allowNew}>
-            <input
-              type="text"
-              class="field field-block"
-              placeholder={`New ${props.title.toLowerCase().replace(/s$/, "")}`}
-              value={fresh()}
-              onInput={(event) => setFresh(event.currentTarget.value)}
-            />
+          <Show when={props.newLabel}>
+            {(label) => (
+              <input
+                type="text"
+                class="field field-block"
+                placeholder={label()}
+                value={fresh()}
+                onInput={(event) => setFresh(event.currentTarget.value)}
+              />
+            )}
           </Show>
 
           <div class="flex items-center gap-2">
@@ -67,19 +79,19 @@ export function BulkVocabPanel(props: {
               type="button"
               class="pill pill-ink flex-1 justify-center"
               disabled={nothing()}
-              title={nothing() ? "Choose at least one first." : undefined}
+              title={nothing() ? t("library.bulk.panel.needOne") : undefined}
               onClick={() => apply("add", close)}
             >
-              Add
+              {t("library.bulk.panel.add")}
             </button>
             <button
               type="button"
               class="pill pill-outline flex-1 justify-center"
               disabled={chosen().length === 0}
-              title={chosen().length === 0 ? "Choose at least one first." : undefined}
+              title={chosen().length === 0 ? t("library.bulk.panel.needOne") : undefined}
               onClick={() => apply("remove", close)}
             >
-              Remove
+              {t("library.bulk.panel.remove")}
             </button>
           </div>
         </>

@@ -1,10 +1,11 @@
 /** The assessment rubric — a markdown file the user owns and Curio reads. */
 
 import { createSignal, Show } from "solid-js";
-import { PAUSED_REASON } from "~/components/settings/model";
+import { pausedReason } from "~/components/settings/model";
 import { Section } from "~/components/settings/section";
 import { openSkillFile } from "~/lib/api";
 import { ApiError, paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Settings } from "~/lib/types";
 
 /** The system route answers 200 with its outcome in the body, never a 4xx (Inventory §10.22). */
@@ -13,24 +14,48 @@ interface Outcome {
   message: string;
 }
 
+/**
+ * What became of the last press. Kinds rather than sentences, so the note follows a language
+ * change — it has no timer and stays until the button is pressed again.
+ *
+ * `declined` is the one that keeps the server's wording. When the OS refuses to open the
+ * file the reason is the whole message, and it is not something a dictionary here could
+ * anticipate. The success path is ours: it was the server's English sentence until now,
+ * which meant a Japanese reader got English whenever the button worked.
+ */
+type Note =
+  | { kind: "asked" }
+  | { kind: "declined"; message: string }
+  | { kind: "paused" | "failed" };
+
 export function RubricSection(props: { settings: Settings }) {
-  const [note, setNote] = createSignal<string | null>(null);
+  const [note, setNote] = createSignal<Note | null>(null);
   const [asking, setAsking] = createSignal(false);
+
+  const noteText = (current: Note) => {
+    switch (current.kind) {
+      case "asked":
+        return t("settings.rubric.asked", { path: props.settings.skill_file_path });
+      case "declined":
+        return current.message;
+      case "paused":
+        return t("settings.rubric.paused");
+      default:
+        return t("settings.rubric.failed");
+    }
+  };
 
   async function open() {
     setAsking(true);
     setNote(null);
     try {
       const outcome = (await openSkillFile()) as Outcome;
-      // Verbatim. The server phrases it as a request because that is all it can honestly
-      // claim — rewording it here would turn "asked" into "opened".
-      setNote(outcome.message);
+      // `asked` was declared and never read. It is the difference between "we handed this to
+      // the OS" and "the OS would not take it", and only the second needs the server's own
+      // words — which is what let the first one go back into the dictionary.
+      setNote(outcome.asked ? { kind: "asked" } : { kind: "declined", message: outcome.message });
     } catch (error) {
-      setNote(
-        error instanceof ApiError && error.isPaused
-          ? "Curio is paused, so it did not ask your editor to open. Resume from the tray icon."
-          : "Curio could not reach your editor.",
-      );
+      setNote({ kind: error instanceof ApiError && error.isPaused ? "paused" : "failed" });
     } finally {
       setAsking(false);
     }
@@ -39,8 +64,8 @@ export function RubricSection(props: { settings: Settings }) {
   return (
     <Section
       id="assessment-rubric"
-      title="Assessment rubric"
-      blurb="The instructions Curio sends with every screenshot. It is written once, on first run, and never overwritten — so anything you change here stays changed, through updates and restarts."
+      title={t("settings.rubric.title")}
+      blurb={t("settings.rubric.blurb")}
     >
       <p class="field field-block bg-desk font-mono text-xs text-ink-muted select-all">
         {props.settings.skill_file_path}
@@ -52,14 +77,14 @@ export function RubricSection(props: { settings: Settings }) {
           class="pill pill-outline"
           onClick={() => void open()}
           disabled={asking() || paused()}
-          title={paused() ? PAUSED_REASON : undefined}
+          title={paused() ? pausedReason() : undefined}
         >
-          {asking() ? "Asking…" : "Open the rubric"}
+          {asking() ? t("settings.rubric.opening") : t("settings.rubric.open")}
         </button>
         <Show when={note()}>
-          {(message) => (
+          {(current) => (
             <span role="status" class="text-xs text-ink-muted">
-              {message()}
+              {noteText(current())}
             </span>
           )}
         </Show>

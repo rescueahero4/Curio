@@ -1,9 +1,10 @@
 /** Where the library lives, and where Curio looks for the folders your tools write. */
 
-import { type Commit, PAUSED_REASON } from "~/components/settings/model";
+import { type Commit, pausedReason } from "~/components/settings/model";
 import { blurOrEnter, createSaver } from "~/components/settings/save";
 import { Field, Section } from "~/components/settings/section";
 import { paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Settings } from "~/lib/types";
 
 export function PathsSection(props: { settings: Settings; commit: Commit }) {
@@ -19,14 +20,15 @@ export function PathsSection(props: { settings: Settings; commit: Commit }) {
   return (
     <Section
       id="paths"
-      title="Paths"
+      title={t("settings.paths.title")}
       saver={saver}
-      blurb="Where Curio keeps data, and where it watches for projects."
+      blurb={t("settings.paths.blurb")}
     >
-      <Field
-        label="Data root"
-        hint="Your library, sidecars and prompts. Not editable here on purpose — moving a library is a file operation, not a form field. Set CURIO_DATA_ROOT and restart to change it."
-      >
+      {/* The hint no longer names CURIO_DATA_ROOT. Moving a library is a file operation
+          someone has to perform deliberately, and an env var printed on a settings page reads
+          as a step a designer is expected to take. "Not from this page" is the honest and
+          useful half; the variable is in the docs for whoever actually needs it. */}
+      <Field label={t("settings.paths.dataRoot.label")} hint={t("settings.paths.dataRoot.hint")}>
         {(id) => (
           <p id={id} class="field field-block bg-desk text-ink-muted select-all">
             {props.settings.data_root}
@@ -39,8 +41,8 @@ export function PathsSection(props: { settings: Settings; commit: Commit }) {
           and this is the one directory Curio checks for new ones. The Bun original carried
           the same parenthetical for the same reason. */}
       <Field
-        label="Projects root (watched)"
-        hint="The folder Curio watches. Any new top-level folder inside it becomes a project within about five seconds — Curio never creates one itself. Saves when you press Enter or click away, and it has to be a folder that already exists. Takes effect on the next restart."
+        label={t("settings.paths.projectsRoot.label")}
+        hint={t("settings.paths.projectsRoot.hint")}
       >
         {(id) => (
           <input
@@ -50,7 +52,7 @@ export function PathsSection(props: { settings: Settings; commit: Commit }) {
             spellcheck={false}
             value={props.settings.projects_root}
             disabled={paused()}
-            title={paused() ? PAUSED_REASON : undefined}
+            title={paused() ? pausedReason() : undefined}
             {...blurOrEnter(commitRoot)}
           />
         )}

@@ -8,10 +8,11 @@
  */
 
 import { Show } from "solid-js";
-import { type Commit, PAUSED_REASON } from "~/components/settings/model";
+import { type Commit, pausedReason } from "~/components/settings/model";
 import { createSaver } from "~/components/settings/save";
 import { CheckField, Section } from "~/components/settings/section";
 import { paused } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { Settings } from "~/lib/types";
 
 export function StartupSection(props: { settings: Settings; commit: Commit }) {
@@ -28,27 +29,36 @@ export function StartupSection(props: { settings: Settings; commit: Commit }) {
   return (
     <Section
       id="startup"
-      title="Startup"
+      title={t("settings.startup.title")}
       saver={unsupported() ? undefined : saver}
-      blurb="Curio can start with your machine so captures and the watcher are running before you go looking for them."
+      blurb={t("settings.startup.blurb")}
     >
+      {/* When the platform cannot honour this, the explanation is two whole sentences chosen
+          by whether the server gave a reason — not one sentence with `: ${reason}` spliced
+          into the middle of it. The English tolerated that because the explanation happens to
+          belong right after the colon in English; in Japanese it belongs somewhere else, and
+          no amount of punctuation in this file can move it there. `reason` itself arrives
+          already written as a sentence, in whatever language the server writes in — so only
+          the English renders it. The Japanese drops the placeholder and states the one
+          platform fact the server can report; a second `AutostartSupport::reason` in Rust
+          needs a key of its own rather than another branch here. */}
       <Show
         when={unsupported()}
         fallback={
           <CheckField
-            label="Start Curio when I log in"
+            label={t("settings.startup.toggle")}
             checked={props.settings.launch_at_login}
             disabled={paused()}
-            reason={PAUSED_REASON}
+            reason={pausedReason()}
             onChange={toggle}
           />
         }
       >
         {(reported) => (
           <p class="max-w-prose text-sm text-ink-muted">
-            This platform cannot register Curio to start at login
-            {reported().reason ? `: ${reported().reason}` : "."} There is no toggle here because
-            there is nothing behind it — add Curio to your session's startup items instead.
+            {reported().reason
+              ? t("settings.startup.unsupportedReason", { reason: reported().reason ?? "" })
+              : t("settings.startup.unsupported")}
           </p>
         )}
       </Show>

@@ -1,6 +1,7 @@
 import type { Selection } from "~/components/library/selection";
 import { bulkEdit } from "~/lib/api";
 import { ApiError } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import type { BulkEdit, ItemFilter } from "~/lib/types";
 
 /** What a bulk run left behind. `over-cap` is a refusal, and it carries both numbers. */
@@ -35,11 +36,13 @@ export async function runBulk(edit: BulkEdit): Promise<BulkOutcome> {
       // and proceed — that edits a set the user did not choose and cannot see.
       if (cap) return { kind: "over-cap", ...cap };
       if (error.isPaused) {
-        return { kind: "error", message: "Curio is paused. Resume from the tray icon." };
+        return { kind: "error", message: t("library.bulk.errors.paused") };
       }
+      // The server's own words, which arrive in English whatever the dashboard is set to.
+      // Passed through rather than guessed at — see `ItemDetail`'s `explain`.
       return { kind: "error", message: error.message };
     }
-    return { kind: "error", message: "The edit did not go through." };
+    return { kind: "error", message: t("library.bulk.errors.failed") };
   }
 }
 

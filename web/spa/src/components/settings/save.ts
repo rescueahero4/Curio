@@ -11,13 +11,23 @@ import type { Commit } from "~/components/settings/model";
 import { ApiError } from "~/lib/http";
 import type { SettingsPatch } from "~/lib/types";
 
+/**
+ * Every variant here is a *kind*, never a sentence — the one exception being `refused`,
+ * whose message is the server's own words and is not ours to translate. Anything this file
+ * would have said itself is left for the badge to look up at render time, so a language
+ * switch while a badge is on screen changes the badge. This is the same rule `pausedReason`
+ * follows in `model.ts`, and `paused` below has always followed it by having nothing to say.
+ */
 export type SaveState =
   | { kind: "idle" }
   | { kind: "saving" }
   | { kind: "saved"; undoable: boolean }
   | { kind: "reverted" }
   | { kind: "paused" }
-  | { kind: "refused"; message: string };
+  /** The server explained itself. Its words, in the language the server writes in. */
+  | { kind: "refused"; message: string }
+  /** Something else went wrong and there is nothing worth quoting. */
+  | { kind: "failed" };
 
 export interface Saver {
   state: Accessor<SaveState>;
@@ -100,8 +110,11 @@ export function blurOrEnter(commit: (input: HTMLInputElement) => void) {
 function explain(error: unknown): SaveState {
   // A 503 on a mutation is the pause the user chose from the tray, not a fault (R-FE-8).
   // Rendering it as an error would describe their own decision back to them as a failure.
+  // The server's own words when it has them. They arrive in the language the server writes
+  // in, which is English — but a validation message naming the field it rejected is still
+  // more use than a generic refusal, so it is preferred over the translated fallback.
   if (error instanceof ApiError) {
     return error.isPaused ? { kind: "paused" } : { kind: "refused", message: error.message };
   }
-  return { kind: "refused", message: "Curio could not save that." };
+  return { kind: "failed" };
 }

@@ -23,6 +23,7 @@ import type { ActionOutcome } from "~/components/editor/handoff";
 import { copyPrompt } from "~/components/editor/handoff";
 import { Trash } from "~/components/icons";
 import { deletePrompt } from "~/lib/api";
+import { t } from "~/lib/i18n";
 import { createEscapeLayer } from "~/lib/keyboard";
 
 /** How long a delete stays armed before it forgets it was asked. Matches the prompt list. */
@@ -89,7 +90,7 @@ export function PromptActions(props: Props) {
     }
   };
 
-  const reason = () => (busy() ? "Curio is working on the last request" : undefined);
+  const reason = () => (busy() ? t("editor.actions.busy") : undefined);
 
   return (
     <>
@@ -97,10 +98,10 @@ export function PromptActions(props: Props) {
         type="button"
         class="pill pill-ink"
         disabled={busy()}
-        title={reason() ?? "Serialize this prompt and copy it to the clipboard"}
+        title={reason() ?? t("editor.actions.copy.hint")}
         onClick={() => void run(copyPrompt)}
       >
-        Copy Prompt
+        {t("editor.actions.copy.label")}
       </button>
 
       <Show
@@ -110,8 +111,8 @@ export function PromptActions(props: Props) {
             type="button"
             class="tool-btn"
             disabled={busy()}
-            aria-label="Delete prompt"
-            title={reason() ?? "Delete this prompt"}
+            aria-label={t("editor.actions.delete.label")}
+            title={reason() ?? t("editor.actions.delete.hint")}
             onClick={arm}
           >
             <Trash />
@@ -119,7 +120,7 @@ export function PromptActions(props: Props) {
         }
       >
         <button type="button" class="tool-btn px-2 text-sm" onClick={disarm}>
-          Keep
+          {t("editor.actions.delete.keep")}
         </button>
         <button
           type="button"
@@ -127,13 +128,19 @@ export function PromptActions(props: Props) {
           disabled={busy()}
           onClick={() => void remove()}
         >
-          Delete for good
+          {t("editor.actions.delete.confirm")}
         </button>
       </Show>
     </>
   );
 }
 
+/**
+ * A server sentence if there is one, and Curio's own if there is not.
+ *
+ * The server's messages are not translated — they arrive as prose from another process, and
+ * this is the fallback for the case where there was no sentence at all.
+ */
 function message(error: unknown): string {
-  return error instanceof Error ? error.message : "Something went wrong.";
+  return error instanceof Error ? error.message : t("editor.actions.failed");
 }

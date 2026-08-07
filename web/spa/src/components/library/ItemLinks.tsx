@@ -4,6 +4,7 @@ import { Popover } from "~/components/library/Popover";
 import { familyOptions, nameOf, termOptions } from "~/components/library/vocab";
 import { createTerm } from "~/lib/api";
 import { ApiError } from "~/lib/http";
+import { t } from "~/lib/i18n";
 import { refreshVocabulary, vocabulary } from "~/lib/stores";
 import type { Item, ItemPatch } from "~/lib/types";
 
@@ -46,12 +47,15 @@ export function ItemLinks(props: { item: Item; onEdit: (patch: ItemPatch) => voi
         (family) => family.name.toLowerCase() === name.toLowerCase(),
       );
       if (!created) {
-        setProblem(`“${name}” was created but could not be linked. Reload and add it again.`);
+        setProblem(t("library.item.links.errors.unlinked", { name }));
         return;
       }
       setFamilies([...linked(), created.id]);
     } catch (error) {
-      setProblem(error instanceof ApiError ? error.message : `Could not create “${name}”.`);
+      // The API's own words when it has some; ours when the failure never reached it.
+      setProblem(
+        error instanceof ApiError ? error.message : t("library.item.links.errors.create", { name }),
+      );
     }
   }
 
@@ -70,7 +74,7 @@ export function ItemLinks(props: { item: Item; onEdit: (patch: ItemPatch) => voi
   return (
     <div class="flex flex-col gap-3">
       <section class="flex flex-col gap-2">
-        <h2 class="text-sm font-medium">Families</h2>
+        <h2 class="text-sm font-medium">{t("library.item.links.families")}</h2>
         <div class="flex flex-wrap items-center gap-1">
           <For each={props.item.families}>
             {(family) => (
@@ -85,7 +89,7 @@ export function ItemLinks(props: { item: Item; onEdit: (patch: ItemPatch) => voi
                 {family.name}
                 <span class="numeric text-2xs">{family.score.toFixed(2)}</span>
                 <RemoveButton
-                  label={`Remove ${family.name}`}
+                  label={t("library.item.links.remove", { name: family.name })}
                   onRemove={() => setFamilies(linked().filter((id) => id !== family.id))}
                 />
               </span>
@@ -93,11 +97,11 @@ export function ItemLinks(props: { item: Item; onEdit: (patch: ItemPatch) => voi
           </For>
 
           <VocabPicker
-            noun="Aesthetic Family"
-            title="Add a family"
+            noun={t("library.options.nouns.family")}
+            title={t("library.item.links.addFamily")}
             options={familyOptions()}
             selected={linked()}
-            empty="No families yet."
+            empty={t("library.item.links.emptyFamilies")}
             onToggle={(id) =>
               setFamilies(
                 linked().includes(id)
@@ -110,16 +114,11 @@ export function ItemLinks(props: { item: Item; onEdit: (patch: ItemPatch) => voi
         </div>
 
         <Show when={props.item.families.some((family) => family.ai_proposed)}>
-          <p class="text-xs text-ink-faint">
-            Violet means Curio proposed this family rather than matching an existing one.
-          </p>
+          <p class="text-xs text-ink-faint">{t("library.item.links.proposed")}</p>
         </Show>
 
         <Show when={undescribed()}>
-          <p class="text-xs text-ink-faint">
-            A family here has no description yet. Curio matches new captures against that
-            description, so add one on the Vocabulary page for it to affect anything.
-          </p>
+          <p class="text-xs text-ink-faint">{t("library.item.links.undescribed")}</p>
         </Show>
 
         <Show when={problem()}>
@@ -128,21 +127,23 @@ export function ItemLinks(props: { item: Item; onEdit: (patch: ItemPatch) => voi
       </section>
 
       <NameSet
-        title="Design types"
-        noun="Design Type"
+        title={t("library.item.links.types")}
+        addTitle={t("library.item.links.addType")}
+        noun={t("library.options.nouns.type")}
         values={props.item.design_types}
         options={termOptions("types")}
-        empty="No design types yet."
+        empty={t("library.item.links.emptyTypes")}
         onChange={(next) => props.onEdit({ design_types: next })}
         toName={(id) => nameOf("types", id)}
       />
 
       <NameSet
-        title="Tags"
-        noun="Tag"
+        title={t("library.item.links.tags")}
+        addTitle={t("library.item.links.addTag")}
+        noun={t("library.options.nouns.tag")}
         values={props.item.tags}
         options={termOptions("tags")}
-        empty="No tags yet."
+        empty={t("library.item.links.emptyTags")}
         onChange={(next) => props.onEdit({ tags: next })}
         toName={(id) => nameOf("tags", id)}
       />
@@ -159,6 +160,12 @@ export function ItemLinks(props: { item: Item; onEdit: (patch: ItemPatch) => voi
  */
 function NameSet(props: {
   title: string;
+  /**
+   * The picker's own name. Passed rather than built from `title`, which is what it used to
+   * be — `Add to ${title.toLowerCase()}` is an English sentence with an English casing rule
+   * inside it, and neither survives being handed to a translator.
+   */
+  addTitle: string;
   noun: string;
   values: string[];
   options: Option[];
@@ -181,7 +188,7 @@ function NameSet(props: {
             <span class="pill pill-outline">
               {value}
               <RemoveButton
-                label={`Remove ${value}`}
+                label={t("library.item.links.remove", { name: value })}
                 onRemove={() => props.onChange(props.values.filter((name) => name !== value))}
               />
             </span>
@@ -190,7 +197,7 @@ function NameSet(props: {
 
         <VocabPicker
           noun={props.noun}
-          title={`Add to ${props.title.toLowerCase()}`}
+          title={props.addTitle}
           options={props.options}
           selected={props.options
             .filter((option) => props.values.includes(option.label))
