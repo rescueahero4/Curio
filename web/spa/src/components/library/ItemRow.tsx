@@ -4,34 +4,18 @@ import { ChevronRight } from "~/components/icons";
 import { hostOf, ItemFacets } from "~/components/library/ItemFacets";
 import { SelectToggle } from "~/components/library/SelectToggle";
 import { itemImageUrl } from "~/lib/api";
-import { type Locale, locale, t } from "~/lib/i18n";
+import { perLocale } from "~/lib/format";
+import { t } from "~/lib/i18n";
 import type { Item } from "~/lib/types";
 
 /**
- * Module-level, because constructing a formatter per row is the expensive part — and one per
- * language, because these follow the *interface* language rather than the browser's. They
- * used to pass `undefined`, which is the fault `lib/format.ts` documents at length: a reader
- * who picked Japanese on an English machine got 日本語 labels beside "Aug 1, 2026".
- *
- * The shapes stay local rather than borrowing `absoluteTime`: this view spends a cell on a
- * bare date and a tooltip on the whole stamp, which is a narrower pair than the shared
- * formatter offers.
+ * The shapes are this view's — a bare date in the cell, the whole stamp in the tooltip — but
+ * the caching and the reason for it belong to `lib/format.ts`, which explains both.
  */
-const WHEN = perLocale({ dateStyle: "medium" });
-const WHEN_EXACT = perLocale({ dateStyle: "full", timeStyle: "short" });
-
-function perLocale(options: Intl.DateTimeFormatOptions): () => Intl.DateTimeFormat {
-  const built = new Map<Locale, Intl.DateTimeFormat>();
-  return () => {
-    const tag = locale();
-    let formatter = built.get(tag);
-    if (!formatter) {
-      formatter = new Intl.DateTimeFormat(tag, options);
-      built.set(tag, formatter);
-    }
-    return formatter;
-  };
-}
+const WHEN = perLocale((tag) => new Intl.DateTimeFormat(tag, { dateStyle: "medium" }));
+const WHEN_EXACT = perLocale(
+  (tag) => new Intl.DateTimeFormat(tag, { dateStyle: "full", timeStyle: "short" }),
+);
 
 /**
  * One item as a row.

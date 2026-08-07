@@ -15,9 +15,6 @@ export const shell: Shell = {
   },
 
   nav: {
-    // The landmark's name, not a translation of the word "Sections". A screen reader reads
-    // this next to 「設定のセクション」 from the Settings page, so it has to say which nav
-    // it is rather than that it is one.
     label: "メインナビゲーション",
     library: "ライブラリ",
     projects: "プロジェクト",
@@ -32,8 +29,6 @@ export const shell: Shell = {
     settings: "設定",
     addItem: "+ アイテムを追加",
     newProject: "新規プロジェクト",
-    // 開始中 would describe the button; 作成中 describes the prompt, which is what the
-    // user is waiting for. The failure below stays on the same verb.
     newProjectStarting: "作成中…",
     newProjectFailed: "新しいプロンプトを作成できませんでした。",
     pausedReason: "Curio は一時停止中です。トレイアイコンから再開してください。",
@@ -50,15 +45,12 @@ export const shell: Shell = {
     // The English leads with the state and appends the cause; Japanese puts the cause first
     // and lands on the state, which is the same sentence in the order this language reads it.
     title: "API キーが未設定のため待機中です。",
-    body: "キャプチャはこれまでどおり保存され、閲覧もできます。待っているのは説明の生成だけです。",
-    // 順番待ち rather than a third 待機中 in as many sentences — the English varies its own
-    // wording across these lines for the same reason, and 順番 picks up the queue below.
+    body: "キャプチャはこれまでどおり保存され、閲覧もできます。Curio は説明の生成を待っています。",
+    // 順番待ち rather than a third 待機中 in as many lines — the English spends a different
+    // word each time (queued, waits, waiting) and this has to do the same, by its own means.
     waiting: template<{ count: number }>("{{ count }} 件が順番待ちです。"),
     addKey: "設定で API キーを追加",
-    // 登録すれば, not 設定すれば: the line above already spends 設定 on the screen's name, and
-    // the same word arriving as a verb one sentence later reads as a stutter — the same fault
-    // 順番待ち was introduced to fix, one line further on.
-    drains: "登録すれば、あとは順番に処理されます。",
+    drains: "追加すれば、あとは順番に処理されます。",
   },
 
   saved: {

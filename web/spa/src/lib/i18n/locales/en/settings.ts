@@ -99,8 +99,14 @@ export const settings = {
     blurb:
       "Curio needs this to review what you capture. Without it, saving still works — reviews just wait until you add one.",
     none: "No key is set.",
-    /** The masked key the server sends back — `sk-ant-…`, never the key itself. */
-    set: template<{ key: string }>("A key is set: {{ key }}"),
+    /**
+     * The clause before the masked key, which the component renders after it in a monospaced
+     * span of its own. Split heading-from-value rather than subject-from-predicate — the
+     * value is what the reader is checking, and `sk-ant-…lI10` in a proportional face is
+     * exactly where a mask stops being able to tell two keys apart. Each language owns the
+     * separator, because Japanese does not always want the colon English does.
+     */
+    set: "A key is set:",
     replace: "Replace the key",
     add: "Set a key",
     hint: "Press Enter to save. Your key is stored securely and never shown again, so replacing it can't be undone.",
@@ -134,6 +140,13 @@ export const settings = {
     open: "Open the rubric",
     /** Curio asks the OS to open the file; it never learns whether an editor appeared. */
     opening: "Asking…",
+    /**
+     * The success path, and so the most common thing this section ever says. It used to be
+     * the server's own sentence, echoed verbatim — which meant a Japanese reader got English
+     * whenever the button worked and Japanese only when it failed. The server still owns the
+     * refusal, where its wording carries an OS error worth reading; it does not own this.
+     */
+    asked: template<{ path: string }>("Asked your editor to open {{ path }}."),
     paused: "Curio is paused, so it did not ask your editor to open. Resume from the tray icon.",
     failed: "Curio could not reach your editor.",
   },

@@ -1,15 +1,27 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
 import type { Selection } from "~/components/library/selection";
+import { listOf } from "~/components/library/vocab";
+import { refusal } from "~/components/vocabulary/errors";
 import type { VocabEntry } from "~/components/vocabulary/VocabRow";
 import { deleteTerm, mergeTerm } from "~/lib/api";
-import { ApiError, paused } from "~/lib/http";
+import { paused } from "~/lib/http";
 import { t } from "~/lib/i18n";
 import { refreshVocabulary } from "~/lib/stores";
 import type { VocabularyKind } from "~/lib/types";
 
+/**
+ * What the bar has to say, as finished sentences.
+ *
+ * A list rather than one string, because the last part of it is the server's: the reasons a
+ * refusal carries are prose this code did not write and cannot promise ends in a full stop.
+ * Joining them with a separator meant choosing a separator, and the Japanese one — nothing,
+ * because 。 already closes a sentence — welds two reasons into a single word on the day a
+ * message arrives without its terminator. The `.banner` they render into is a flex row with
+ * a gap, so the space between them is layout and no dictionary key has to hold it.
+ */
 interface Notice {
   tone: "confirm" | "caution";
-  text: string;
+  lines: string[];
 }
 
 /** What one pass over the selection left behind. */
@@ -200,8 +212,13 @@ export function VocabBulkBar(props: {
                 One key or the other rather than a fragment swapped mid-sentence: the only
                 thing that changes in English is "this word" / "these words", and that clause
                 sits at the end of the English sentence and in the middle of the Japanese
-                one. Both keys take the same arguments, so the choice is one expression. */}
-            <span class="ml-auto text-ink-muted text-sm">
+                one. Both keys take the same arguments, so the choice is one expression.
+
+                `w-full` rather than `ml-auto`: the Japanese runs about six hundred pixels
+                and wraps, and a wrapped flex item with `ml-auto` right-aligns itself on a
+                line of its own — ragged, and only in one language. Taking the whole line
+                deliberately is the same shape in both. */}
+            <span class="w-full text-ink-muted text-sm">
               {chosen().length === 1
                 ? t("vocabulary.bulk.confirmOne", {
                     count: chosen().length,
@@ -254,7 +271,11 @@ export function VocabBulkBar(props: {
                 "tint-caution": said().tone === "caution",
               }}
             >
-              {said().text}
+              {/* One node per sentence. `.banner` is a flex row with a gap, so what sits
+                  between two of them is the layout's business rather than a string this had
+                  to pick — which is the only version of this that is right in both
+                  languages and safe against a server message with no full stop. */}
+              <For each={said().lines}>{(line) => <span>{line}</span>}</For>
             </output>
           )}
         </Show>
@@ -266,30 +287,23 @@ export function VocabBulkBar(props: {
 /**
  * What happened, in the order a user needs it.
  *
- * The refusals come first when there are any, and they are named. A partial result is the
- * whole reason this bar reports at all — the count alone would let a user believe a pass
+ * The outcome comes first, then the refusals, named, then the reasons. A partial result is
+ * the whole reason this bar reports at all — the count alone would let a user believe a pass
  * finished when a third of it was turned away.
  */
 function explain(outcome: Outcome, done: (count: number) => string): Notice {
-  if (!outcome.refused.length) return { tone: "confirm", text: done(outcome.done) };
+  if (!outcome.refused.length) return { tone: "confirm", lines: [done(outcome.done)] };
 
-  /* Both separators are dictionary values. A comma between names is a 、 in Japanese, and
-     the space that follows a full stop in English follows nothing after a 。 */
-  const gap = t("vocabulary.bulk.result.spacer");
-  const names = outcome.refused.map((one) => one.name).join(t("vocabulary.bulk.result.separator"));
-  const why = [...new Set(outcome.refused.map((one) => one.why))].join(gap);
+  /* `listOf` is `Intl.ListFormat`, which already knows that English joins with a comma and
+     Japanese with 、 — so the separator is not a string this dictionary has to carry. */
+  const names = listOf(outcome.refused.map((one) => one.name));
+  const why = [...new Set(outcome.refused.map((one) => one.why))];
   const count = outcome.refused.length;
 
   return {
     tone: "caution",
-    text: outcome.done
-      ? done(outcome.done) + gap + t("vocabulary.bulk.result.refused", { count, names, why })
-      : t("vocabulary.bulk.result.nothing", { count, names, why }),
+    lines: outcome.done
+      ? [done(outcome.done), t("vocabulary.bulk.result.refused", { count, names }), ...why]
+      : [t("vocabulary.bulk.result.nothing", { count, names }), ...why],
   };
-}
-
-function refusal(error: unknown): string {
-  if (!(error instanceof ApiError)) return t("vocabulary.errors.generic");
-  if (error.isPaused) return t("vocabulary.errors.paused");
-  return error.message;
 }

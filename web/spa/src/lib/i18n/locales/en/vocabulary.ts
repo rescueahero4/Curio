@@ -21,9 +21,11 @@ export const vocabulary = {
   blurb:
     "Every name Curio uses to describe your library. Rename one and every item follows; merge two when they turned out to mean the same thing.",
   loading: "Reading the vocabulary…",
-
-  /** Shared by the header checkbox's `sr-only` text and the bulk bar's button. */
-  clearSelection: "Clear the selection",
+  /**
+   * Not `common.retry`. This button sits in the fallback for the whole page and asks for the
+   * vocabulary again — the second row of the README's table, not the first.
+   */
+  retry: "Try again",
 
   /** Said by the row panel and by the bulk bar, about one word or about thirty. */
   confirmDelete: "Yes, delete",
@@ -73,6 +75,12 @@ export const vocabulary = {
       actions: "Actions",
     },
     selectAll: template<{ count: number }>("Select all {{ count }} shown"),
+    /**
+     * The header checkbox's `sr-only` text when everything shown is already picked. Longer
+     * than the bulk bar's `Clear` on purpose — a pill has a row of controls around it to say
+     * what it clears, and a screen reader reaching this one has the checkbox and nothing else.
+     */
+    clearSelection: "Clear the selection",
     empty: {
       filtered: "Nothing here matches those filters.",
       none: template<{ noun: string }>(
@@ -126,32 +134,27 @@ export const vocabulary = {
     clear: "Clear",
 
     /**
-     * What one pass left behind.
+     * What one pass left behind, as one whole sentence per fact.
      *
-     * A whole sentence per outcome rather than a count, a noun and a past participle
-     * assembled in the order English happens to want them — the verb is last in Japanese and
-     * there is no arrangement of those three fragments that puts it there.
+     * A sentence per outcome rather than a count, a noun and a past participle assembled in
+     * the order English happens to want them — the verb is last in Japanese and there is no
+     * arrangement of those three fragments that puts it there.
+     *
+     * None of these carries the reasons, and none carries what goes *between* two of them.
+     * The bar renders them as separate children of a `.banner`, which is already a flex row
+     * with a gap, so the joining is layout rather than string-building. That matters more
+     * than it looks: the reasons are server prose with no guaranteed full stop, and a
+     * dictionary key holding the glue would have concatenated two of them into one word.
      */
     result: {
       deleted: template<{ count: number; noun: string }>("{{ count }} {{ noun }} deleted."),
       merged: template<{ count: number; noun: string; target: string }>(
         "{{ count }} {{ noun }} merged into {{ target }}.",
       ),
-      refused: template<{ count: number; names: string; why: string }>(
-        "{{ count }} refused — {{ names }}. {{ why }}",
+      refused: template<{ count: number; names: string }>("{{ count }} refused — {{ names }}."),
+      nothing: template<{ count: number; names: string }>(
+        "Nothing changed. {{ count }} refused — {{ names }}.",
       ),
-      nothing: template<{ count: number; names: string; why: string }>(
-        "Nothing changed. {{ count }} refused — {{ names }}. {{ why }}",
-      ),
-      /** What goes between the refused names. A comma in English, a 、 in Japanese. */
-      separator: ", ",
-      /**
-       * What goes between two finished sentences — the outcome and the refusals, or two
-       * distinct reasons. English puts a space after a full stop and Japanese does not put
-       * one after 。, which is the sort of thing a reader notices without being able to say
-       * what is wrong.
-       */
-      spacer: " ",
     },
   },
 
@@ -172,7 +175,12 @@ export const vocabulary = {
     descriptionHint: "What Curio matches against, and what the chip expands to in a prompt.",
     submit: "Add",
     busy: "Adding…",
-    needName: template<{ noun: string }>("Type a {{ noun }} first."),
+    /*
+     * "Type a tag first" was the old wording, and it is what is typed that was wrong: the
+     * field beside this asks for a name, not for a tag. Corrected on both sides rather than
+     * quietly repaired on the Japanese one.
+     */
+    needName: template<{ noun: string }>("Type a {{ noun }} name first."),
     paused: "Curio is paused. Resume from the tray icon to add names.",
     failed: "Could not add that.",
   },
@@ -183,10 +191,18 @@ export const vocabulary = {
     busy: "Working…",
   },
 
-  /** What is said when the server turns something away and does not say why itself. */
+  /** What is said when the server turns something away. See `components/vocabulary/errors.ts`. */
   errors: {
     generic: "That change did not go through.",
     paused: "Curio is paused. Resume from the tray icon.",
+    /**
+     * 409, answered here instead of forwarding the server's English.
+     *
+     * It names merge because merge is the action this refusal is really pointing at, and it
+     * is in the same panel. What the server's own sentence adds is which name collided, and
+     * on a rename that is the name still sitting in the field above this banner.
+     */
+    taken: "That name is already taken. Merge the two if they mean the same thing.",
   },
 } as const;
 

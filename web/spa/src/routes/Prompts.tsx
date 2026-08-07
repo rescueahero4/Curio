@@ -26,7 +26,13 @@ export function Prompts() {
   const [prompts, { refetch }] = createResource(listPrompts);
   const [armed, setArmed] = createSignal<string | null>(null);
   const [busy, setBusy] = createSignal(false);
-  const [problem, setProblem] = createSignal<string | null>(null);
+
+  /**
+   * The banner, held as a **thunk** rather than as a finished sentence. It is cleared by
+   * the next action that succeeds and by nothing else, so it can outlive a language change
+   * — see the same signal in `PromptEditor` for the long version.
+   */
+  const [problem, setProblem] = createSignal<(() => string) | null>(null);
 
   let disarmTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -59,7 +65,8 @@ export function Prompts() {
       await refetch();
       setProblem(null);
     } catch (error) {
-      setProblem(error instanceof Error ? error.message : t("editor.list.failed.delete"));
+      // `setProblem(() => …)` would be read as an updater, so the thunk is built first.
+      setProblem(() => sentence(error, () => t("editor.list.failed.delete")));
     } finally {
       setBusy(false);
     }
@@ -71,7 +78,7 @@ export function Prompts() {
       const created = await createPrompt();
       navigate(`/prompts/${created.id}`);
     } catch (error) {
-      setProblem(error instanceof Error ? error.message : t("editor.list.failed.create"));
+      setProblem(() => sentence(error, () => t("editor.list.failed.create")));
       setBusy(false);
     }
   };
@@ -92,7 +99,7 @@ export function Prompts() {
       </header>
 
       <Show when={problem()}>
-        {(text) => <output class="banner tint-caution">{text()}</output>}
+        <output class="banner tint-caution">{problem()?.()}</output>
       </Show>
 
       <Show
@@ -135,7 +142,7 @@ export function Prompts() {
                         type="button"
                         class="pill"
                         disabled={busy()}
-                        title={busy() ? t("editor.actions.busy") : t("editor.list.deleteHint")}
+                        title={busy() ? t("editor.actions.busy") : t("editor.actions.delete.hint")}
                         onClick={() => arm(prompt.id)}
                       >
                         {t("common.delete")}
@@ -162,6 +169,11 @@ export function Prompts() {
       </Show>
     </section>
   );
+}
+
+/** The server's sentence if it sent one, Curio's own — re-read per render — if it did not. */
+function sentence(error: unknown, fallback: () => string): () => string {
+  return error instanceof Error ? () => error.message : fallback;
 }
 
 /**

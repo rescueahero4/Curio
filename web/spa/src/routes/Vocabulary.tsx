@@ -96,7 +96,7 @@ export function Vocabulary() {
           <p class="flex items-center justify-center gap-2 py-12 text-sm text-ink-faint">
             {t("vocabulary.loading")}
             <button type="button" class="pill" onClick={() => void refreshVocabulary()}>
-              {t("common.retry")}
+              {t("vocabulary.retry")}
             </button>
           </p>
         }

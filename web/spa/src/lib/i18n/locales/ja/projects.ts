@@ -57,7 +57,10 @@ export const projects: Projects = {
       label: "開く ↗",
       opening: "開いています…",
       title: "新しいタブで開きます。",
-      missingLabel: "見つかりません",
+      // The noun stays. The badge in the same tile is the bare 「見つかりません」, and this pill
+      // is the larger, more central of the two — dropping フォルダー here would print the same
+      // six characters twice in one box and read as a rendering fault.
+      missingLabel: "フォルダーが見つかりません",
       missingTitle: "フォルダーがないため、開くものがありません。",
       noPageLabel: "開けるページがありません",
       noPage:
@@ -75,7 +78,10 @@ export const projects: Projects = {
     revealFailed: "Curio はファイルマネージャーに開くよう要求できませんでした。",
 
     detected: template<{ when: string }>("検出: {{ when }}"),
-    opened: template<{ when: string }>("最終アクセス: {{ when }}"),
+    // 最終アクセス was tried and dropped: it is the filesystem's word for atime, and this
+    // line sits directly under the path, which is exactly where a reader would take it that
+    // way. `last_opened_at` is set when *you* open the project, so it keeps the tile's verb.
+    opened: template<{ when: string }>("最後に開いた: {{ when }}"),
 
     // Labels, not clauses: 「エージェントが追加」 would leave が without a predicate, since
     // 追加 on its own is a noun.
@@ -97,8 +103,6 @@ export const projects: Projects = {
       removeTitle: "このプロジェクトを Curio から削除します。フォルダーはそのまま残ります。",
       removeFailed: "Curio はそのプロジェクトを削除できませんでした。",
 
-      // Scoped to the record on purpose. 「完全に削除しますか」 beside a folder path reads as
-      // *delete the files*, and a user who fears for their work declines a safe action.
       confirm: "このプロジェクトを Curio から削除しますか。",
       cost: "プロンプトとのリンクも失われます。",
       removing: "削除中…",

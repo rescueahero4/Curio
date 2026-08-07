@@ -22,14 +22,20 @@ interface ChipSpec {
   /** Drawn before the label. Two of the four carry a glyph; tags and types are the word. */
   prefix: string;
   /**
-   * What a screen reader should hear instead of the glyph.
+   * What kind of thing this chip is: its tooltip, and the name a screen reader announces.
+   *
+   * The node view pairs it with `role="img"` and `aria-label`, which is what an atom needs
+   * — the caret cannot enter a chip, so there is nothing to read character by character,
+   * and without a name the ◈ and ▣ glyphs are announced as themselves or dropped. A `title`
+   * alone would not have done it: on a bare `<span>` it is a tooltip, and whether it is ever
+   * spoken is up to the screen reader. Both are set; the `title` is for the pointer.
    *
    * A thunk, read when a node view is built, because this array is module-level and a
    * string resolved here would be fixed at import time. It is read *outside* any reactive
    * owner — ProseMirror builds these, not Solid — so a chip already on screen keeps the
-   * language it was drawn in until its node view is rebuilt. That is a hover title and an
-   * accessible name on an atom whose visible text is the author's own word, so the stale
-   * window is worth more than a second rendering path (R-FE-17).
+   * language it was drawn in until its node view is rebuilt. Worth more than a second
+   * rendering path for a name on an atom whose visible text is the author's own word
+   * (R-FE-17).
    */
   role: () => string;
 }
@@ -86,7 +92,17 @@ function chipNode(spec: ChipSpec) {
         dom.className = CHIP_CLASS;
         dom.dataset.chip = spec.kind;
         dom.contentEditable = "false";
-        dom.title = `${spec.role()}: ${label(node.attrs)}`;
+
+        // Said once, worn twice: `title` for the pointer, `aria-label` for the reader.
+        // `role="img"` is what makes the label *replace* the glyph rather than sit beside
+        // it — and it is honest about the node, which is one indivisible thing to everything
+        // outside it. It is set here only: `renderHTML` below is the serialization path, and
+        // presentation attributes do not belong in the HTML the server round-trips.
+        const name = `${spec.role()}: ${label(node.attrs)}`;
+        dom.title = name;
+        dom.setAttribute("role", "img");
+        dom.setAttribute("aria-label", name);
+
         dom.textContent = text(node.attrs, spec);
         return { dom };
       };

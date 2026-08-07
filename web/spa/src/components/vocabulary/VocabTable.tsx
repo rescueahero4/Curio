@@ -183,7 +183,7 @@ export function VocabTable(props: {
                   <label class="flex items-center">
                     <span class="sr-only">
                       {allShown()
-                        ? t("vocabulary.clearSelection")
+                        ? t("vocabulary.table.clearSelection")
                         : t("vocabulary.table.selectAll", { count: shown().length })}
                     </span>
                     {/* `indeterminate` is a property and not an attribute — there is no

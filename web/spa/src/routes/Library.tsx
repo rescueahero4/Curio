@@ -68,7 +68,7 @@ export function Library() {
           <output class="banner tint-caution">
             {message()}
             <button type="button" class="pill pill-outline" onClick={feed.retry}>
-              {t("common.retry")}
+              {t("library.grid.errors.retry")}
             </button>
           </output>
         )}

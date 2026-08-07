@@ -15,6 +15,13 @@ import { ApiError, paused } from "~/lib/http";
 import { t } from "~/lib/i18n";
 import type { Settings } from "~/lib/types";
 
+/**
+ * What became of the last clear. A kind, not a sentence: the note has no timer and stays
+ * until the next attempt, so a reader who switches language while it is up would otherwise
+ * be left with a line in the language they just left.
+ */
+type Note = "cleared" | "paused" | "failed";
+
 export function ApiKeySection(props: {
   settings: Settings;
   commit: Commit;
@@ -22,7 +29,14 @@ export function ApiKeySection(props: {
 }) {
   const saver = createSaver(props.commit);
   const [clearing, setClearing] = createSignal(false);
-  const [note, setNote] = createSignal<string | null>(null);
+  const [note, setNote] = createSignal<Note | null>(null);
+
+  const noteText = (current: Note) => {
+    if (current === "cleared") return t("settings.apiKey.cleared");
+    return current === "paused"
+      ? t("settings.apiKey.clearPaused")
+      : t("settings.apiKey.clearFailed");
+  };
 
   function commitKey(input: HTMLInputElement) {
     const key = input.value.trim();
@@ -40,13 +54,9 @@ export function ApiKeySection(props: {
     try {
       await clearApiKey();
       await props.refresh();
-      setNote(t("settings.apiKey.cleared"));
+      setNote("cleared");
     } catch (error) {
-      setNote(
-        error instanceof ApiError && error.isPaused
-          ? t("settings.apiKey.clearPaused")
-          : t("settings.apiKey.clearFailed"),
-      );
+      setNote(error instanceof ApiError && error.isPaused ? "paused" : "failed");
     } finally {
       setClearing(false);
     }
@@ -59,14 +69,14 @@ export function ApiKeySection(props: {
       saver={saver}
       blurb={t("settings.apiKey.blurb")}
     >
-      {/* The masked key is interpolated rather than wrapped in a `font-mono` span of its own.
-          It used to sit mid-sentence in a span, which only works while the sentence is
-          English — Japanese puts the value in a different place, and a fragment either side
-          of it cannot be translated on its own. The whole clause is one key now, and the
-          eight characters of `sk-ant-…` read perfectly well in the body face. */}
+      {/* Split heading-from-value, not subject-from-predicate: the clause is one key that
+          each language ends its own way, and the mask keeps the monospaced face it needs.
+          The mask exists so two keys can be told apart, and `sk-ant-…lI10` in a proportional
+          face is the one place that fails. */}
       <p class="text-sm">
         <Show when={props.settings.api_key_set} fallback={t("settings.apiKey.none")}>
-          {t("settings.apiKey.set", { key: props.settings.api_key_masked ?? "sk-ant-…" })}
+          {t("settings.apiKey.set")}{" "}
+          <span class="numeric font-mono">{props.settings.api_key_masked ?? "sk-ant-…"}</span>
         </Show>
       </p>
 
@@ -106,9 +116,9 @@ export function ApiKeySection(props: {
           {clearing() ? t("settings.apiKey.clearing") : t("settings.apiKey.clear")}
         </button>
         <Show when={note()}>
-          {(message) => (
+          {(current) => (
             <span role="status" class="text-xs text-ink-muted">
-              {message()}
+              {noteText(current())}
             </span>
           )}
         </Show>

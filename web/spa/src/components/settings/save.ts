@@ -9,16 +9,25 @@
 import { type Accessor, createSignal } from "solid-js";
 import type { Commit } from "~/components/settings/model";
 import { ApiError } from "~/lib/http";
-import { t } from "~/lib/i18n";
 import type { SettingsPatch } from "~/lib/types";
 
+/**
+ * Every variant here is a *kind*, never a sentence — the one exception being `refused`,
+ * whose message is the server's own words and is not ours to translate. Anything this file
+ * would have said itself is left for the badge to look up at render time, so a language
+ * switch while a badge is on screen changes the badge. This is the same rule `pausedReason`
+ * follows in `model.ts`, and `paused` below has always followed it by having nothing to say.
+ */
 export type SaveState =
   | { kind: "idle" }
   | { kind: "saving" }
   | { kind: "saved"; undoable: boolean }
   | { kind: "reverted" }
   | { kind: "paused" }
-  | { kind: "refused"; message: string };
+  /** The server explained itself. Its words, in the language the server writes in. */
+  | { kind: "refused"; message: string }
+  /** Something else went wrong and there is nothing worth quoting. */
+  | { kind: "failed" };
 
 export interface Saver {
   state: Accessor<SaveState>;
@@ -107,5 +116,5 @@ function explain(error: unknown): SaveState {
   if (error instanceof ApiError) {
     return error.isPaused ? { kind: "paused" } : { kind: "refused", message: error.message };
   }
-  return { kind: "refused", message: t("settings.save.failed") };
+  return { kind: "failed" };
 }

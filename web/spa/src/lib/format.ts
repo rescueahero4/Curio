@@ -60,8 +60,13 @@ export function absoluteTime(iso: string): string {
  * regardless — switching back to a language you have already used should not pay for the
  * constructor a second time. Reading `locale()` here is still a tracked read, so a grid
  * rendered inside a component re-formats its timestamps when the language changes.
+ *
+ * Exported for the callers that need an `Intl` this module does not wrap — `ItemRow` wants
+ * a date with no time on it. Reach for this rather than constructing a formatter at module
+ * scope: `new Intl.DateTimeFormat(undefined, …)` is the browser's locale, frozen at import,
+ * which is the bug this file's own docblock is about.
  */
-function perLocale<T>(build: (tag: Locale) => T): () => T {
+export function perLocale<T>(build: (tag: Locale) => T): () => T {
   const built = new Map<Locale, T>();
   return () => {
     const tag = locale();

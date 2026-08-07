@@ -19,7 +19,7 @@ import type { Saver } from "~/components/settings/save";
 import { t } from "~/lib/i18n";
 
 export function Section(props: {
-  /** Anchor target for the settings nav; see SECTION_NAV in routes/Settings.tsx. */
+  /** Anchor target for the settings nav; see `sectionNav()` in routes/Settings.tsx. */
   id: string;
   title: string;
   blurb?: JSX.Element;
@@ -77,6 +77,13 @@ export function SaveBadge(props: { saver: Saver }) {
         <span class="text-caution">{t("settings.paused.notSaved")}</span>
       </Show>
 
+      <Show when={state().kind === "failed"}>
+        <span role="alert" class="text-caution">
+          {t("settings.save.failed")}
+        </span>
+      </Show>
+
+      {/* The other half of a failure, and the only one this badge does not word itself. */}
       <Show when={refusal()}>
         {(message) => (
           <span role="alert" class="text-caution">

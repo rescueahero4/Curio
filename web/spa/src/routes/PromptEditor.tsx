@@ -45,8 +45,18 @@ export default function PromptEditor() {
 
   const [editor, setEditor] = createSignal<Editor | null>(null);
   const [saving, setSaving] = createSignal(false);
-  const [problem, setProblem] = createSignal<string | null>(null);
   const [outcome, setOutcome] = createSignal<ActionOutcome | null>(null);
+
+  /**
+   * The banner, held as a **thunk** rather than as a finished sentence.
+   *
+   * `OutcomeToast` can hold a resolved string because a toast is a moment. This banner is
+   * not: nothing clears it but the next action that succeeds, so a failed autosave sits
+   * above the document for as long as the author keeps writing. A string frozen at the
+   * moment of failure would still be in the old language an hour later, and it is the one
+   * piece of text on the page telling them their work is not being saved.
+   */
+  const [problem, setProblem] = createSignal<(() => string) | null>(null);
 
   /** The server's serialized text, or null while it is being cut. Non-null means show it. */
   const [source, setSource] = createSignal<string | null>(null);
@@ -67,7 +77,8 @@ export default function PromptEditor() {
       await updatePrompt(params.id, changes);
       setProblem(null);
     } catch (error) {
-      setProblem(error instanceof Error ? error.message : t("editor.document.failed.save"));
+      // `setProblem(() => …)` would be read as an updater, so the thunk is built first.
+      setProblem(() => sentence(error, () => t("editor.document.failed.save")));
     } finally {
       setSaving(false);
     }
@@ -99,7 +110,7 @@ export default function PromptEditor() {
       setSource((await serializePrompt(params.id)).text);
     } catch (error) {
       setShowingSource(false);
-      setProblem(error instanceof Error ? error.message : t("editor.document.failed.source"));
+      setProblem(() => sentence(error, () => t("editor.document.failed.source")));
     }
   };
 
@@ -127,7 +138,7 @@ export default function PromptEditor() {
           wall of screenshots and gets the shell's 100rem; a page of prose does not. */}
       <div class="mx-auto flex max-w-5xl flex-col gap-4 px-6 pt-6 pb-24">
         <Show when={problem()}>
-          {(text) => <output class="banner tint-caution">{text()}</output>}
+          <output class="banner tint-caution">{problem()?.()}</output>
         </Show>
 
         <Show
@@ -180,4 +191,15 @@ export default function PromptEditor() {
       <OutcomeToast outcome={outcome()} onDismiss={() => setOutcome(null)} />
     </div>
   );
+}
+
+/**
+ * The banner's sentence: the server's if it sent one, Curio's own if it did not.
+ *
+ * Returned as a thunk either way, so the caller has one type to hold. The server's message
+ * is already a finished string and closes over it; Curio's is re-read on every render and
+ * follows the interface language for as long as the banner stands.
+ */
+function sentence(error: unknown, fallback: () => string): () => string {
+  return error instanceof Error ? () => error.message : fallback;
 }

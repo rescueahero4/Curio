@@ -36,6 +36,12 @@ export const library = {
       load: "Could not load the library.",
       sessionExpired: "Curio restarted. Open the dashboard from the tray again.",
       unreachable: "Curio is not answering. Is it still running?",
+      /**
+       * Not `common.retry`: that one re-attempts a single failed write, and this asks for
+       * the whole listing again. Two different offers, and they read differently in both
+       * languages — see the table in the i18n README.
+       */
+      retry: "Try again",
     },
     /**
      * Three situations that must not read as one (PRD §5): still reading, nothing captured

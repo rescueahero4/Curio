@@ -11,8 +11,8 @@ export type Commit = (patch: SettingsPatch) => Promise<void>;
  *
  * A function, not a constant. A module-level string is resolved once, when the module is
  * first imported — which is before the reader has had any chance to change the language, and
- * would leave six sections explaining the pause in whichever language happened to be loaded
- * at startup. Called from inside JSX it is read on every render, so it follows a switch like
- * everything else on the page.
+ * would leave ten controls across seven sections explaining the pause in whichever language
+ * happened to be loaded at startup. Called from inside JSX it is read on every render, so it
+ * follows a switch like everything else on the page.
  */
 export const pausedReason = () => t("settings.paused.reason");

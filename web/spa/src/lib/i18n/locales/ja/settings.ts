@@ -3,13 +3,18 @@
  *
  * The English on this page was rewritten in plain language — it explains rather than
  * specifies, and it says what will go wrong before it goes wrong. The Japanese keeps that,
- * which mostly means です・ます調 with the jargon left out: 「監視」 and 「しきい値」 stay
- * because they are what the screen is about, but nothing gets a katakana loanword where a
- * plain word exists.
+ * which mostly means です・ます調 with the officialese left out. 〜を行う, 依頼する and the
+ * rest of the business-correspondence register are what the plain-language rewrite removed
+ * from the English; putting them back in translation would undo it.
+ *
+ * Loanwords earn their place or they do not get one. 信頼度 and しきい値 are the glossary's
+ * and stay. 「ビジョン」 for a vision model reads as 経営ビジョン, and 「ルート」 is root and
+ * route at once, so both are written out — 「画像認識」 and 「保存先」/「置き場所」, the last
+ * of which the section's own blurb was already using a line above.
  *
  * Field labels are noun phrases (「キーの設定」), not sentences — a label reading
- * 「キーを設定します」 narrates rather than names. Buttons are the verb stem 「消去」,
- * 「開く」. Only body copy and hints take the polite ending.
+ * 「キーを設定します」 narrates rather than names. Buttons are the bare stem. Only body copy
+ * and hints take the polite ending.
  *
  * Model ids, file paths, `MCP`, `Anthropic`, `Curio`, `Claude Code`, and port numbers are
  * left exactly as they are, with a half-width space on each side where they sit inside
@@ -54,12 +59,13 @@ export const settings: Settings = {
     title: "パス",
     blurb: "ライブラリの保存先と、Curio が新しいプロジェクトを探すフォルダーです。",
     dataRoot: {
-      label: "データルート",
+      label: "データの保存先",
       hint: "ライブラリ、ノート、プロンプトはすべてここに保存されます。アプリの中からは移動できません。",
     },
     projectsRoot: {
-      label: "プロジェクトルート（監視対象）",
-      hint: "Curio はこのフォルダーを監視します。中にフォルダーを作ると、数秒でプロジェクトになります。Enter キーで保存します。フォルダーはあらかじめ用意しておく必要があり、別のフォルダーの監視を始めるには Curio の再起動が必要です。",
+      /** 保存先 would be wrong here: Curio only ever reads this folder. */
+      label: "プロジェクトの置き場所（監視対象）",
+      hint: "Curio はこのフォルダーを監視します。中にフォルダーを作ると、数秒でプロジェクトになります。Enter キーで保存します。フォルダーはあらかじめ用意しておいてください。別のフォルダーの監視を始めるには、Curio の再起動が必要です。",
     },
   },
 
@@ -68,9 +74,17 @@ export const settings: Settings = {
     blurb: "コンピューターの電源を入れたらすぐに Curio が動き出すようにします。",
     toggle: "ログイン時に Curio を起動する",
     unsupported:
-      "お使いのシステムでは、Curio 側からこの設定を行えません。コンピューターのスタートアップ項目に、手動で Curio を追加することはできます。",
+      "お使いのシステムでは Curio 側から設定できません。コンピューターのスタートアップ項目に、手動で Curio を追加することはできます。",
+    /**
+     * `{{ reason }}` is deliberately unused. The argument is typed, not required, so this
+     * still satisfies `Settings` — and the alternative is worse: the server writes its
+     * reason as an English sentence, and dropping one into the middle of Japanese body copy
+     * gives the reader a paragraph that changes language twice to say the same thing once.
+     * There is exactly one reason the server can emit, so it is written out here instead.
+     * A second one would have to arrive with a key of its own.
+     */
     unsupportedReason: template<{ reason: string }>(
-      "お使いのシステムでは、Curio 側からこの設定を行えません。{{ reason }} コンピューターのスタートアップ項目に、手動で Curio を追加することはできます。",
+      "お使いのシステムでは Curio 側から設定できません。自動起動を登録できるのは Windows と macOS だけです。コンピューターのスタートアップ項目に、手動で Curio を追加することはできます。",
     ),
   },
 
@@ -78,8 +92,13 @@ export const settings: Settings = {
     title: "Anthropic API キー",
     blurb:
       "キャプチャしたものを Curio が評価するために必要です。キーがなくても保存はできますが、評価はキーを追加するまで待機します。",
-    none: "キーは未設定です。",
-    set: template<{ key: string }>("キーは設定済みです（{{ key }}）"),
+    /**
+     * Neither of these takes a closing 。 — they are the two halves of one status line, and
+     * `set` is followed by the masked key. A 。 on one and a separator on the other would
+     * alternate in the same paragraph as the user sets and clears a key.
+     */
+    none: "キーは未設定です",
+    set: "キーは設定済みです:",
     replace: "キーの置き換え",
     add: "キーの設定",
     hint: "Enter キーで保存します。キーは安全に保管され、二度と表示されないため、置き換えると元に戻せません。",
@@ -95,9 +114,9 @@ export const settings: Settings = {
   models: {
     title: "モデル",
     blurb:
-      "Curio が使う AI モデルです。入力した名前はその場では確認されないため、打ち間違いは後から評価の失敗として表れます。",
+      "Curio が使う AI モデルです。入力した名前はその場では確認されないため、打ち間違いは後から評価の失敗として現れます。",
     vision: {
-      label: "ビジョン",
+      label: "画像認識",
       hint: "スクリーンショットを見て、評価を書きます。",
     },
     utility: {
@@ -109,18 +128,20 @@ export const settings: Settings = {
   rubric: {
     title: "評価基準",
     blurb:
-      "キャプチャしたもののどこを見てほしいかを、Curio に伝えるファイルです。自由に編集でき、書いた内容はアップデート後もそのまま残ります。",
+      "キャプチャしたすべてについて、Curio に何を見てほしいかを書くファイルです。自由に編集でき、書いた内容はアップデート後もそのまま残ります。",
     open: "評価基準を開く",
-    opening: "依頼中…",
+    /** 伝える throughout: one act, one verb, in all four of these. */
+    opening: "伝えています…",
+    asked: template<{ path: string }>("{{ path }} を開くよう、エディターに伝えました。"),
     paused:
-      "Curio は一時停止中のため、エディターを開くよう依頼しませんでした。トレイアイコンから再開してください。",
-    failed: "Curio がエディターを呼び出せませんでした。",
+      "Curio は一時停止中のため、エディターには何も伝えていません。トレイアイコンから再開してください。",
+    failed: "Curio がエディターに伝えられませんでした。",
   },
 
   thresholds: {
     title: "信頼度のしきい値",
     blurb:
-      "Curio が自分で仕分けるために、どれだけ確信を持てばよいかを決めます。確信が足りないときは、代わりに確認を求めます。",
+      "Curio が自分でアイテムを仕分けるために必要な信頼度です。これに届かないときは、代わりに確認を求めます。",
     lower: {
       label: "下限",
       hint: "これを下回ると、Curio は推測せずに新しいファミリーを提案します。",
@@ -134,16 +155,20 @@ export const settings: Settings = {
   mcp: {
     title: "MCP サーバー",
     blurb:
-      "Claude などの AI ツールが、ライブラリを検索して保存済みのアイテムを読めるようになります。オフにすれば完全にオフで、どこからも接続できません。",
-    toggle: "MCP 経由でエージェントからこのライブラリに接続できるようにする",
+      "Claude などの AI ツールが、ライブラリを検索して保存済みのアイテムを読めるようになります。オフにすると、外部からは一切接続できません。",
+    toggle: "エージェントが MCP でこのライブラリにアクセスできるようにする",
     off: "スイッチがオフです。下の登録自体はできますが、オンにするまで何も動きません。",
     claudeCode: {
       label: "Claude Code",
-      hint: "ターミナル、または Claude Code 自体に貼り付けてください。Claude が接続するときに Curio が起動している必要があります。Curio を移動したり入れ直したりしたら、ここに戻ってもう一度実行してください。",
+      hint: "ターミナル、または Claude Code 自体に貼り付けてください。Claude が接続するときに Curio が起動している必要があります。Curio を移動したりインストールし直したりしたら、ここに戻ってもう一度実行してください。",
     },
     claudeCodeHttp: {
-      label: "Claude Code（HTTP 接続）",
-      hint: "同じものを直接つなぐ方法です。固定ポートを設定している場合にだけ意味があります。そうでなければ、Curio を次に再起動した時点で使えなくなります。",
+      /**
+       * Half-width parentheses, so the whole label is one Latin run. `snippet.copy` puts a
+       * half-width space after it, which is right after `)` and stray after `）`.
+       */
+      label: "Claude Code (HTTP)",
+      hint: "同じ登録を、HTTP で直接つなぐ形にしたものです。固定ポートを設定している場合にだけ意味があります。そうでなければ、Curio を次に再起動した時点で使えなくなります。",
     },
     claudeDesktop: {
       label: "Claude Desktop",

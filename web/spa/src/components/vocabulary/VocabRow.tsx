@@ -1,9 +1,10 @@
 import { createSignal, Show } from "solid-js";
 import { ChevronDown } from "~/components/icons";
 import { SelectToggle } from "~/components/library/SelectToggle";
+import { refusal } from "~/components/vocabulary/errors";
 import { MergeControl, type MergeTarget } from "~/components/vocabulary/MergeControl";
 import { deleteTerm, mergeTerm, updateTerm } from "~/lib/api";
-import { ApiError, paused } from "~/lib/http";
+import { paused } from "~/lib/http";
 import { t } from "~/lib/i18n";
 import { refreshVocabulary } from "~/lib/stores";
 import type { CreatedBy, VocabularyKind } from "~/lib/types";
@@ -32,9 +33,10 @@ export interface VocabEntry {
  * the thing being edited has to stay on screen and in place while it is edited — a rename
  * that collides needs the old name still visible above the message that says so.
  *
- * A rename that collides answers 409 with prose that points at merge, and that prose is
- * shown verbatim — the server knows which name is taken, and paraphrasing it here would
- * mean maintaining the same sentence twice.
+ * A rename that collides answers 409, and the panel says so where the panel can act on it:
+ * merge is the control directly below the message, and merge is what the message names. The
+ * wording is the dashboard's rather than the server's — see `errors.ts` for why that trade
+ * was made and what it costs.
  */
 export function VocabRow(props: {
   kind: VocabularyKind;
@@ -241,17 +243,4 @@ export function VocabRow(props: {
       </Show>
     </>
   );
-}
-
-/**
- * The server's own words.
- *
- * A 409 on a rename means the name is taken, and the server's message names it and points
- * at merge — which is a different action, not a typo to fix, so it is worth saying in full
- * rather than reducing to "that did not work".
- */
-function refusal(error: unknown): string {
-  if (!(error instanceof ApiError)) return t("vocabulary.errors.generic");
-  if (error.isPaused) return t("vocabulary.errors.paused");
-  return error.message;
 }

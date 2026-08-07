@@ -14,26 +14,48 @@ interface Outcome {
   message: string;
 }
 
+/**
+ * What became of the last press. Kinds rather than sentences, so the note follows a language
+ * change — it has no timer and stays until the button is pressed again.
+ *
+ * `declined` is the one that keeps the server's wording. When the OS refuses to open the
+ * file the reason is the whole message, and it is not something a dictionary here could
+ * anticipate. The success path is ours: it was the server's English sentence until now,
+ * which meant a Japanese reader got English whenever the button worked.
+ */
+type Note =
+  | { kind: "asked" }
+  | { kind: "declined"; message: string }
+  | { kind: "paused" | "failed" };
+
 export function RubricSection(props: { settings: Settings }) {
-  const [note, setNote] = createSignal<string | null>(null);
+  const [note, setNote] = createSignal<Note | null>(null);
   const [asking, setAsking] = createSignal(false);
+
+  const noteText = (current: Note) => {
+    switch (current.kind) {
+      case "asked":
+        return t("settings.rubric.asked", { path: props.settings.skill_file_path });
+      case "declined":
+        return current.message;
+      case "paused":
+        return t("settings.rubric.paused");
+      default:
+        return t("settings.rubric.failed");
+    }
+  };
 
   async function open() {
     setAsking(true);
     setNote(null);
     try {
       const outcome = (await openSkillFile()) as Outcome;
-      // Verbatim, and therefore in the server's language rather than the reader's. The
-      // server phrases it as a request because that is all it can honestly claim — and it
-      // names the tool it asked, which is the part that helps. Restating it from a
-      // dictionary here would turn "asked" into "opened" and drop the detail.
-      setNote(outcome.message);
+      // `asked` was declared and never read. It is the difference between "we handed this to
+      // the OS" and "the OS would not take it", and only the second needs the server's own
+      // words — which is what let the first one go back into the dictionary.
+      setNote(outcome.asked ? { kind: "asked" } : { kind: "declined", message: outcome.message });
     } catch (error) {
-      setNote(
-        error instanceof ApiError && error.isPaused
-          ? t("settings.rubric.paused")
-          : t("settings.rubric.failed"),
-      );
+      setNote({ kind: error instanceof ApiError && error.isPaused ? "paused" : "failed" });
     } finally {
       setAsking(false);
     }
@@ -60,9 +82,9 @@ export function RubricSection(props: { settings: Settings }) {
           {asking() ? t("settings.rubric.opening") : t("settings.rubric.open")}
         </button>
         <Show when={note()}>
-          {(message) => (
+          {(current) => (
             <span role="status" class="text-xs text-ink-muted">
-              {message()}
+              {noteText(current())}
             </span>
           )}
         </Show>

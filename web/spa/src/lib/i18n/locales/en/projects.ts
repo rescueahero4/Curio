@@ -119,7 +119,14 @@ export const projects = {
       removeTitle: "Forget this project. The folder is not touched.",
       removeFailed: "Curio could not remove that project.",
 
-      confirm: "Remove this project for good?",
+      /**
+       * Names what the project is removed *from*, not how permanent it is. A delete verb
+       * sitting beside a filesystem path invites the reading "delete the files", and the
+       * only thing that said otherwise was `removeTitle` — a tooltip on a button that has
+       * already been replaced by the time this appears. `cost` carries the irreversibility
+       * that "for good" used to.
+       */
+      confirm: "Remove this project from Curio?",
       cost: "Its prompt link goes with it.",
       removing: "Removing…",
       keep: "Keep",

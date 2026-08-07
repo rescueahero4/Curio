@@ -9,9 +9,19 @@
  * of the names. That is also why the `…One` / `…Other` pairs are identical: they are
  * English's plural, and 件 counts every number.
  *
- * **"Remove" is 解除, "Delete" is 削除.** Taking a tag off an item leaves the tag alone, and
- * a Japanese reader who saw 削除 on that button would reasonably expect the word itself to be
- * gone. The two verbs are kept apart everywhere they appear.
+ * **English's one "Remove" is three Japanese verbs, split by what is being removed.** Taking
+ * a term off an item is 外す — the term itself survives, and a reader who saw 削除 there would
+ * reasonably expect the tag to be gone from the library. Lifting a filter or a selection is
+ * 解除, which is what Japanese interfaces put on those. Destroying the row is 削除. The same
+ * user action always gets the same verb: the bulk bar's Remove button, its summary of what
+ * that button did, and the × on an item's own chip are all 外す, because they are one action
+ * reached from three places.
+ *
+ * **An injected name is wrapped in 「」, always.** These are arbitrary user data — a tag can
+ * be `warm` or 暖色 — and the half-width space that a Latin run wants inside Japanese text is
+ * a visible gap when the run is Japanese. Quoting sidesteps the rule instead of guessing at
+ * it, and marks where the data starts and stops. Numbers are the exception and keep their
+ * spaces: 「40 件」 is a Latin run under any reading.
  */
 
 import { template } from "@solid-primitives/i18n";
@@ -22,7 +32,9 @@ export const library: Library = {
     processing: "評価待ち",
     ready: "説明済み",
     needsReview: "要確認",
-    failed: "評価に失敗",
+    // A compound, not a clause: this sits in a badge beside 評価待ち and 要確認, and 評価に失敗
+    // was the only one of the four carrying a particle. It still reads in the Status filter.
+    failed: "評価失敗",
   },
 
   grid: {
@@ -32,13 +44,14 @@ export const library: Library = {
       sessionExpired:
         "Curio が再起動しました。トレイアイコンからダッシュボードを開き直してください。",
       unreachable: "Curio が応答しません。まだ起動しているか確認してください。",
+      retry: "もう一度読み込む",
     },
     empty: {
       loading: "ライブラリを読み込んでいます…",
       fresh: {
         title: "まだ何もありません。",
         blurb:
-          "Curio 拡張機能でページをキャプチャするか、上部のバーの「+ アイテムを追加」から追加してください。届いたものから順に Curio が説明を書きます。",
+          "Curio 拡張機能でページをキャプチャするか、上部のバーの「+ アイテムを追加」を使ってください。届いたものから順に Curio が説明を書きます。",
       },
       filtered: {
         title: "条件に一致するものはありません。",
@@ -64,7 +77,7 @@ export const library: Library = {
       legend: "ライブラリの表示方法",
       comfortable: { label: "ゆったりグリッド", hint: "カードを大きく、1 行あたりは少なく" },
       dense: { label: "高密度グリッド", hint: "画面により多く表示" },
-      list: { label: "リスト", hint: "1 行に 1 件、キャプチャ日つき" },
+      list: { label: "リスト", hint: "1 行に 1 件、キャプチャ日付き" },
     },
   },
 
@@ -73,7 +86,9 @@ export const library: Library = {
     // The English slash is doing the work of "or"; Japanese says it with 「か」 and reads as
     // one instruction rather than as two modes to choose between.
     filterOrCreate: "絞り込むか、新しく作成",
-    filterOrCreateLabel: template<{ noun: string }>("{{ noun }} を絞り込むか、新しく作成"),
+    // No space before を: `noun` is always one of the three below, which are always Japanese.
+    // The half-width space rule is for Latin runs, and none of these is one.
+    filterOrCreateLabel: template<{ noun: string }>("{{ noun }}を絞り込むか、新しく作成"),
     noMatch: "一致するものがありません。",
     create: template<{ noun: string; name: string }>("「{{ name }}」を新しい{{ noun }}として作成"),
     nouns: {
@@ -84,16 +99,16 @@ export const library: Library = {
   },
 
   selectToggle: {
-    named: template<{ name: string }>("{{ name }} を選択"),
+    named: template<{ name: string }>("「{{ name }}」を選択"),
     unnamed: "このアイテムを選択",
   },
 
   card: {
     untitled: "無題",
-    proposed: template<{ name: string }>("提案: {{ name }}"),
+    proposed: template<{ name: string }>("提案「{{ name }}」"),
     facets: {
-      family: template<{ name: string }>("ファミリー: {{ name }}"),
-      type: template<{ name: string }>("デザインタイプ: {{ name }}"),
+      family: template<{ name: string }>("ファミリー「{{ name }}」"),
+      type: template<{ name: string }>("デザインタイプ「{{ name }}」"),
     },
     failed: {
       reason: "Curio はこのアイテムを説明できませんでした。",
@@ -129,7 +144,9 @@ export const library: Library = {
 
     panel: {
       add: "追加",
-      remove: "解除",
+      // The term is taken off the selected items, not deleted from the library — 外す, the
+      // same verb as the × on an item's own chip.
+      remove: "外す",
       needOne: "まず 1 つ以上選んでください。",
     },
 
@@ -144,17 +161,19 @@ export const library: Library = {
     },
 
     done: {
+      // `values` is a 、-joined run of user-chosen names, so it is quoted like any other
+      // injected name — one 「」 around the whole enumeration, not one per term.
       addedOne: template<{ values: string; count: number }>(
-        "{{ count }} 件に {{ values }} を追加しました。",
+        "{{ count }} 件に「{{ values }}」を追加しました。",
       ),
       addedOther: template<{ values: string; count: number }>(
-        "{{ count }} 件に {{ values }} を追加しました。",
+        "{{ count }} 件に「{{ values }}」を追加しました。",
       ),
       removedOne: template<{ values: string; count: number }>(
-        "{{ count }} 件から {{ values }} を解除しました。",
+        "{{ count }} 件から「{{ values }}」を外しました。",
       ),
       removedOther: template<{ values: string; count: number }>(
-        "{{ count }} 件から {{ values }} を解除しました。",
+        "{{ count }} 件から「{{ values }}」を外しました。",
       ),
       deletedOne: template<{ count: number }>("{{ count }} 件を削除しました。"),
       deletedOther: template<{ count: number }>("{{ count }} 件を削除しました。"),
@@ -200,7 +219,7 @@ export const library: Library = {
       addFamily: "ファミリーを追加",
       addType: "デザインタイプを追加",
       addTag: "タグを追加",
-      remove: template<{ name: string }>("{{ name }} を外す"),
+      remove: template<{ name: string }>("「{{ name }}」を外す"),
       emptyFamilies: "ファミリーはまだありません。",
       emptyTypes: "デザインタイプはまだありません。",
       emptyTags: "タグはまだありません。",
@@ -220,10 +239,10 @@ export const library: Library = {
       unplaced:
         "Curio はこのアイテムをどのファミリーにも置けませんでした。どこに属するか選んでください。",
       near: template<{ name: string; score: string }>(
-        "Curio は判断しきれませんでした。{{ name }} のスコアは {{ score }} で、推測せずに確認する範囲に入っています。",
+        "Curio は判断しきれませんでした。「{{ name }}」のスコアは {{ score }} で、推測せずに確認する範囲に入っています。",
       ),
-      keep: template<{ name: string }>("{{ name }} のままにする"),
-      acceptProposal: template<{ name: string }>("Curio の提案を採用: {{ name }}"),
+      keep: template<{ name: string }>("「{{ name }}」のままにする"),
+      acceptProposal: template<{ name: string }>("Curio の提案「{{ name }}」を採用"),
       moveTo: "移動先",
       choose: "ファミリーを選択…",
       paused: "Curio は一時停止中です。判断するにはトレイアイコンから再開してください。",

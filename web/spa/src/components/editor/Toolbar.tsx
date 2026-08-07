@@ -37,6 +37,7 @@ import {
 } from "~/components/icons";
 import { Popover } from "~/components/library/Popover";
 import { t } from "~/lib/i18n";
+import { isApplePlatform } from "~/lib/keyboard";
 
 interface Control {
   icon: (props: { class?: string }) => JSX.Element;
@@ -127,10 +128,16 @@ const sourceReason = () => t("editor.toolbar.source.blocked");
 /**
  * The keystroke, appended to a tooltip.
  *
- * Left out of the dictionary on purpose: `Ctrl-Z` is what is printed on the key, and a
- * Japanese keyboard prints the same thing. It is a name, like `Markdown` or `Curio`.
+ * **Not a dictionary entry**, because these are the glyphs printed on the keys and a
+ * Japanese keyboard prints the same ones. They vary by *platform*, not by language, which
+ * is a different axis and the one this rail was getting wrong: TipTap binds history to
+ * `Mod-z`, so on a Mac the chord is ⌘Z and the tooltip said Ctrl-Z — naming a chord that is
+ * not bound, in both languages. `isApplePlatform` and the ⌘/Ctrl split are the same ones
+ * `SearchBox` already renders for Cmd-K.
  */
-const SHORTCUTS = { undo: "Ctrl-Z", redo: "Ctrl-Shift-Z" } as const;
+const SHORTCUTS = isApplePlatform()
+  ? { undo: "⌘Z", redo: "⇧⌘Z" }
+  : { undo: "Ctrl-Z", redo: "Ctrl-Shift-Z" };
 
 interface Props {
   editor: Editor;

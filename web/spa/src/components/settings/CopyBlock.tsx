@@ -20,7 +20,9 @@ const CONFIRM_MS = 1_600;
 
 export function CopyBlock(props: { label: string; hint?: string; snippet: string }) {
   const [copied, setCopied] = createSignal(false);
-  const [problem, setProblem] = createSignal<string | null>(null);
+  // A flag rather than the sentence itself. Unlike the tick, this has no clock — it stays
+  // until the next attempt, which is long enough for the reader to change language under it.
+  const [refused, setRefused] = createSignal(false);
   let timer: ReturnType<typeof setTimeout> | undefined;
 
   onCleanup(() => timer && clearTimeout(timer));
@@ -29,7 +31,7 @@ export function CopyBlock(props: { label: string; hint?: string; snippet: string
     try {
       await navigator.clipboard.writeText(props.snippet);
       setCopied(true);
-      setProblem(null);
+      setRefused(false);
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => setCopied(false), CONFIRM_MS);
     } catch {
@@ -37,7 +39,7 @@ export function CopyBlock(props: { label: string; hint?: string; snippet: string
       // did not happen sends the user to paste nothing into a config file. A refusal needs
       // more than a tick can say, so it keeps the sentence below the block.
       setCopied(false);
-      setProblem(t("settings.snippet.refused"));
+      setRefused(true);
     }
   }
 
@@ -73,12 +75,10 @@ export function CopyBlock(props: { label: string; hint?: string; snippet: string
         </button>
       </div>
 
-      <Show when={problem()}>
-        {(message) => (
-          <span role="status" class="text-xs text-caution">
-            {message()}
-          </span>
-        )}
+      <Show when={refused()}>
+        <span role="status" class="text-xs text-caution">
+          {t("settings.snippet.refused")}
+        </span>
       </Show>
     </div>
   );

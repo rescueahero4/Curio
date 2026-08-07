@@ -1,8 +1,9 @@
 import { createSignal, For, Show } from "solid-js";
 import { ChevronRight } from "~/components/icons";
 import { Popover } from "~/components/library/Popover";
+import { refusal } from "~/components/vocabulary/errors";
 import { createTerm } from "~/lib/api";
-import { ApiError, paused } from "~/lib/http";
+import { paused } from "~/lib/http";
 import { t } from "~/lib/i18n";
 import { refreshVocabulary } from "~/lib/stores";
 import type { VocabularyKind } from "~/lib/types";
@@ -135,7 +136,10 @@ function NewTermForm(props: { kind: VocabularyKind; onBack: () => void; onAdded:
       setDescription("");
       props.onAdded();
     } catch (error) {
-      setProblem(error instanceof ApiError ? error.message : t("vocabulary.add.failed"));
+      /* The same reader as the row panel's, so the same sentences: adding a name that already
+         exists is a 409 exactly like renaming onto one, and it used to arrive here as the
+         server's English. `add.failed` stays as this form's own wording for everything else. */
+      setProblem(refusal(error, t("vocabulary.add.failed")));
     }
     setBusy(false);
   }

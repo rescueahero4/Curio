@@ -7,9 +7,13 @@
  *
  * The namespace is laid out as the screen is: the list, then the document, then the rail
  * above it, then the two things that happen to a whole document, then the `/` menu that
- * writes into it. `slash.kinds` and `chip.role` are the same four concepts named twice on
- * purpose — one reads inside a sentence ("Pick from your aesthetics") and the other is a
- * bare label on a chip, and Japanese wants a different word for each position.
+ * writes into it.
+ *
+ * `slash.kinds` and `chip.role` are the same four concepts named twice, and the split
+ * exists for **English**, not for Japanese: one reads inside a sentence ("Pick from your
+ * aesthetics") and wants a plural, the other is a bare label on a chip and wants a
+ * singular. Japanese does not inflect for number, so its two values coincide — which is
+ * the expected outcome here, not a sign the split was unnecessary.
  *
  * **What is deliberately not here:** the slash palette's four command words. `aesthetic`,
  * `style`, `type` and `item` are typed into the document — the run really says
@@ -29,13 +33,17 @@ export const editor = {
     /** The stamp comes from `lib/format`, which follows the interface language on its own. */
     edited: template<{ when: string }>("Edited {{ when }}"),
     reuse: "Reuse",
-    deleteHint: "Delete this prompt",
 
     empty: {
       title: "No prompts yet.",
       /**
        * One key rather than three, because the slash sits mid-clause in both languages and
        * a sentence spliced around it would be wrong in one of them.
+       *
+       * The four words at the end are the palette's command tokens, which is the whole
+       * reason this sentence lists them: it is the only place that teaches which word to
+       * type. English gets that for free, since the tokens *are* English words. A language
+       * that names those four things differently has to carry both — see `../ja/editor.ts`.
        */
       blurb:
         "New prompt starts you on Curio's gold-standard template — a scaffold you fill in " +
@@ -45,7 +53,8 @@ export const editor = {
 
     failed: {
       delete: "That prompt could not be deleted.",
-      create: "A new prompt could not be started.",
+      /** "Created", not "started": a failure should name the operation, not the invitation. */
+      create: "A new prompt could not be created.",
     },
   },
 
@@ -57,14 +66,15 @@ export const editor = {
       "description, and a reference carries the absolute folder path, so the receiving " +
       "agent can read the screenshot and its sidecar straight off disk.",
 
+    /** `Markdown` is capitalised throughout: it is the format's name, not a common noun. */
     source: {
-      reading: "Reading the markdown…",
+      reading: "Reading the Markdown…",
       empty: "This prompt is empty.",
     },
 
     failed: {
       save: "The last edit did not save.",
-      source: "The markdown could not be read.",
+      source: "The Markdown could not be read.",
     },
   },
 
@@ -116,6 +126,7 @@ export const editor = {
 
     delete: {
       label: "Delete prompt",
+      /** Shared with the prompt list's Delete pill: one sentence, one meaning, one key. */
       hint: "Delete this prompt",
       /** The disarm. It says what happens to the prompt, not that a dialog is closing. */
       keep: "Keep",
@@ -140,11 +151,12 @@ export const editor = {
       close: "Esc to close",
     },
 
-    /** What stage two is picking from, as it reads inside `slash.pick`. */
+    /** What stage two is picking from, as it reads inside `slash.pick`. Plural in English. */
     kinds: {
       aesthetic: "aesthetics",
       style: "styles",
       type: "types",
+      /** A `/item:` run inserts an `itemRef`, so this names the chip, not the library row. */
       item: "references",
     },
 

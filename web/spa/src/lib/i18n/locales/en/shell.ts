@@ -28,7 +28,12 @@ export const shell = {
 
   /* -- the three top-level destinations --------------------------------------------- */
   nav: {
-    label: "Sections",
+    /**
+     * The landmark's name, read aloud as "Main navigation navigation". It has to say *which*
+     * nav it is, because it is not the only one — Settings has its own, and a screen reader
+     * listing the landmarks on a page gets no other way to tell them apart.
+     */
+    label: "Main navigation",
     library: "Library",
     projects: "Projects",
     prompts: "Prompts",
@@ -49,6 +54,7 @@ export const shell = {
     /** The glyph belongs to the label: where a Japanese button puts its `+` is its own call. */
     addItem: "+ Add Item",
     newProject: "New Project",
+    /** Keep this and the failure below on one verb — they are the two ends of one attempt. */
     newProjectStarting: "Starting…",
     /** The last-resort message when the failure arrives without one of its own. */
     newProjectFailed: "A new prompt could not be started.",
@@ -83,12 +89,17 @@ export const shell = {
     body: "Captures still land and stay browsable; Curio waits to describe them.",
     waiting: template<{ count: number }>("{{ count }} waiting."),
     /**
-     * The link text, and the one line here that carries no terminal punctuation. The whole
-     * string is the link body, so a full stop inside it would be underlined — and a
-     * Japanese 。 sits in the left half of a full-width box, which draws the underline out
-     * past the last character into open space.
+     * The link text: the whole string is the link body, so whatever is in it gets
+     * underlined.
+     *
+     * Whether that includes the full stop is a per-language call, and one of the few places
+     * a translation is *right* to diverge in punctuation. English `.` sits tight against
+     * its last glyph and costs nothing; a Japanese 。 sits in the left half of a full-width
+     * box, so underlining it drags the rule past the last character into open space. The
+     * English keeps its stop — three lines here end in one and a fourth that did not would
+     * read as a bug — and the Japanese drops it.
      */
-    addKey: "Add a key in Settings",
+    addKey: "Add a key in Settings.",
     drains: "The queue drains on its own once you do.",
   },
 

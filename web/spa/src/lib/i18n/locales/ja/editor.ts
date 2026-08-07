@@ -7,6 +7,13 @@
  * `Markdown`, `Tab`, `Enter`, `Esc` and `Curio` stay Latin: they are a format name, three
  * key names and a product name, and a Japanese interface writes all five exactly as they
  * are. So does the `/` in the empty state — it is the key the reader has to press.
+ *
+ * **`aesthetic`, `style`, `type` and `item` are not translated anywhere**, because they are
+ * typed into the document rather than read off it (`palette.ts`). That leaves one gap this
+ * file has to close by itself: an English reader learns which word to type from the empty
+ * state, where the tokens happen to be ordinary English. So `list.empty.blurb` carries both
+ * — 「ファミリー（aesthetic）」 — and it is the only string that does, because it is the only
+ * one whose job is to teach the feature rather than to label it.
  */
 
 import { template } from "@solid-primitives/i18n";
@@ -22,19 +29,21 @@ export const editor: Editor = {
     // a list row is scanned down its left edge.
     edited: template<{ when: string }>("最終編集 {{ when }}"),
     reuse: "再利用",
-    deleteHint: "このプロンプトを削除します",
 
     empty: {
       title: "プロンプトはまだありません。",
+      // The four tokens in parentheses are the words the user actually types. Without them
+      // this sentence would name four things and leave no way to reach any of them.
       blurb:
         "新規プロンプトは Curio のお手本テンプレートから始まります。書き足すのも、要らない" +
-        "ところを消すのも自由です。本文のどこかで / を入力すると、ライブラリからファミリー、" +
-        "タグ、デザインタイプ、アイテムを引き出せます。",
+        "ところを消すのも自由です。本文のどこかで / を入力すると、ライブラリからファミリー" +
+        "（aesthetic）、タグ（style）、デザインタイプ（type）、参照アイテム（item）を" +
+        "引き出せます。",
     },
 
     failed: {
       delete: "このプロンプトを削除できませんでした。",
-      create: "新しいプロンプトを作成できませんでした。",
+      create: "新規プロンプトを作成できませんでした。",
     },
   },
 
@@ -57,7 +66,9 @@ export const editor: Editor = {
   },
 
   toolbar: {
-    label: "プロンプト本文",
+    // ドキュメント, not 本文 — 本文 is already `block.text` below, and the two would then be
+    // the same word for the whole document and for one kind of paragraph inside it.
+    label: "プロンプトドキュメント",
     undo: "元に戻す",
     redo: "やり直す",
 
@@ -86,7 +97,7 @@ export const editor: Editor = {
     source: {
       label: "Markdown",
       hint: "コピーしたときに出力されるテキストを表示します",
-      blocked: "Markdown 表示は読み取り専用です。編集するには表示を戻してください",
+      blocked: "Markdown 表示は読み取り専用です。編集するにはドキュメントに戻ってください。",
     },
   },
 
@@ -120,17 +131,22 @@ export const editor: Editor = {
     none: "一致するものはまだありません。",
 
     hint: {
-      tick: "Tab で選択",
+      // チェック, not 選択: Tab ticks a box and Enter is what commits the choice. 選択 here
+      // would name the same act as the menu's own title 「…から選択」.
+      tick: "Tab でチェック",
       insert: "Enter で挿入",
       insertCount: template<{ count: number }>("Enter で {{ count }} 件を挿入"),
       close: "Esc で閉じる",
     },
 
+    // Identical to `chip.role` below, because Japanese has no plural to distinguish them.
+    // 参照アイテム rather than アイテム: アイテム is the library row this picker lists, and
+    // what a `/item:` run puts in the document is a reference to one.
     kinds: {
       aesthetic: "ファミリー",
       style: "タグ",
       type: "デザインタイプ",
-      item: "アイテム",
+      item: "参照アイテム",
     },
 
     hints: {
